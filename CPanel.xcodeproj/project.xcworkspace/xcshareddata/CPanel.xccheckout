@@ -5,7 +5,7 @@
 	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
 	<false/>
 	<key>IDESourceControlProjectIdentifier</key>
-	<string>A4866481-3405-447B-90CC-813D3B593A0A</string>
+	<string>59050F3B-9D6F-4C42-87C8-0904884F8743</string>
 	<key>IDESourceControlProjectName</key>
 	<string>CPanel</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
@@ -14,11 +14,11 @@
 		<string>https://github.com/csatterwhite/CPanel.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
-	<string>CPanel/CPanel.xcodeproj/project.xcworkspace</string>
+	<string>CPanel.xcodeproj/project.xcworkspace</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
 		<key>C2C3C051-FD5E-4A4A-8D7A-52669E2ED999</key>
-		<string>../../..</string>
+		<string>../..</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
 	<string>https://github.com/csatterwhite/CPanel.git</string>

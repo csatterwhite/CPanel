@@ -15,6 +15,9 @@
 class wakePanel : public panel
 {
     double gamma;
+    
+public:
+    wakePanel(short surfaceID) : panel(surfaceID) {}
 };
 
 #endif /* defined(__CPanel__wakePanel__) */

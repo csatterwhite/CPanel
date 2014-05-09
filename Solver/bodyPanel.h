@@ -16,6 +16,9 @@ class bodyPanel : public panel
 {
     double sigma;
     double mu;
+    
+public:
+    bodyPanel(short surfaceID) : panel(surfaceID) {}
 };
 
 #endif /* defined(__CPanel__bodyPanel__) */
