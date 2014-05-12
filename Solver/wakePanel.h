@@ -14,7 +14,7 @@
 
 class wakePanel : public panel
 {
-    double gamma;
+    double mu;
     
 public:
     wakePanel(short surfaceID) : panel(surfaceID) {}
