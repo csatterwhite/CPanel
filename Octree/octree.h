@@ -192,10 +192,10 @@ public:
         }
     }
     
-    node<type> *findNodeContainingMember(const type* obj)
+    node<type> *findNodeContainingMember(type* obj)
     {
         member<type> temp = createMember(obj);
-        assert(!isInsideOctree(temp));
+        assert(isInsideOctree(temp));
         node<type>* current_node = root_node;
         while (!current_node->isLeafNode())
         {
