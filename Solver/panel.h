@@ -25,25 +25,24 @@ class panel
     vertices verts;
     short surfID;
     bool TEpanel;
-    std::vector<panel*> primaryNeighbors; //Share two vertices
-    std::vector<panel*> secondaryNeighbors;  //Share one vertex
+    std::vector<panel*> neighbors; //Share two vertices
     void setCenter(const Eigen::MatrixXd &nodes);
     void setNormal(const Eigen::MatrixXd &nodes);
-    // bool isNeighbor(panel* other);
+    bool neighborExists(panel* other);
     
 public:
     panel(short surfaceID) : surfID(surfaceID) , TEpanel(false) {};
     void setGeom(const Eigen::Vector3i &panelVertices, const Eigen::MatrixXd &nodes);
-    // void addNeighbor(panel* other);
-    // void addPrimaryNeighbor(panel* other);
-    // void addSecondaryNeighbor(panel* other);
-    
+    void checkNeighbor(panel* other);
+    void addNeighbor(panel* other);
+    void setTE() {TEpanel = true;}
     
     vector getCenter() const {return center;}
     vector getNormal() const {return normal;}
     vertices getVerts() const {return verts;}
-    // std::vector<panel*> getPrimNeighbors() const {return primaryNeighbors;}
-    // std::vector<panel*> getSecNeighbors() const {return secondaryNeighbors;}
+    std::vector<panel*> getNeighbors() const {return neighbors;}
+    short getID() const {return surfID;}
+    bool isTEpanel() {return TEpanel;}
     
 };
 
