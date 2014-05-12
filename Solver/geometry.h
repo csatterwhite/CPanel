@@ -28,7 +28,13 @@ class geometry
 
     void createSurfaces(Eigen::MatrixXi connectivity, Eigen::VectorXi surfID);
     void createOctree();
-    // void setTEPanels();
+    void setTEPanels();
+    void getLiftingSurfs(std::vector<surface*>& wakes, std::vector<surface*>& liftingSurfs);
+    void setNeighbors(panel* p,int targetID);
+    void scanNode(panel* p, node<panel>* current, node<panel>* exception);
+    bool isSameNode(Eigen::Vector3d p1, Eigen::Vector3d p2);
+    void fixDuplicateNodes(Eigen::MatrixXi &connectivity);
+    void changeIndex(Eigen::MatrixXi &connectivity, int toReplace, int replaceWith);
     
 public:
     geometry() {}
