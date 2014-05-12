@@ -5,34 +5,34 @@
 	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
 	<false/>
 	<key>IDESourceControlProjectIdentifier</key>
-	<string>59050F3B-9D6F-4C42-87C8-0904884F8743</string>
+	<string>7BADB124-0542-4C2E-BF16-1BFF74F6A1ED</string>
 	<key>IDESourceControlProjectName</key>
 	<string>CPanel</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
-		<key>C2C3C051-FD5E-4A4A-8D7A-52669E2ED999</key>
-		<string>https://github.com/csatterwhite/CPanel.git</string>
+		<key>015D2970-27CA-43A1-B1C5-3781F69FE4C0</key>
+		<string>ssh://github.com/csatterwhite/CPanel.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
 	<string>CPanel.xcodeproj/project.xcworkspace</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
-		<key>C2C3C051-FD5E-4A4A-8D7A-52669E2ED999</key>
+		<key>015D2970-27CA-43A1-B1C5-3781F69FE4C0</key>
 		<string>../..</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
-	<string>https://github.com/csatterwhite/CPanel.git</string>
+	<string>ssh://github.com/csatterwhite/CPanel.git</string>
 	<key>IDESourceControlProjectVersion</key>
 	<integer>110</integer>
 	<key>IDESourceControlProjectWCCIdentifier</key>
-	<string>C2C3C051-FD5E-4A4A-8D7A-52669E2ED999</string>
+	<string>015D2970-27CA-43A1-B1C5-3781F69FE4C0</string>
 	<key>IDESourceControlProjectWCConfigurations</key>
 	<array>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.git</string>
 			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>C2C3C051-FD5E-4A4A-8D7A-52669E2ED999</string>
+			<string>015D2970-27CA-43A1-B1C5-3781F69FE4C0</string>
 			<key>IDESourceControlWCCName</key>
 			<string>CPanel</string>
 		</dict>
