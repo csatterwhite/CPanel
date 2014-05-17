@@ -11,15 +11,15 @@
 
 PanelTest::PanelTest()
 {
-    TEST_ADD(PanelTest::test_setPnts);
+    TEST_ADD(PanelTest::test_setGeom);
     TEST_ADD(PanelTest::test_addNeighbor);
 }
 
 
-void PanelTest::test_setPnts()
+void PanelTest::test_setGeom()
 {
     panel p(1);
-    Eigen::Vector3i vertices = {1,2,3};
+    Eigen::Vector3i vertices = {0,1,2};
     Eigen::MatrixXd nodes(3,3);
     nodes << 0,0,0,3,0,0,0,3,0;
     p.setGeom(vertices,nodes);
@@ -57,13 +57,13 @@ void PanelTest::test_addNeighbor()
     
     nodes << 0,0,0 , 1,0,0 , 2,0,0 , 2,1,0 , 1,1,0 , 0,1,0;
     
-    indices << 1,2,6 , 6,2,5 , 5,2,3 , 3,4,5;
+    indices << 0,1,5 , 5,1,4 , 4,1,2 , 2,3,4;
     
-    //  6 ___5___4
+    //  5 ___4___3
     //   |\  |\  |
     //   | \ | \ |
     //   |__\|__\|
-    //  1    2    3
+    //  0    1    2
     
     panel* p;
     for (int i=0; i<4; i++)

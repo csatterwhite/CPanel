@@ -16,7 +16,7 @@ SurfaceTest::SurfaceTest()
 
 void SurfaceTest::test_addPanel()
 {
-    Eigen::Vector3i indices = {1,2,3};
+    Eigen::Vector3i indices = {0,1,2};
     Eigen::MatrixXd nodes(3,3);
     nodes << 0,0,0,0,1,0,1,0,0;
     surface surf(1);
