@@ -85,21 +85,21 @@ void NodeTests::test_addMember()
                 obj[2] = k;
                 member<point> member(&obj,obj);
                 testNode.addMember(member);
-                counter += 1;
+                counter++;
                 if (counter <= maxMembers)
                 {
-                    // Number of members in node should be the same as the number added.
-                    TEST_ASSERT(testNode.getMembers().size() == counter);
+                    TEST_ASSERT(testNode.isLeafNode())
                 }
                 else
                 {
                     // Once maxMembers is exceeded, all members should be pushed to children and therefore node will no longer be leaf and should contain no members.
                     TEST_ASSERT(!testNode.isLeafNode());
-                    TEST_ASSERT(testNode.getMembers().size() == 0);
                 }
+                // Number of members in node should be the same as the number added due to recursive getMembers method.
+                TEST_ASSERT(testNode.getMembers().size() == counter);
             }
         }
-    }
+    } 
 }
 
 void NodeTests::test_getNodeContainingMember()

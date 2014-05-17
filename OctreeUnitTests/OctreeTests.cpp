@@ -65,6 +65,9 @@ void OctreeTests::test_addData()
         }
     }
     TEST_ASSERT(flag)
+    TEST_ASSERT(testOctree.getRootNode()->getParent() == NULL);
+    
+    node<testObj>* oldRoot = testOctree.getRootNode();
     
     testObj* newData;
     std::array<double,3> newPoint = {-2,-2,-2};
@@ -73,16 +76,6 @@ void OctreeTests::test_addData()
     testOctree.addData(newData);
     
     TEST_ASSERT(testOctree.getMembers().size()==nX*nY*nZ+1);
-    
-    flag = true;
-    for (int i=0; i<3; i++)
-    {
-        if (testOctree.getRootNode()->getOrigin()[i] != 0)
-        {
-            flag = false;
-        }
-    }
-    TEST_ASSERT(flag)
-    
+    TEST_ASSERT(testOctree.getRootNode() != oldRoot);
     
 }
