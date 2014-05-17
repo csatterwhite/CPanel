@@ -17,7 +17,7 @@ int main()
     tests.add(std::auto_ptr<Test::Suite>(new OctreeTests));
     tests.add(std::auto_ptr<Test::Suite>(new NodeTests));
     
-    Test::TextOutput output(Test::TextOutput::Terse);
+    Test::TextOutput output(Test::TextOutput::Verbose);
     return tests.run(output);
 }
 

@@ -54,7 +54,7 @@ class octree
         for (int i=0; i<3; i++)
         {
             center[i] = 0.5*(boxMax[i]+boxMin[i]);
-            halfDimension[i] = 0.5*(boxMax[i]-boxMin[i]);
+            halfDimension[i] = 0.51*(boxMax[i]-boxMin[i]); // Added 1% to half dimension to handle unique cases where floating point error leaves a node outside the octree.
         }
     }
     
@@ -192,10 +192,10 @@ public:
         }
     }
     
-    node<type> *findNodeContainingMember(const type* obj)
+    node<type> *findNodeContainingMember(type* obj)
     {
         member<type> temp = createMember(obj);
-        assert(!isInsideOctree(temp));
+        assert(isInsideOctree(temp));
         node<type>* current_node = root_node;
         while (!current_node->isLeafNode())
         {

@@ -79,6 +79,17 @@ class node
         }
     }
     
+    std::vector<type*> membersToObjects()
+    {
+        std::vector<type*> objects;
+        for (int i=0; i<members.size(); i++)
+        {
+            type* obj = members[i].getObj();
+            objects.push_back(obj);
+        }
+        return objects;
+    }
+    
 public:
     node(node<type>* parent_ptr,std::array<double,3> origin,std::array<double,3> halfDimension, short parent_level,  short maxMembers) : parent(parent_ptr),origin(origin),halfDimension(halfDimension),maxMembers(maxMembers)
     {
@@ -211,11 +222,65 @@ public:
         
         return child;
     }
+    
+    std::vector<type*> getMembers()
+    {
+        if (isLeafNode())
+        {
+            return membersToObjects();
+        }
+        else
+        {
+            std::vector<type*> recursiveMembers;
+            for (int i=0; i<8; i++)
+            {
+                if (children[i] != NULL)
+                {
+                    std::vector<type*> temp = children[i]->getMembers();
+                    for (int j=0; j<temp.size(); j++)
+                    {
+                        recursiveMembers.push_back(temp[j]);
+                    }
+                }
+            }
+            return recursiveMembers;
+        }
+        
+    }
+    
+    std::vector<type*> getMembers(node<type>* exception)
+    {
+        // Used if searching tree starting at bottom to avoid searching the same node twice.
+        if (isLeafNode() && this != exception)
+        {
+            return membersToObjects();
+        }
+        else if (isLeafNode() && this == exception)
+        {
+            std::vector<type*> empty;
+            return empty;
+        }
+        else
+        {
+            std::vector<type*> recursiveMembers;
+            for (int i=0; i<8; i++)
+            {
+                if (children[i] != NULL && children[i] != exception)
+                {
+                    std::vector<type*> temp = children[i]->getMembers(exception);
+                    for (int j=0; j<temp.size(); j++)
+                    {
+                        recursiveMembers.push_back(temp[j]);
+                    }
+                }
+            }
+            return recursiveMembers;
+        }
+    }
 
     
     std::array<double,3> getOrigin() {return origin;}
     std::array<double,3> getHalfDimension() {return halfDimension;}
-    std::vector<member<type>> getMembers() {return members;}
     node<type>* getChild(int childNumber) {return children[childNumber];}
     short getLevel() {return level;}
     node<type>* getParent() {return parent;}

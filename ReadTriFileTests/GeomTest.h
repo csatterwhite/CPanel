@@ -14,10 +14,12 @@
 #include "Eigen/Dense"
 #include <fstream>
 #include "geometry.h"
+#include "surface.h"
 
 class GeomTest : public Test::Suite
 {
     void test_readGeom();
+    int countTEpanels(surface* surf);
     
 public:
     GeomTest();

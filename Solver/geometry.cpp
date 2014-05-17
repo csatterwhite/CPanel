@@ -9,8 +9,6 @@
 #include "geometry.h"
 #include <fstream>
 #include <array>
-#include <set>
-
 
 void geometry::readGeom(std::string geom_file)
 {
@@ -36,6 +34,10 @@ void geometry::readGeom(std::string geom_file)
             fid >> connectivity(i,0) >> connectivity(i,1) >> connectivity(i,2);
         }
         
+        connectivity = connectivity.array()-1; //Adjust for 0 based indexing
+        
+        fixDuplicateNodes(connectivity);
+        
         // Scan Surface IDs and collect Unique IDs
         for (int i=0; i<nTris; i++)
         {
@@ -43,6 +45,61 @@ void geometry::readGeom(std::string geom_file)
         }
         createSurfaces(connectivity,surfID);
         createOctree();
+        setTEPanels();
+        
+        short count = 0;
+        for (int i=0; i<surfaces.size(); i++)
+        {
+            std::vector<panel*> temp = surfaces[i]->getPanels();
+            for (int j=0; j<temp.size(); j++)
+            {
+                if (temp[j]->isTEpanel())
+                {
+                    count++;
+                }
+            }
+        }
+        std::cout << count << std::endl;
+    }
+}
+
+void geometry::fixDuplicateNodes(Eigen::MatrixXi &connectivity)
+{
+    for (int i=0; i<nodes.rows()-1; i++)
+    {
+        for (int j=i+1; j<nodes.rows(); j++)
+        {
+            if (isSameNode(nodes.row(i),nodes.row(j)))
+            {
+                changeIndex(connectivity, j, i);
+            }
+        }
+    }
+}
+
+bool geometry::isSameNode(Eigen::Vector3d p1, Eigen::Vector3d p2)
+{
+    if (p1(0) == p2(0) && p1(1) == p2(1) && p1(2) == p2(2))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+void geometry::changeIndex(Eigen::MatrixXi &connectivity, int toReplace, int replaceWith)
+{
+    for (int i=0; i<connectivity.rows(); i++)
+    {
+        for (int j=0; j<3; j++)
+        {
+            if (connectivity(i,j) == toReplace)
+            {
+                connectivity(i,j) = replaceWith;
+            }
+        }
     }
 }
 
@@ -71,4 +128,92 @@ void geometry::createOctree()
         }
     }
     pOctree.addData(data);
+}
+
+void geometry::setTEPanels()
+{
+    std::vector<surface*> wakes;
+    std::vector<surface*> liftingSurfs;
+    getLiftingSurfs(wakes,liftingSurfs);
+    for (int i=0; i<wakes.size(); i++)
+    {
+        std::vector<panel*> wakePanels = wakes[i]->getPanels();
+        short targetID = liftingSurfs[i]->getID();
+        for (int j=0; j<wakePanels.size(); j++)
+        {
+            setNeighbors(wakePanels[j],targetID);
+        }
+    }
+}
+
+void geometry::getLiftingSurfs(std::vector<surface*>& wakes, std::vector<surface*>& liftingSurfs)
+{
+    for (int i=0; i<surfaces.size(); i++)
+    {
+        if (surfaces[i]->getID()>10000)
+        {
+            wakes.push_back(surfaces[i]);
+        }
+    }
+    for (int i=0; i<wakes.size(); i++)
+    {
+        for (int j=0; j<surfaces.size(); j++)
+        {
+            if (surfaces[j]->getID() == wakes[i]->getID()-10000)
+            {
+                liftingSurfs.push_back(surfaces[j]);
+            }
+        }
+    }
+}
+
+void geometry::setNeighbors(panel* p, int targetID)
+{
+    node<panel>* currentNode = pOctree.findNodeContainingMember(p);
+    scanNode(p,currentNode,NULL);
+    bool flag = false; //Flags panels that are known to not have any trailing edge panels for neighbors;
+    while (currentNode != pOctree.getRootNode())
+    {
+        scanNode(p,currentNode->getParent(),currentNode);
+        currentNode = currentNode->getParent();
+        if (p->getNeighbors().size() == 3)
+        {
+            std::vector<panel*> neighbors = p->getNeighbors();
+            short count = 0; //Count neighbors that are not on lifting surface.
+            for (int i=0; i<3; i++)
+            {
+                if (neighbors[i]->getID() != targetID)
+                {
+                    count++;
+                }
+            }
+            if (count == 3)
+            {
+                flag = true;
+                break; //If there are three neighbors and none of them are on the lifting surface, the panel is not touching the trailing edge.
+            }
+        }
+    }
+
+    if (!flag && p->getNeighbors().size()>=3)
+    {
+        std::vector<panel*> neighbors = p->getNeighbors();
+        for (int i=0; i<neighbors.size(); i++)
+        {
+            if (neighbors[i]->getID() == targetID)
+            {
+                neighbors[i]->setTE();
+            }
+        }
+    }
+    
+}
+
+void geometry::scanNode(panel* p, node<panel>* current, node<panel>* exception)
+{
+    std::vector<panel*> nodeMembers = current->getMembers(exception);
+    for (int i=0; i<nodeMembers.size(); i++)
+    {
+        p->checkNeighbor(nodeMembers[i]);
+    }
 }

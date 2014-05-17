@@ -11,9 +11,9 @@
 
 void panel::setGeom(const Eigen::Vector3i &panelVertices, const Eigen::MatrixXd &nodes)
 {
-    for (int i=0; i<panelVertices.size(); i++)
+    for (int i=0; i<3; i++)
     {
-        verts(i) = panelVertices(i)-1;
+        verts(i) = panelVertices(i);
     }
     setCenter(nodes);
     setNormal(nodes);
@@ -45,4 +45,50 @@ void panel::setNormal(const Eigen::MatrixXd &nodes)
     v02.normalize();
     normal = v01.cross(v02);
 }
+
+bool panel::neighborExists(panel* other)
+{
+    if (neighbors.size()>0)
+    {
+        for (int i=0; i<neighbors.size(); i++)
+        {
+            if (neighbors[i]==other)
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+void panel::checkNeighbor(panel* other)
+{
+    if (neighbors.size() <= 4 && !neighborExists(other) && other != this) //Do not check and add panel if it is already a neighbor or if maximum number of neighbors (4) is already reached;
+    {
+        vertices otherVerts = other->getVerts();
+        short count = 0;
+        for (int i=0; i<3; i++)
+        {
+            for (int j=0; j<3; j++)
+            {
+                if (verts(i) == otherVerts(j))
+                {
+                    count++;
+                }
+            }
+        }
+        if (count==2)
+        {
+            addNeighbor(other);
+            other->addNeighbor(this);
+        }
+    }
+}
+
+void panel::addNeighbor(panel* other)
+{
+    neighbors.push_back(other);
+}
+
 

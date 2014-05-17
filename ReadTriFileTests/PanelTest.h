@@ -16,8 +16,8 @@
 
 class PanelTest : public Test::Suite
 {
-    void test_setPnts();
-    // void test_addNeighbor();
+    void test_setGeom();
+    void test_addNeighbor();
 
 public:
     PanelTest();

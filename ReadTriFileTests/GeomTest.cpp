@@ -16,12 +16,22 @@ GeomTest::GeomTest()
 void GeomTest::test_readGeom()
 {
    // Construct tri file to test
-    int nTris = 6;
+    int nTris = 7;
     int nVerts = 8;
     std::ofstream fid;
     fid.open("testfile.tri");
     if (fid.is_open())
     {
+        // Visual of testfile.tri
+        //
+        //  5_____6_____7_____8
+        //  |\    |\    |\    |
+        //  | \ 2 | \ 5 | \ 7 |
+        //  |  \  |  \  |  \  |
+        //  | 1 \ |3,4\ | 6 \ |
+        //  |____\|____\|____\|
+        //  1     2     3     4
+        
         fid << nVerts << "\t" << nTris << "\n";
         
         fid << 0 << "\t" << 0 << "\t" << 0 << "\n"
@@ -33,34 +43,64 @@ void GeomTest::test_readGeom()
             << 2 << "\t" << 1 << "\t" << 0 << "\n"
             << 3 << "\t" << 1 << "\t" << 0 << "\n";
         
-        fid << 1 << "\t" << 5 << "\t" << 2 << "\n"
-            << 2 << "\t" << 5 << "\t" << 6 << "\n"
-            << 3 << "\t" << 2 << "\t" << 6 << "\n"
-            << 3 << "\t" << 6 << "\t" << 7 << "\n"
-            << 4 << "\t" << 3 << "\t" << 7 << "\n"
-            << 4 << "\t" << 7 << "\t" << 8 << "\n";
+        fid << 1 << "\t" << 2 << "\t" << 5 << "\n"
+            << 2 << "\t" << 6 << "\t" << 5 << "\n"
+            << 3 << "\t" << 6 << "\t" << 2 << "\n"
+            << 3 << "\t" << 6 << "\t" << 2 << "\n"
+            << 3 << "\t" << 7 << "\t" << 6 << "\n"
+            << 4 << "\t" << 7 << "\t" << 3 << "\n"
+            << 4 << "\t" << 8 << "\t" << 7 << "\n";
         
-        fid << 1 << "\n" << 2 << "\n" << 2 << "\n" << 10001 << "\n" << 10001 << "\n" << 10001;
+        // Fourth panel is a duplicate of the third panel because wake must stem from two panels on the lifting surface sharing the same edge.
+        
+        fid << 1 << "\n" << 2 << "\n" << 2 << "\n" << 2 << "\n" << 10002 << "\n" << 10002 << "\n" << 10002;
         
         fid.close();
         
         geometry testGeom;
         testGeom.readGeom("testfile.tri");
-        TEST_ASSERT_MSG(testGeom.getSurfaces()[0]->getID() == 1, "Surface does not have assigned surfID");
+        surface* surf = testGeom.getSurfaces()[0];
+        TEST_ASSERT_MSG(surf->getID() == 1, "Surface does not have assigned surfID");
         
-        TEST_ASSERT_MSG(testGeom.getSurfaces()[1]->getID() == 2, "Surface does not have assigned surfID");
+        TEST_ASSERT_MSG(surf->getPanels().size() == 1, "Incorrect number of panels added to surface");
         
-        TEST_ASSERT_MSG(testGeom.getSurfaces()[1]->getID() == 2, "Surface does not have assigned surfID");
+        TEST_ASSERT_MSG(countTEpanels(surf) == 0, "Incorrect TE panel set")
         
-        TEST_ASSERT_MSG(testGeom.getSurfaces()[2]->getID() == 10001, "Surface does not have assigned surfID");
+        surf = testGeom.getSurfaces()[1];
         
-        TEST_ASSERT_MSG(testGeom.getSurfaces()[2]->getID() == 10001, "Surface does not have assigned surfID");
+        TEST_ASSERT_MSG(surf->getID() == 2, "Surface does not have assigned surfID")
         
-        TEST_ASSERT_MSG(testGeom.getSurfaces()[2]->getID() == 10001, "Surface does not have assigned surfID");
+        TEST_ASSERT_MSG(surf->getPanels().size() == 3, "Incorrect number of panels added to surface");
+        
+        TEST_ASSERT_MSG(countTEpanels(surf) == 2, "Incorrect TE panel set");
+        
+        surf = testGeom.getSurfaces()[2];
+        
+        TEST_ASSERT_MSG(surf->getID() == 10002, "Surface does not have assigned surfID")
+        
+        TEST_ASSERT_MSG(surf->getPanels().size() == 3, "Incorrect number of panels added to surface");
+        
+        TEST_ASSERT_MSG(countTEpanels(surf) == 0, "Incorrect TE panel set");
+        
+
         
     }
     else if (!fid.is_open())
     {
         exit (EXIT_FAILURE);
     }    
+}
+
+int GeomTest::countTEpanels(surface *surf)
+{
+    int count = 0;
+    std::vector<panel*> panels = surf->getPanels();
+    for (int i=0; i<panels.size(); i++)
+    {
+        if (panels[i]->isTEpanel())
+        {
+            count++;
+        }
+    }
+    return count;
 }
