@@ -18,9 +18,16 @@
 class panel
 {
     typedef Eigen::Vector3d         vector;
+    typedef Eigen::Vector3d         point;
     typedef Eigen::Vector3i         vertices;
+    typedef Eigen::Matrix3d         coordSys;
     
-    vector center;
+    //    coordSys
+    //  |v1x v1y v1z| i.e. each axis is a row
+    //  |v2x v2y v2z|
+    //  |v3x v3y v3z|
+    
+    point center;
     vector normal;
     vertices verts;
     short surfID;
@@ -29,19 +36,26 @@ class panel
     void setCenter(const Eigen::MatrixXd &nodes);
     void setNormal(const Eigen::MatrixXd &nodes);
     bool neighborExists(panel* other);
+    bool isInsidePanel(
+    vector getUnitVector(const point &p1, const point &p2);
+    coordSys getLocalSys(const Eigen::MatrixXd &nodes);
+    void influenceTerms(const long &nVerts, const Eigen::MatrixXd &nodes, const point &POIglobal, const coordSys &localSys, const coordSys &globalSys, Eigen::VectorXd &d, Eigen::VectorXd &m, Eigen::VectorXd &r, Eigen::VectorXd &e, Eigen::VectorXd &h);
     
 public:
     panel(short surfaceID) : surfID(surfaceID) , TEpanel(false) {};
     void setGeom(const Eigen::Vector3i &panelVertices, const Eigen::MatrixXd &nodes);
     void checkNeighbor(panel* other);
     void addNeighbor(panel* other);
-    void setTE() {TEpanel = true;}
+    vector transformCoordinates(const vector &toTransform, const coordSys &fromSys, const coordSys &toSys);
+    void sourceInfluence(const double &sigma, const point &POIglobal, const Eigen::MatrixXd &nodes, vector &velocity, double &potential);
+    
     
     vector getCenter() const {return center;}
     vector getNormal() const {return normal;}
     vertices getVerts() const {return verts;}
     std::vector<panel*> getNeighbors() const {return neighbors;}
     short getID() const {return surfID;}
+    void setTE() {TEpanel = true;}
     bool isTEpanel() {return TEpanel;}
     
 };

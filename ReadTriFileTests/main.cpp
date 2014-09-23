@@ -7,6 +7,7 @@
 //
 
 #include <iostream>
+#include "cpptest/cpptest.h"
 #include "PanelTest.h"
 #include "GeomTest.h"
 #include "SurfaceTest.h"

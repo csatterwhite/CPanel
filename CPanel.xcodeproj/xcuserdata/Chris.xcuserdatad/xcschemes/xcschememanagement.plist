@@ -9,6 +9,11 @@
 			<key>orderHint</key>
 			<integer>0</integer>
 		</dict>
+		<key>InfluenceCoefficientTests.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>5</integer>
+		</dict>
 		<key>Octree.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
@@ -33,6 +38,11 @@
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
 		<key>83039DFA191152A300271526</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>8334B02B192AD2CE008241DB</key>
 		<dict>
 			<key>primary</key>
 			<true/>
