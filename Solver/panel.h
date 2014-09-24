@@ -14,6 +14,7 @@
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 #include <vector>
+#include "math.h"
 
 class panel
 {
@@ -36,7 +37,6 @@ class panel
     void setCenter(const Eigen::MatrixXd &nodes);
     void setNormal(const Eigen::MatrixXd &nodes);
     bool neighborExists(panel* other);
-    bool isInsidePanel(
     vector getUnitVector(const point &p1, const point &p2);
     coordSys getLocalSys(const Eigen::MatrixXd &nodes);
     void influenceTerms(const long &nVerts, const Eigen::MatrixXd &nodes, const point &POIglobal, const coordSys &localSys, const coordSys &globalSys, Eigen::VectorXd &d, Eigen::VectorXd &m, Eigen::VectorXd &r, Eigen::VectorXd &e, Eigen::VectorXd &h);
