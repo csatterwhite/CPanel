@@ -67,6 +67,13 @@ bool panel::neighborExists(panel* other)
     return false;
 }
 
+bool panel::isOnPanel(std::vector<point> points, const point &POI)
+{
+    points.push_back(POI);
+    convexHull hull(points,false);
+    return (hull.getHull().size() == verts.size());
+}
+
 void panel::checkNeighbor(panel* other)
 {
     if (neighbors.size() <= 4 && !neighborExists(other) && other != this) //Do not check and add panel if it is already a neighbor or if maximum number of neighbors (4) is already reached;
@@ -172,7 +179,6 @@ void panel::sourceInfluence(const double &sigma, const point &POIglobal, const E
     // Transform Panel Vertices and Point of Interest to Local System
     vector POI = transformCoordinates(POIglobal,globalSys,localSys);
     
-    // Get the influcence terms___________________!!!!!!!!!!!!!!!
     long nVerts = verts.rows();
     Eigen::MatrixXd vertsLocal(nVerts,3);
     //  |x1 y1 z1| First Vertex

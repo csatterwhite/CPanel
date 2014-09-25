@@ -41,6 +41,8 @@
 		83B4B8FD18F0AF4F00EEBC34 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83B4B8FC18F0AF4F00EEBC34 /* main.cpp */; };
 		83B4B8FF18F0AF4F00EEBC34 /* Octree.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 83B4B8FE18F0AF4F00EEBC34 /* Octree.1 */; };
 		83B5BDAE19D310B100506A12 /* convexHull.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83B5BDAC19D310B100506A12 /* convexHull.cpp */; };
+		83C1148919D38EF6005D7239 /* convexHullTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83C1148719D38EF6005D7239 /* convexHullTests.cpp */; };
+		83C1148A19D3A416005D7239 /* convexHull.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83B5BDAC19D310B100506A12 /* convexHull.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -146,6 +148,8 @@
 		83B4B90718F0C12500EEBC34 /* octree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = octree.h; sourceTree = "<group>"; };
 		83B5BDAC19D310B100506A12 /* convexHull.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = convexHull.cpp; sourceTree = "<group>"; };
 		83B5BDAD19D310B100506A12 /* convexHull.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = convexHull.h; sourceTree = "<group>"; };
+		83C1148719D38EF6005D7239 /* convexHullTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = convexHullTests.cpp; sourceTree = "<group>"; };
+		83C1148819D38EF6005D7239 /* convexHullTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = convexHullTests.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -218,6 +222,8 @@
 			children = (
 				8334B02E192AD2CE008241DB /* main.cpp */,
 				8334B037192AD55A008241DB /* CoordTransformTest.cpp */,
+				83C1148719D38EF6005D7239 /* convexHullTests.cpp */,
+				83C1148819D38EF6005D7239 /* convexHullTests.h */,
 				8334B038192AD55A008241DB /* CoordTransformTest.h */,
 				8334B030192AD2CE008241DB /* InfluenceCoefficientTests.1 */,
 			);
@@ -405,8 +411,8 @@
 				83B4B8F918F0AF4F00EEBC34 /* Octree */,
 				83A7DF1618FDF5CA002DDEB6 /* OctreeUnitTests */,
 				83A88C9B190F56F7006A8CB2 /* ReadTriFileTests */,
-				83039DFA191152A300271526 /* Solver */,
 				8334B02B192AD2CE008241DB /* InfluenceCoefficientTests */,
+				83039DFA191152A300271526 /* Solver */,
 			);
 		};
 /* End PBXProject section */
@@ -434,6 +440,8 @@
 				8334B039192AD55A008241DB /* CoordTransformTest.cpp in Sources */,
 				8334B02F192AD2CE008241DB /* main.cpp in Sources */,
 				831070EC192ADA6700BE80B6 /* panel.cpp in Sources */,
+				83C1148919D38EF6005D7239 /* convexHullTests.cpp in Sources */,
+				83C1148A19D3A416005D7239 /* convexHull.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
