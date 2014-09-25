@@ -7,3 +7,85 @@
 //
 
 #include "convexHullTests.h"
+
+convexHullTests::convexHullTests()
+{
+    TEST_ADD(convexHullTests::testPntInside);
+    TEST_ADD(convexHullTests::testPntOutside);
+    TEST_ADD(convexHullTests::testPntOnBoundary);
+}
+
+void convexHullTests::testPntInside()
+{
+    Eigen::Vector3d p1;
+    p1 << 0,1,0;
+    Eigen::Vector3d p2;
+    p2 << 1,1,0;
+    Eigen::Vector3d p3;
+    p3 << 0,0,0;
+    Eigen::Vector3d p4;
+    p4 << 0.333,0.666,0;
+    
+    std::vector<Eigen::Vector3d> points(4);
+    points[0] = p1;
+    points[1] = p2;
+    points[2] = p3;
+    points[3] = p4;
+    
+    convexHull testHull(points,true);
+    
+    TEST_ASSERT(testHull.getHull().size() == 3);
+}
+
+void convexHullTests::testPntOutside()
+{
+    Eigen::Vector3d p1;
+    p1 << 0,1,0;
+    Eigen::Vector3d p2;
+    p2 << 1,1,0;
+    Eigen::Vector3d p3;
+    p3 << 0,0,0;
+    Eigen::Vector3d p4;
+    p4 << 1,0,0;
+    
+    std::vector<Eigen::Vector3d> points(4);
+    points[0] = p1;
+    points[1] = p2;
+    points[2] = p3;
+    points[3] = p4;
+    
+    convexHull testHull(points,true);
+    
+    TEST_ASSERT(testHull.getHull().size() == 4);
+}
+
+void convexHullTests::testPntOnBoundary()
+{
+    Eigen::Vector3d p1;
+    p1 << 0,0.5,0;
+    Eigen::Vector3d p2;
+    p2 << 1,1,0;
+    Eigen::Vector3d p3;
+    p3 << 0,0,0;
+    Eigen::Vector3d p4;
+    p4 << 0.5,0.5,0;
+    Eigen::Vector3d p5;
+    p5 << 0,1,0;
+    Eigen::Vector3d p6;
+    p6 << 0.5,1,0;
+    
+    std::vector<Eigen::Vector3d> points(6);
+    points[0] = p1;
+    points[1] = p2;
+    points[2] = p3;
+    points[3] = p4;
+    points[4] = p5;
+    points[5] = p6;
+    
+    convexHull testBoundaryInside(points,true);
+    convexHull testBoundaryOutside(points,false);
+    
+    TEST_ASSERT(testBoundaryInside.getHull().size() == 3);
+    TEST_ASSERT(testBoundaryOutside.getHull().size() == 6);
+}
+

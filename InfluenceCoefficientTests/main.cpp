@@ -9,11 +9,13 @@
 #include <iostream>
 #include "cpptest/cpptest.h"
 #include "CoordTransformTest.h"
+#include "convexHullTests.h"
 
 int main()
 {
     Test::Suite tests;
     tests.add(std::auto_ptr<Test::Suite>(new CoordTransformTest));
+    tests.add(std::auto_ptr<Test::Suite>(new convexHullTests));
     
     Test::TextOutput output(Test::TextOutput::Verbose);
     return tests.run(output);

@@ -8,9 +8,12 @@
 
 #include "convexHull.h"
 
-convexHull::convexHull(std::vector<Eigen::Vector3d> points, bool boundary) : boundary(boundary)
+convexHull::convexHull(std::vector<Eigen::Vector3d> points, bool bound) : boundary(bound)
 {
     Eigen::Vector3d basePnt = points[0];
+    double minTheta = M_PI;
+    double maxTheta = 0;
+    
     for (int i=1; i<points.size(); i++)
     {
         if ((points[i](1) == basePnt(1) && points[i](0) < basePnt(0)) || (points[i](1) < basePnt(1)))
@@ -21,6 +24,17 @@ convexHull::convexHull(std::vector<Eigen::Vector3d> points, bool boundary) : bou
     for (int i=0; i<points.size(); i++)
     {
         member* m = new member(points[i],basePnt);
+        if (points[i] != basePnt)
+        {
+            if (m->theta < minTheta)
+            {
+                minTheta = m->theta;
+            }
+            if (m->theta > maxTheta)
+            {
+                maxTheta = m->theta;
+            }
+        }
         if (points[i] == basePnt)
         {
             members.insert(members.begin(),m);
@@ -30,15 +44,37 @@ convexHull::convexHull(std::vector<Eigen::Vector3d> points, bool boundary) : bou
             members.push_back(m);
         }
     }
-    std::sort(members.begin()+1,members.end(),compareD());
+    // std::sort(members.begin()+1,members.end(),compareD());
     std::sort(members.begin()+1,members.end(),compareTheta());
+    int minBegin = -1;
+    int minEnd = -1;
+    unsigned long maxBegin = members.size();
+    for (int i=1; i<members.size()-1; i++)
+    {
+        if (members[i]->theta == minTheta && minBegin == -1)
+        {
+            minBegin = i;
+        }
+        else if (members[i]->theta != minTheta && minBegin != -1 && minEnd == -1)
+        {
+            minEnd = i;
+        }
+        else if (members[i]->theta == maxTheta && maxBegin == members.size())
+        {
+            maxBegin = i;
+        }
+    }
+    std::sort(members.begin()+minBegin,members.begin()+minEnd,compareDistAscending());
+    std::sort(members.begin()+maxBegin,members.end(),compareDistDescending());
+    computeHull();
 }
 
-convexHull::member::member(Eigen::Vector3d point, Eigen::Vector3d basePnt)
+
+convexHull::member::member(const Eigen::Vector3d &point, const Eigen::Vector3d &basePnt)
 {
     x = point(0);
     y = point(1);
-    y = point(2);
+    z = point(2);
     theta = atan2((y-basePnt(1)),(x-basePnt(0)));
     d = sqrt(pow(y-basePnt(1),2)+pow(x-basePnt(0),2));
 }
@@ -46,7 +82,7 @@ convexHull::member::member(Eigen::Vector3d point, Eigen::Vector3d basePnt)
 void convexHull::computeHull()
 {
     hull.push_back(members.front());
-    for (int i=0; i<members.size(); i++)
+    for (int i=0; i<members.size()-1; i++)
     {
         Eigen::Vector3d v1,v2;
         if (i==members.size()-2)

@@ -21,7 +21,7 @@ class convexHull
 {
     struct member
     {
-        member(Eigen::Vector3d point, Eigen::Vector3d basePnt);
+        member(const Eigen::Vector3d &point, const Eigen::Vector3d &basePnt);
         double x,y,z,theta,d;
     };
     struct compareTheta
@@ -31,11 +31,18 @@ class convexHull
             return (p1->theta < p2->theta);
         }
     };
-    struct compareD
+    struct compareDistAscending
     {
         inline bool operator()(member* p1, member* p2)
         {
             return (p1->d < p2->d);
+        }
+    };
+    struct compareDistDescending
+    {
+        inline bool operator()(member* p1, member* p2)
+        {
+            return (p1->d > p2->d);
         }
     };
     
@@ -52,6 +59,13 @@ class convexHull
 public:
     
     convexHull(std::vector<Eigen::Vector3d> points, bool boundary);
+    ~convexHull()
+    {
+        for (int i = 0; i<members.size(); i++)
+        {
+            delete members[i];
+        }
+    }
     std::vector<member*> getHull() {return hull;}
 };
 

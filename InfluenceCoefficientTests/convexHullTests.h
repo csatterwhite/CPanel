@@ -9,6 +9,18 @@
 #ifndef __CPanel__convexHullTests__
 #define __CPanel__convexHullTests__
 
-#include <stdio.h>
+#include <iostream>
+#include "cpptest/cpptest.h"
+#include "convexHull.h"
+
+class convexHullTests : public Test::Suite
+{
+    void testPntInside();
+    void testPntOutside();
+    void testPntOnBoundary();
+    
+public:
+    convexHullTests();
+};
 
 #endif /* defined(__CPanel__convexHullTests__) */
