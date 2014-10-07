@@ -14,14 +14,16 @@
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 #include <vector>
+#include <cmath>
 #include "math.h"
 #include "convexHull.h"
+#include "InfluenceTerms.h"
 
 class panel
 {
     typedef Eigen::Vector3d         vector;
     typedef Eigen::Vector3d         point;
-    typedef Eigen::Vector3i         vertices;
+    typedef Eigen::VectorXi         vertices;
     typedef Eigen::Matrix3d         coordSys;
     
     //    coordSys
@@ -32,24 +34,27 @@ class panel
     point center;
     vector normal;
     vertices verts;
+    double area;
     short surfID;
     bool TEpanel;
     std::vector<panel*> neighbors; //Share two vertices
-    void setCenter(const Eigen::MatrixXd &nodes);
-    void setNormal(const Eigen::MatrixXd &nodes);
     bool neighborExists(panel* other);
-    bool isOnPanel(std::vector<point> points, const point &POI);
+    bool isOnPanel(const point &POI, const Eigen::MatrixXd &nodes);
     vector getUnitVector(const point &p1, const point &p2);
     coordSys getLocalSys(const Eigen::MatrixXd &nodes);
-    void influenceTerms(const long &nVerts, const Eigen::MatrixXd &nodes, const point &POIglobal, const coordSys &localSys, const coordSys &globalSys, Eigen::VectorXd &d, Eigen::VectorXd &m, Eigen::VectorXd &r, Eigen::VectorXd &e, Eigen::VectorXd &h);
+    void pointSource(const double &sigma, const point &POI, double &phi, Eigen::Vector3d &vel);
+    void pointDoublet(const double &mu, const point &POI, double &phi, Eigen::Vector3d &vel);
+    void panelSource(const double &sigma, const point &POI, const Eigen::MatrixXd &vertsLocal, const influenceTerms &terms, double &phi, Eigen::Vector3d &vel);
+    void panelDoublet(const double &mu, const point &POI, const Eigen::MatrixXd &vertsLocal, const influenceTerms &terms, double &phi, Eigen::Vector3d &vel);
     
 public:
     panel(short surfaceID) : surfID(surfaceID) , TEpanel(false) {};
-    void setGeom(const Eigen::Vector3i &panelVertices, const Eigen::MatrixXd &nodes);
+    void setGeom(const vertices &panelVertices, const Eigen::MatrixXd &nodes);
     void checkNeighbor(panel* other);
     void addNeighbor(panel* other);
     vector transformCoordinates(const vector &toTransform, const coordSys &fromSys, const coordSys &toSys);
-    void sourceInfluence(const double &sigma, const point &POIglobal, const Eigen::MatrixXd &nodes, vector &velocity, double &potential);
+    void sourceInfluence(const double &sigma, const point &POIglobal, const Eigen::MatrixXd &nodes, double &phi, Eigen::Vector3d &vel);
+    void doubletInfluence(const double &mu, const point &POIglobal, const Eigen::MatrixXd &nodes, double &phi, Eigen::Vector3d &vel);
     
     
     vector getCenter() const {return center;}

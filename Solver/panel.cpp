@@ -16,39 +16,51 @@ typedef Eigen::Matrix3d         coordSys;
 
 void panel::setGeom(const vertices &panelVertices, const Eigen::MatrixXd &nodes)
 {
-    for (int i=0; i<3; i++)
+    verts.resize(panelVertices.rows());
+    for (int i=0; i<panelVertices.rows(); i++)
     {
         verts(i) = panelVertices(i);
     }
-    setCenter(nodes);
-    setNormal(nodes);
-}
-
-void panel::setCenter(const Eigen::MatrixXd &nodes)
-{
-    for (int i=0; i<3; i++)
+    
+    if (verts.size() == 3)
     {
-        double sum = 0;
-        for (int j=0; j<3; j++)
-        {
-            sum += nodes(verts(j),i);
-        }
-        center(i) = sum/3;
+        point p0,p1,p2;
+        vector a,b;
+        p0 = nodes.row(verts(0));
+        p1 = nodes.row(verts(1));
+        p2 = nodes.row(verts(2));
+        a = p1-p0;
+        b = p2-p0;
+        center = (p0+p1+p2)/3;
+        
+        double theta = acos(a.dot(b)/(a.norm()*b.norm()));
+        area = 0.5*a.norm()*b.norm()*sin(theta);
+        
+        normal = a.cross(b);
+        normal.normalize();
     }
-}
-
-void panel::setNormal(const Eigen::MatrixXd &nodes)
-{
-    vector v01; //Unit vector from point 0 to 1
-    vector v02; //Unit vector from point 0 to 2
-    for (int i=0; i<3; i++)
+    else if (verts.size() == 4)
     {
-        v01(i) = nodes(verts(1),i)-nodes(verts(0),i);
-        v02(i) = nodes(verts(2),i)-nodes(verts(0),i);
+        point p0,p1,p2,p3,m1,m2;
+        vector a,b,c,d,p,q;
+        p0 = nodes.row(verts(0));
+        p1 = nodes.row(verts(1));
+        p2 = nodes.row(verts(2));
+        p3 = nodes.row(verts(3));
+        a = p1-p0;
+        b = p2-p1;
+        c = p3-p2;
+        d = p0-p3;
+        p = b+c;
+        q = a+b;
+        m1 = p1+0.5*p;
+        m2 = p0+0.5*q;
+        center = 0.5*(m1+m2);
+        area = 0.5*p.cross(q).norm();
+        normal = a.cross(b);
+        normal.normalize();
     }
-    v01.normalize();
-    v02.normalize();
-    normal = v01.cross(v02);
+
 }
 
 bool panel::neighborExists(panel* other)
@@ -67,9 +79,15 @@ bool panel::neighborExists(panel* other)
     return false;
 }
 
-bool panel::isOnPanel(std::vector<point> points, const point &POI)
+bool panel::isOnPanel(const point &POI, const Eigen::MatrixXd &nodes)
 {
-    points.push_back(POI);
+    Eigen::MatrixXd points(verts.rows()+1,3);
+    for (int i=0; i<verts.rows(); i++)
+    {
+        points.row(i) = nodes.row(verts(i));
+    }
+    points.row(verts.rows()) = POI;
+        
     convexHull hull(points,false);
     return (hull.getHull().size() == verts.size());
 }
@@ -143,34 +161,7 @@ vector panel::transformCoordinates(const vector &toTransform, const coordSys &fr
     return transformCoeffs*toTransform;
 }
 
-void panel::influenceTerms(const long &nVerts, const Eigen::MatrixXd &vertsLocal, const point &POI, const coordSys &localSys, const coordSys &globalSys, Eigen::VectorXd &d, Eigen::VectorXd &m, Eigen::VectorXd &r, Eigen::VectorXd &e, Eigen::VectorXd &h)
-{
-    // Calculates terms needed to compute source and doublet influence. Ref. Katz and Plotkin
-    
-    for (int i=0; i<nVerts; i++)
-    {
-        Eigen::Vector3d p1;
-        Eigen::Vector3d p2;
-        if (i!=verts.rows()-1)
-        {
-            p1 = vertsLocal.row(i);
-            p2 = vertsLocal.row(i+1);
-            
-        }
-        else
-        {
-            p1 = vertsLocal.row(i);
-            p2 = vertsLocal.row(0);
-        }
-        d(i) = sqrt(pow(p2(0)-p1(0),2)+pow(p2(1)-p1(1),2));
-        m(i) = (p2(1)-p1(1))/(p2(0)-p1(0));
-        r(i) = sqrt(pow(POI(0)-p1(0),2)+pow(POI(1)-p1(1),2)+pow(POI(2),2));
-        e(i) = pow(POI(0)-p1(0),2)+pow(POI(2),2);
-        h(i) = (POI(0)-p1(0))*(POI(1)-p1(1));
-    }
-}
-
-void panel::sourceInfluence(const double &sigma, const point &POIglobal, const Eigen::MatrixXd &nodes, vector &velocity, double &potential)
+void panel::sourceInfluence(const double &sigma, const point &POIglobal, const Eigen::MatrixXd &nodes, double &phi, Eigen::Vector3d &vel)
 {
     // Establish panel coordinate system
     coordSys localSys = getLocalSys(nodes);
@@ -179,37 +170,114 @@ void panel::sourceInfluence(const double &sigma, const point &POIglobal, const E
     // Transform Panel Vertices and Point of Interest to Local System
     vector POI = transformCoordinates(POIglobal,globalSys,localSys);
     
-    long nVerts = verts.rows();
-    Eigen::MatrixXd vertsLocal(nVerts,3);
-    //  |x1 y1 z1| First Vertex
-    //  |x2 y2 z2| Second Vertex
-    //  |...     |
-    //  |.       |
-    //  |.       |
-    //  |xN yN zN| Nth Vertex
+    double eps = 0.0001;
     
-    Eigen::VectorXd d(nVerts);
-    Eigen::VectorXd m(nVerts);
-    Eigen::VectorXd r(nVerts);
-    Eigen::VectorXd e(nVerts);
-    Eigen::VectorXd h(nVerts);
-    
-    for (int i=0; i<nVerts; i++)
+    if (POI.norm()/area > 4)
     {
-        vertsLocal.row(i) = transformCoordinates(nodes.row(verts(i)),globalSys,localSys);
+        pointSource(sigma,POI,phi,vel);
     }
+    else if (POI.norm()/area<eps)
+    {
+        phi = 0;
+        if (POI(2)>=0)
+        {
+            vel(2) = 0.5*sigma;
+        }
+        else
+        {
+            vel(2) = -0.5*sigma;
+        }
+        vel(0) = 0;
+        vel(1) = 0;
+    }
+    else
+    {
+        Eigen::MatrixXd vertsLocal(verts.rows(),3);
+        for (int i=0; i<verts.rows(); i++)
+        {
+            vertsLocal.row(i) = transformCoordinates(nodes.row(verts(i)), globalSys, localSys);
+        }
+        influenceTerms terms(vertsLocal,POI);
+        panelSource(sigma,POI,vertsLocal,terms,phi,vel);
+    }
+}
+
+void panel::doubletInfluence(const double &mu, const point &POIglobal, const Eigen::MatrixXd &nodes, double &phi, Eigen::Vector3d &vel)
+{
+    // Establish panel coordinate system
+    coordSys localSys = getLocalSys(nodes);
+    coordSys globalSys;
+    globalSys.setIdentity();
+    // Transform Panel Vertices and Point of Interest to Local System
+    vector POI = transformCoordinates(POIglobal,globalSys,localSys);
     
-    influenceTerms(nVerts,vertsLocal,POI,localSys,globalSys,d,m,r,e,h);
+    double eps = 0.0001;
     
-    Eigen::MatrixXd velTerms(3,nVerts);
+    if (POI.norm()/area > 4)
+    {
+        pointDoublet(mu,POI,phi,vel);
+    }
+    else if (POI.norm()/area<eps)
+    {
+        if (POI(2) >= 0)
+        {
+            phi = -mu/2;
+        }
+        else
+        {
+            phi = mu/2;
+        }
+        vel(0) = 0;
+        vel(1) = 0;
+        vel(2) = 0;
+    }
+    else
+    {
+        Eigen::MatrixXd vertsLocal(verts.rows(),3);
+        for (int i=0; i<verts.rows(); i++)
+        {
+            vertsLocal.row(i) = transformCoordinates(nodes.row(verts(i)), globalSys, localSys);
+        }
+        influenceTerms terms(vertsLocal,POI);
+        panelDoublet(mu,POI,vertsLocal,terms,phi,vel);
+    }
+}
+
+void panel::pointSource(const double &sigma, const point &POI, double &phi, Eigen::Vector3d &vel)
+{
+    phi = -sigma*area/(4*M_PI*POI.norm());
+    vel(0) = sigma*area*POI(0)/(4*M_PI*pow(POI.norm(),3));
+    vel(1) = sigma*area*POI(1)/(4*M_PI*pow(POI.norm(),3));
+    vel(2) = sigma*area*POI(2)/(4*M_PI*pow(POI.norm(),3));
+}
+
+void panel::pointDoublet(const double &mu, const point &POI, double &phi, Eigen::Vector3d &vel)
+{
+    phi = -mu*area*POI(2)/(4*M_PI*pow(POI.norm(),3));
+    vel(0) = 3*mu*area*POI(0)*POI(2)/(4*M_PI*pow(POI.norm(),5));
+    vel(1) = 3*mu*area*POI(1)*POI(2)/(4*M_PI*pow(POI.norm(),5));
+    vel(2) = -mu*area*(pow(POI(0),2)+pow(POI(1),2)-2*pow(POI(2),2))/(4*M_PI*pow(POI.norm(),5));
+}
+
+void panel::panelSource(const double &sigma, const point &POI, const Eigen::MatrixXd &vertsLocal, const influenceTerms &terms, double &phi, Eigen::Vector3d &vel)
+{
+    Eigen::VectorXd d = terms.d;
+    Eigen::VectorXd m = terms.m;
+    Eigen::VectorXd r = terms.r;
+    Eigen::VectorXd e = terms.e;
+    Eigen::VectorXd h = terms.h;
     
-    for (int i=0; i<nVerts; i++)
+    double phiTerm1 = 0;
+    double phiTerm2 = 0;
+    Eigen::Vector3d vTerms = Eigen::Vector3d::Zero();
+    
+    for (int i=0; i<vertsLocal.rows(); i++)
     {
         Eigen::Vector3d p1;
         Eigen::Vector3d p2;
         double i1;
         double i2;
-        if (i!=verts.rows()-1)
+        if (i!=vertsLocal.rows()-1)
         {
             p1 = vertsLocal.row(i);
             p2 = vertsLocal.row(i+1);
@@ -223,8 +291,61 @@ void panel::sourceInfluence(const double &sigma, const point &POIglobal, const E
             i1 = i;
             i2 = 0;
         }
-        velTerms(0,i) = (p2(1)-p1(1))/d(i1)*log((r(i1)+r(i2)-d(i1))/(r(i1)+r(i2)+d(i1)));
-        velTerms(1,i) = (p1(0)-p2(0))/d(i1)*log((r(i1)+r(i2)-d(i1))/(r(i1)+r(i2)+d(i1)));
-        velTerms(2,i) = atan2(m(i1)*e(i1)-h(i1),POI(2)*r(i1))-atan2(m(i1)*e(i2)-h(i2),POI(2)*r(i2));
+        
+        phiTerm1 = phiTerm1+((POI(0)-p1(0))*(p2(1)-p1(1))-(POI(1)-p1(1))*(p2(0)-p1(0)))/d(i1)*log((r(i1)+r(i2)-d(i1))/(r(i1)+r(i2)-d(i1)));
+        phiTerm2 = phiTerm2+(atan2(m(i1)*e(i1)-h(i1),POI(2)*r(i1))-atan2(m(i1)*e(i2)-h(i2),POI(2)*r(i2)));
+        
+        vTerms(0) = vTerms(0)+(p2(1)-p1(1))/d(i1)*log((r(i1)+r(i2)-d(i1))/(r(i1)+r(i2)+d(i1)));
+        vTerms(1) = vTerms(1)+(p1(0)-p2(0))/d(i1)*log((r(i1)+r(i2)-d(i1))/(r(i1)+r(i2)+d(i1)));
     }
+    vTerms(2) = phiTerm2;
+    
+    phi = -sigma/(4*M_PI)*phiTerm1-abs(POI(2))*phiTerm2;
+    vel = sigma/(4*M_PI)*vTerms;
 }
+void panel::panelDoublet(const double &mu, const point &POI, const Eigen::MatrixXd &vertsLocal, const influenceTerms &terms, double &phi, Eigen::Vector3d &vel)
+{
+    Eigen::VectorXd d = terms.d;
+    Eigen::VectorXd m = terms.m;
+    Eigen::VectorXd r = terms.r;
+    Eigen::VectorXd e = terms.e;
+    Eigen::VectorXd h = terms.h;
+    
+    double phiTerm = 0;
+    Eigen::Vector3d vTerms = Eigen::Vector3d::Zero();
+    
+    for (int i=0; i<vertsLocal.rows(); i++)
+    {
+        Eigen::Vector3d p1;
+        Eigen::Vector3d p2;
+        double i1;
+        double i2;
+        if (i!=vertsLocal.rows()-1)
+        {
+            p1 = vertsLocal.row(i);
+            p2 = vertsLocal.row(i+1);
+            i1 = i;
+            i2 = i+1;
+        }
+        else
+        {
+            p1 = vertsLocal.row(i);
+            p2 = vertsLocal.row(0);
+            i1 = i;
+            i2 = 0;
+        }
+        
+        phiTerm = phiTerm+(atan2(m(i1)*e(i1)-h(i1),POI(2)*r(i1))-atan2(m(i1)*e(i2)-h(i2),POI(2)*r(i2)));
+        
+        double denom = r(i1)*r(i2)*(r(i1)*r(i2)-((POI(0)-p1(0))*(POI(0)-p2(0))+(POI(1)-p1(1))*(POI(1)-p2(1))+pow(POI(2),2)));
+        
+        vTerms(0) = vTerms(0)+(POI(2)*(p1(1)-p2(1))*(r(i1)+r(i2))/denom);
+        vTerms(1) = vTerms(1)+(POI(2)*(p2(0)-p1(0))*(r(i1)+r(i2))/denom);
+        vTerms(2) = vTerms(2)+(((POI(0)-p2(0))*(POI(1)-p1(1))-(POI(0)-p1(0))*(POI(1)-p2(1)))*(r(i1)+r(i2))/denom);
+    }
+    
+    phi = mu/(4*M_PI)*phiTerm;
+    vel = mu/(4*M_PI)*vTerms;
+}
+
+
