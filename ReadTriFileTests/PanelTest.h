@@ -16,7 +16,8 @@
 
 class PanelTest : public Test::Suite
 {
-    void test_setGeom();
+    void test_setGeomTri();
+    void test_setGeomQuad();
     void test_addNeighbor();
 
 public:
