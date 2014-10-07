@@ -26,11 +26,11 @@ void convexHullTests::testPntInside()
     Eigen::Vector3d p4;
     p4 << 0.333,0.666,0;
     
-    std::vector<Eigen::Vector3d> points(4);
-    points[0] = p1;
-    points[1] = p2;
-    points[2] = p3;
-    points[3] = p4;
+    Eigen::MatrixXd points(4,3);
+    points.row(0) = p1;
+    points.row(1) = p2;
+    points.row(2) = p3;
+    points.row(3) = p4;
     
     convexHull testHull(points,true);
     
@@ -48,11 +48,11 @@ void convexHullTests::testPntOutside()
     Eigen::Vector3d p4;
     p4 << 1,0,0;
     
-    std::vector<Eigen::Vector3d> points(4);
-    points[0] = p1;
-    points[1] = p2;
-    points[2] = p3;
-    points[3] = p4;
+    Eigen::MatrixXd points(4,3);
+    points.row(0) = p1;
+    points.row(1) = p2;
+    points.row(2) = p3;
+    points.row(3) = p4;
     
     convexHull testHull(points,true);
     
@@ -74,13 +74,13 @@ void convexHullTests::testPntOnBoundary()
     Eigen::Vector3d p6;
     p6 << 0.5,1,0;
     
-    std::vector<Eigen::Vector3d> points(6);
-    points[0] = p1;
-    points[1] = p2;
-    points[2] = p3;
-    points[3] = p4;
-    points[4] = p5;
-    points[5] = p6;
+    Eigen::MatrixXd points(6,3);
+    points.row(0) = p1;
+    points.row(1) = p2;
+    points.row(2) = p3;
+    points.row(3) = p4;
+    points.row(4) = p5;
+    points.row(5) = p6;
     
     convexHull testBoundaryInside(points,true);
     convexHull testBoundaryOutside(points,false);
