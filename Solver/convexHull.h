@@ -58,7 +58,7 @@ class convexHull
     
 public:
     
-    convexHull(std::vector<Eigen::Vector3d> points, bool boundary);
+    convexHull(Eigen::MatrixXd points, bool boundary);
     ~convexHull()
     {
         for (int i = 0; i<members.size(); i++)

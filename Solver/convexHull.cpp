@@ -8,23 +8,23 @@
 
 #include "convexHull.h"
 
-convexHull::convexHull(std::vector<Eigen::Vector3d> points, bool bound) : boundary(bound)
+convexHull::convexHull(Eigen::MatrixXd points, bool bound) : boundary(bound)
 {
-    Eigen::Vector3d basePnt = points[0];
+    Eigen::Vector3d basePnt = points.row(0);
     double minTheta = M_PI;
     double maxTheta = 0;
     
-    for (int i=1; i<points.size(); i++)
+    for (int i=1; i<points.rows(); i++)
     {
-        if ((points[i](1) == basePnt(1) && points[i](0) < basePnt(0)) || (points[i](1) < basePnt(1)))
+        if ((points(i,1) == basePnt(1) && points(i,0) < basePnt(0)) || (points(i,1) < basePnt(1)))
         {
-            basePnt = points[i];
+            basePnt = points.row(i);
         }
     }
-    for (int i=0; i<points.size(); i++)
+    for (int i=0; i<points.rows(); i++)
     {
-        member* m = new member(points[i],basePnt);
-        if (points[i] != basePnt)
+        member* m = new member(points.row(i),basePnt);
+        if (points(i,0) != basePnt(0) || points(i,1) != basePnt(1) || points(i,2) != basePnt(2))
         {
             if (m->theta < minTheta)
             {
@@ -35,7 +35,7 @@ convexHull::convexHull(std::vector<Eigen::Vector3d> points, bool bound) : bounda
                 maxTheta = m->theta;
             }
         }
-        if (points[i] == basePnt)
+        if (points(i,0) == basePnt(0) && points(i,1) == basePnt(1) && points(i,2) == basePnt(2))
         {
             members.insert(members.begin(),m);
         }
@@ -44,7 +44,6 @@ convexHull::convexHull(std::vector<Eigen::Vector3d> points, bool bound) : bounda
             members.push_back(m);
         }
     }
-    // std::sort(members.begin()+1,members.end(),compareD());
     std::sort(members.begin()+1,members.end(),compareTheta());
     int minBegin = -1;
     int minEnd = -1;
