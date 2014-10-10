@@ -367,7 +367,7 @@ void panel::panelDoublet(const double &mu, const point &POI, const Eigen::Matrix
         vTerms(2) = vTerms(2)+(((POI(0)-p2(0))*(POI(1)-p1(1))-(POI(0)-p1(0))*(POI(1)-p2(1)))*(r(i1)+r(i2))/denom);
     }
     
-    phi = -mu/(4*M_PI)*phiTerm;
+    phi = mu/(4*M_PI)*phiTerm;
     vel = -mu/(4*M_PI)*vTerms; // Multiplied by negative one to account for traversing the perimeter of the element in a counter clockwise direction (per .tri format). Formulation from Hess and Smith is done based on a clockwise traverse of the perimeter.
 }
 
