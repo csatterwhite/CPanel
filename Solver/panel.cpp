@@ -199,6 +199,26 @@ void panel::sourceInfluence(const double &sigma, const point &POIglobal, const E
         }
         influenceTerms terms(vertsLocal,POI);
         panelSource(sigma,POI,vertsLocal,terms,phi,vel);
+        
+        // Handles special case where z->0 and z goes to zero when physically it should not be zero on the panel. Still need to handle case where point is near the boundary of the panel and the velocities become infinite.
+        if (POI(2)/area<eps)
+        {
+            if (isOnPanel(POI,nodes))
+            {
+                if (POI(2)>=0)
+                {
+                    vel(2) = sigma/2;
+                }
+                else
+                {
+                    vel(2) = -sigma/2;
+                }
+            }
+            else
+            {
+                vel(2) = 0;
+            }
+        }
     }
 }
 
@@ -208,6 +228,7 @@ void panel::doubletInfluence(const double &mu, const point &POIglobal, const Eig
     coordSys localSys = getLocalSys(nodes);
     coordSys globalSys;
     globalSys.setIdentity();
+    
     // Transform Panel Vertices and Point of Interest to Local System
     vector POI = transformCoordinates(POIglobal,globalSys,localSys);
     
@@ -292,7 +313,7 @@ void panel::panelSource(const double &sigma, const point &POI, const Eigen::Matr
             i2 = 0;
         }
         
-        phiTerm1 = phiTerm1+((POI(0)-p1(0))*(p2(1)-p1(1))-(POI(1)-p1(1))*(p2(0)-p1(0)))/d(i1)*log((r(i1)+r(i2)-d(i1))/(r(i1)+r(i2)-d(i1)));
+        phiTerm1 = phiTerm1+((POI(0)-p1(0))*(p2(1)-p1(1))-(POI(1)-p1(1))*(p2(0)-p1(0)))/d(i1)*log((r(i1)+r(i2)+d(i1))/(r(i1)+r(i2)-d(i1)));
         phiTerm2 = phiTerm2+(atan2(m(i1)*e(i1)-h(i1),POI(2)*r(i1))-atan2(m(i1)*e(i2)-h(i2),POI(2)*r(i2)));
         
         vTerms(0) = vTerms(0)+(p2(1)-p1(1))/d(i1)*log((r(i1)+r(i2)-d(i1))/(r(i1)+r(i2)+d(i1)));
@@ -300,9 +321,11 @@ void panel::panelSource(const double &sigma, const point &POI, const Eigen::Matr
     }
     vTerms(2) = phiTerm2;
     
-    phi = -sigma/(4*M_PI)*phiTerm1-abs(POI(2))*phiTerm2;
-    vel = sigma/(4*M_PI)*vTerms;
+    phi = sigma/(4*M_PI)*phiTerm1-abs(POI(2))*phiTerm2;
+    vel = -sigma/(4*M_PI)*vTerms;
+    // Multiplied by negative one to account for traversing the perimeter of the element in a counter clockwise direction (per .tri format). Formulation from Hess and Smith is done based on a clockwise traverse of the perimeter.
 }
+
 void panel::panelDoublet(const double &mu, const point &POI, const Eigen::MatrixXd &vertsLocal, const influenceTerms &terms, double &phi, Eigen::Vector3d &vel)
 {
     Eigen::VectorXd d = terms.d;
@@ -337,15 +360,15 @@ void panel::panelDoublet(const double &mu, const point &POI, const Eigen::Matrix
         
         phiTerm = phiTerm+(atan2(m(i1)*e(i1)-h(i1),POI(2)*r(i1))-atan2(m(i1)*e(i2)-h(i2),POI(2)*r(i2)));
         
-        double denom = r(i1)*r(i2)*(r(i1)*r(i2)-((POI(0)-p1(0))*(POI(0)-p2(0))+(POI(1)-p1(1))*(POI(1)-p2(1))+pow(POI(2),2)));
+        double denom = r(i1)*r(i2)*(r(i1)*r(i2)+((POI(0)-p1(0))*(POI(0)-p2(0))+(POI(1)-p1(1))*(POI(1)-p2(1))+pow(POI(2),2)));  // The + following r1*r2(r1*r2... is a - in Katz and Plotkin.  This does not yield velocities that are the same sign as the far field approximation.  Also, in the example programs in the back of Katz and Plotkin, it is a +.  Still waiting on getting a hold of the original Hess and Smith document from which it was drawn to confirm.
         
         vTerms(0) = vTerms(0)+(POI(2)*(p1(1)-p2(1))*(r(i1)+r(i2))/denom);
         vTerms(1) = vTerms(1)+(POI(2)*(p2(0)-p1(0))*(r(i1)+r(i2))/denom);
         vTerms(2) = vTerms(2)+(((POI(0)-p2(0))*(POI(1)-p1(1))-(POI(0)-p1(0))*(POI(1)-p2(1)))*(r(i1)+r(i2))/denom);
     }
     
-    phi = mu/(4*M_PI)*phiTerm;
-    vel = mu/(4*M_PI)*vTerms;
+    phi = -mu/(4*M_PI)*phiTerm;
+    vel = -mu/(4*M_PI)*vTerms; // Multiplied by negative one to account for traversing the perimeter of the element in a counter clockwise direction (per .tri format). Formulation from Hess and Smith is done based on a clockwise traverse of the perimeter.
 }
 
 
