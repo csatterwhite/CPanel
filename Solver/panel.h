@@ -35,6 +35,7 @@ class panel
     vector normal;
     vertices verts;
     double area;
+    double longSide;
     short surfID;
     bool TEpanel;
     std::vector<panel*> neighbors; //Share two vertices
@@ -44,8 +45,8 @@ class panel
     coordSys getLocalSys(const Eigen::MatrixXd &nodes);
     void pointSource(const double &sigma, const point &POI, double &phi, Eigen::Vector3d &vel);
     void pointDoublet(const double &mu, const point &POI, double &phi, Eigen::Vector3d &vel);
-    void panelSource(const double &sigma, const point &POI, const Eigen::MatrixXd &vertsLocal, const influenceTerms &terms, double &phi, Eigen::Vector3d &vel);
-    void panelDoublet(const double &mu, const point &POI, const Eigen::MatrixXd &vertsLocal, const influenceTerms &terms, double &phi, Eigen::Vector3d &vel);
+    void panelSource(const double &sigma, const point &POI, const Eigen::MatrixXd &vertsLocal, const influenceTerms &terms, const Eigen::MatrixXd &nodes, double &phi, Eigen::Vector3d &vel);
+    void panelDoublet(const double &mu, const point &POI, const Eigen::MatrixXd &vertsLocal, const influenceTerms &terms, const Eigen::MatrixXd &nodes, double &phi, Eigen::Vector3d &vel);
     
 public:
     panel(short surfaceID) : surfID(surfaceID) , TEpanel(false) {};

@@ -21,6 +21,26 @@ void panel::setGeom(const vertices &panelVertices, const Eigen::MatrixXd &nodes)
     {
         verts(i) = panelVertices(i);
     }
+    longSide = 0;
+    
+    for (int i=0; i<verts.rows(); i++)
+    {
+        Eigen::Vector3d vec;
+        double l;
+        if (i != verts.rows()-1)
+        {
+            vec = nodes.row(verts(i+1))-nodes.row(verts(i));
+        }
+        else
+        {
+            vec = nodes.row(verts(0))-nodes.row(verts(i));
+        }
+        l = vec.norm();
+        if (l>longSide)
+        {
+            longSide = l;
+        }
+    }
     
     if (verts.size() == 3)
     {
@@ -172,11 +192,11 @@ void panel::sourceInfluence(const double &sigma, const point &POIglobal, const E
     
     double eps = 0.0001;
     
-    if (POI.norm()/area > 4)
+    if (POI.norm()/longSide > 5)
     {
         pointSource(sigma,POI,phi,vel);
     }
-    else if (POI.norm()/area<eps)
+    else if (POI.norm()/longSide < eps)
     {
         phi = 0;
         if (POI(2)>=0)
@@ -198,10 +218,10 @@ void panel::sourceInfluence(const double &sigma, const point &POIglobal, const E
             vertsLocal.row(i) = transformCoordinates(nodes.row(verts(i)), globalSys, localSys);
         }
         influenceTerms terms(vertsLocal,POI);
-        panelSource(sigma,POI,vertsLocal,terms,phi,vel);
+        panelSource(sigma,POI,vertsLocal,terms,nodes,phi,vel);
         
         // Handles special case where z->0 and z goes to zero when physically it should not be zero on the panel. Still need to handle case where point is near the boundary of the panel and the velocities become infinite.
-        if (POI(2)/area<eps)
+        if (POI(2)/longSide < eps)
         {
             if (isOnPanel(POI,nodes))
             {
@@ -232,35 +252,19 @@ void panel::doubletInfluence(const double &mu, const point &POIglobal, const Eig
     // Transform Panel Vertices and Point of Interest to Local System
     vector POI = transformCoordinates(POIglobal,globalSys,localSys);
     
-    double eps = 0.0001;
-    
-    if (POI.norm()/area > 4)
+    if (POI.norm()/longSide > 4.5)
     {
         pointDoublet(mu,POI,phi,vel);
-    }
-    else if (POI.norm()/area<eps)
-    {
-        if (POI(2) >= 0)
-        {
-            phi = -mu/2;
-        }
-        else
-        {
-            phi = mu/2;
-        }
-        vel(0) = 0;
-        vel(1) = 0;
-        vel(2) = 0;
     }
     else
     {
         Eigen::MatrixXd vertsLocal(verts.rows(),3);
         for (int i=0; i<verts.rows(); i++)
         {
-            vertsLocal.row(i) = transformCoordinates(nodes.row(verts(i)), globalSys, localSys);
+            vertsLocal.row(i) = transformCoordinates(nodes.row(verts(i)),globalSys,localSys);
         }
         influenceTerms terms(vertsLocal,POI);
-        panelDoublet(mu,POI,vertsLocal,terms,phi,vel);
+        panelDoublet(mu,POI,vertsLocal,terms,nodes,phi,vel);
     }
 }
 
@@ -280,7 +284,7 @@ void panel::pointDoublet(const double &mu, const point &POI, double &phi, Eigen:
     vel(2) = -mu*area*(pow(POI(0),2)+pow(POI(1),2)-2*pow(POI(2),2))/(4*M_PI*pow(POI.norm(),5));
 }
 
-void panel::panelSource(const double &sigma, const point &POI, const Eigen::MatrixXd &vertsLocal, const influenceTerms &terms, double &phi, Eigen::Vector3d &vel)
+void panel::panelSource(const double &sigma, const point &POI, const Eigen::MatrixXd &vertsLocal, const influenceTerms &terms, const Eigen::MatrixXd &nodes, double &phi, Eigen::Vector3d &vel)
 {
     Eigen::VectorXd d = terms.d;
     Eigen::VectorXd m = terms.m;
@@ -314,6 +318,7 @@ void panel::panelSource(const double &sigma, const point &POI, const Eigen::Matr
         }
         
         phiTerm1 = phiTerm1+((POI(0)-p1(0))*(p2(1)-p1(1))-(POI(1)-p1(1))*(p2(0)-p1(0)))/d(i1)*log((r(i1)+r(i2)+d(i1))/(r(i1)+r(i2)-d(i1)));
+
         phiTerm2 = phiTerm2+(atan2(m(i1)*e(i1)-h(i1),POI(2)*r(i1))-atan2(m(i1)*e(i2)-h(i2),POI(2)*r(i2)));
         
         vTerms(0) = vTerms(0)+(p2(1)-p1(1))/d(i1)*log((r(i1)+r(i2)-d(i1))/(r(i1)+r(i2)+d(i1)));
@@ -321,12 +326,12 @@ void panel::panelSource(const double &sigma, const point &POI, const Eigen::Matr
     }
     vTerms(2) = phiTerm2;
     
-    phi = sigma/(4*M_PI)*phiTerm1-abs(POI(2))*phiTerm2;
+    phi = sigma/(4*M_PI)*(phiTerm1-abs(POI(2))*phiTerm2);
     vel = -sigma/(4*M_PI)*vTerms;
     // Multiplied by negative one to account for traversing the perimeter of the element in a counter clockwise direction (per .tri format). Formulation from Hess and Smith is done based on a clockwise traverse of the perimeter.
 }
 
-void panel::panelDoublet(const double &mu, const point &POI, const Eigen::MatrixXd &vertsLocal, const influenceTerms &terms, double &phi, Eigen::Vector3d &vel)
+void panel::panelDoublet(const double &mu, const point &POI, const Eigen::MatrixXd &vertsLocal, const influenceTerms &terms, const Eigen::MatrixXd &nodes, double &phi, Eigen::Vector3d &vel)
 {
     Eigen::VectorXd d = terms.d;
     Eigen::VectorXd m = terms.m;
