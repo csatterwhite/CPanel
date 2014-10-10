@@ -19,7 +19,7 @@ class influenceTests : public Test::Suite
 {
     void testPntClose();
     void testPntFar();
-    // void testPntOnBoundary();
+    void testCollocationPnt();
     
 public:
     influenceTests();
