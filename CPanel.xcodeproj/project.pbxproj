@@ -46,6 +46,8 @@
 		83B5E8FC19E343E500F7EEDF /* InfluenceTerms.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83B5E8F919E343E500F7EEDF /* InfluenceTerms.cpp */; };
 		83C1148919D38EF6005D7239 /* convexHullTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83C1148719D38EF6005D7239 /* convexHullTests.cpp */; };
 		83C1148A19D3A416005D7239 /* convexHull.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83B5BDAC19D310B100506A12 /* convexHull.cpp */; };
+		83C9D30B19E7918200D27CE2 /* InfluenceTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83DCB1BC19E4BC670028C33E /* InfluenceTests.cpp */; };
+		83DCB1BE19E4BC670028C33E /* InfluenceTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83DCB1BC19E4BC670028C33E /* InfluenceTests.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -155,6 +157,8 @@
 		83B5E8FA19E343E500F7EEDF /* InfluenceTerms.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InfluenceTerms.h; sourceTree = "<group>"; };
 		83C1148719D38EF6005D7239 /* convexHullTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = convexHullTests.cpp; sourceTree = "<group>"; };
 		83C1148819D38EF6005D7239 /* convexHullTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = convexHullTests.h; sourceTree = "<group>"; };
+		83DCB1BC19E4BC670028C33E /* InfluenceTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = InfluenceTests.cpp; sourceTree = "<group>"; };
+		83DCB1BD19E4BC670028C33E /* InfluenceTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InfluenceTests.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -228,6 +232,8 @@
 			isa = PBXGroup;
 			children = (
 				8334B02E192AD2CE008241DB /* main.cpp */,
+				83DCB1BC19E4BC670028C33E /* InfluenceTests.cpp */,
+				83DCB1BD19E4BC670028C33E /* InfluenceTests.h */,
 				8334B037192AD55A008241DB /* CoordTransformTest.cpp */,
 				83C1148719D38EF6005D7239 /* convexHullTests.cpp */,
 				83C1148819D38EF6005D7239 /* convexHullTests.h */,
@@ -438,6 +444,7 @@
 				83039E07191152C300271526 /* geometry.cpp in Sources */,
 				83039E1019129C7F00271526 /* bodyPanel.cpp in Sources */,
 				83B5BDAE19D310B100506A12 /* convexHull.cpp in Sources */,
+				83C9D30B19E7918200D27CE2 /* InfluenceTests.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -451,6 +458,7 @@
 				83C1148919D38EF6005D7239 /* convexHullTests.cpp in Sources */,
 				83C1148A19D3A416005D7239 /* convexHull.cpp in Sources */,
 				83B5E8FB19E343E500F7EEDF /* InfluenceTerms.cpp in Sources */,
+				83DCB1BE19E4BC670028C33E /* InfluenceTests.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

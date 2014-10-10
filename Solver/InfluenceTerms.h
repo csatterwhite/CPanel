@@ -10,6 +10,7 @@
 #define __CPanel__InfluenceTerms__
 
 #include <stdio.h>
+#include <iostream>
 #include <Eigen/Dense>
 
 struct influenceTerms
