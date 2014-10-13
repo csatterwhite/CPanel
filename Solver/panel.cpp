@@ -114,13 +114,13 @@ bool panel::isOnPanel(const point &POI, const Eigen::MatrixXd &nodes)
 
 void panel::checkNeighbor(panel* other)
 {
-    if (neighbors.size() <= 4 && !neighborExists(other) && other != this) //Do not check and add panel if it is already a neighbor or if maximum number of neighbors (4) is already reached;
+    if (neighbors.size() <= verts.size() && !neighborExists(other) && other != this) //Do not check and add panel if it is already a neighbor or if maximum number of neighbors (4 for Tri, 5 for Quad) is already reached;
     {
         vertices otherVerts = other->getVerts();
         short count = 0;
-        for (int i=0; i<3; i++)
+        for (int i=0; i<verts.size(); i++)
         {
-            for (int j=0; j<3; j++)
+            for (int j=0; j<otherVerts.size(); j++)
             {
                 if (verts(i) == otherVerts(j))
                 {
@@ -194,7 +194,10 @@ void panel::sourceInfluence(const double &sigma, const point &POIglobal, const E
     
     if (POI.norm()/longSide > 5)
     {
-        pointSource(sigma,POI,phi,vel);
+        phi = -sigma*area/(4*M_PI*POI.norm());
+        vel(0) = sigma*area*POI(0)/(4*M_PI*pow(POI.norm(),3));
+        vel(1) = sigma*area*POI(1)/(4*M_PI*pow(POI.norm(),3));
+        vel(2) = sigma*area*POI(2)/(4*M_PI*pow(POI.norm(),3));
     }
     else if (POI.norm()/longSide < eps)
     {
@@ -218,7 +221,7 @@ void panel::sourceInfluence(const double &sigma, const point &POIglobal, const E
             vertsLocal.row(i) = transformCoordinates(nodes.row(verts(i)), globalSys, localSys);
         }
         influenceTerms terms(vertsLocal,POI);
-        panelSource(sigma,POI,vertsLocal,terms,nodes,phi,vel);
+        panelSourceAll(sigma,POI,vertsLocal,terms,nodes,phi,vel);
         
         // Handles special case where z->0 and z goes to zero when physically it should not be zero on the panel. Still need to handle case where point is near the boundary of the panel and the velocities become infinite.
         if (POI(2)/longSide < eps)
@@ -242,6 +245,87 @@ void panel::sourceInfluence(const double &sigma, const point &POIglobal, const E
     }
 }
 
+double panel::sourceIC(const point &POIglobal, const Eigen::MatrixXd &nodes, bool dirichletBC)
+{
+    // dirichletBC = TRUE for Dirichlet, FALSE for Neumann
+    
+    // Establish panel coordinate system
+    coordSys localSys = getLocalSys(nodes);
+    coordSys globalSys;
+    globalSys.setIdentity();
+    // Transform Panel Vertices and Point of Interest to Local System
+    vector POI = transformCoordinates(POIglobal,globalSys,localSys);
+    
+    double eps = 0.0001;
+    double IC;
+    
+    if (POI.norm()/longSide > 5)
+    {
+        if (dirichletBC)
+        {
+            IC = -area/(4*M_PI*POI.norm());
+        }
+        else
+        {
+            IC = area*POI(2)/(4*M_PI*pow(POI.norm(),3));
+        }
+        
+        return IC;
+    }
+    else if (POI.norm()/longSide < eps)
+    {
+        if (dirichletBC)
+        {
+            IC = 0;
+        }
+        else
+        {
+            if (POI(2)>=0)
+            {
+                IC = 0.5;
+            }
+            else
+            {
+                IC = -0.5;
+            }
+        }
+        
+        return IC;
+    }
+    else
+    {
+        Eigen::MatrixXd vertsLocal(verts.rows(),3);
+        for (int i=0; i<verts.rows(); i++)
+        {
+            vertsLocal.row(i) = transformCoordinates(nodes.row(verts(i)), globalSys, localSys);
+        }
+        influenceTerms terms(vertsLocal,POI);
+        IC = panelSourceIC(POI,vertsLocal,terms,nodes,dirichletBC);
+        
+        
+        // Handles special case where z->0 and z goes to zero when physically it should not be zero on the panel. Still need to handle case where point is near the boundary of the panel and the velocities become infinite.
+        if (!dirichletBC && POI(2)/longSide < eps)
+        {
+            if (isOnPanel(POI,nodes))
+            {
+                if (POI(2)>=0)
+                {
+                    IC = 0.5;
+                }
+                else
+                {
+                    IC = -0.5;
+                }
+            }
+            else
+            {
+                IC = 0;
+            }
+        }
+        return IC;
+    }
+}
+
 void panel::doubletInfluence(const double &mu, const point &POIglobal, const Eigen::MatrixXd &nodes, double &phi, Eigen::Vector3d &vel)
 {
     // Establish panel coordinate system
@@ -254,7 +338,10 @@ void panel::doubletInfluence(const double &mu, const point &POIglobal, const Eig
     
     if (POI.norm()/longSide > 4.5)
     {
-        pointDoublet(mu,POI,phi,vel);
+        phi = -mu*area*POI(2)/(4*M_PI*pow(POI.norm(),3));
+        vel(0) = 3*mu*area*POI(0)*POI(2)/(4*M_PI*pow(POI.norm(),5));
+        vel(1) = 3*mu*area*POI(1)*POI(2)/(4*M_PI*pow(POI.norm(),5));
+        vel(2) = -mu*area*(pow(POI(0),2)+pow(POI(1),2)-2*pow(POI(2),2))/(4*M_PI*pow(POI.norm(),5));
     }
     else
     {
@@ -264,27 +351,48 @@ void panel::doubletInfluence(const double &mu, const point &POIglobal, const Eig
             vertsLocal.row(i) = transformCoordinates(nodes.row(verts(i)),globalSys,localSys);
         }
         influenceTerms terms(vertsLocal,POI);
-        panelDoublet(mu,POI,vertsLocal,terms,nodes,phi,vel);
+        panelDoubletAll(mu,POI,vertsLocal,terms,nodes,phi,vel);
     }
 }
 
-void panel::pointSource(const double &sigma, const point &POI, double &phi, Eigen::Vector3d &vel)
+double panel::doubletIC(const point &POIglobal, const Eigen::MatrixXd &nodes, bool dirichletBC)
 {
-    phi = -sigma*area/(4*M_PI*POI.norm());
-    vel(0) = sigma*area*POI(0)/(4*M_PI*pow(POI.norm(),3));
-    vel(1) = sigma*area*POI(1)/(4*M_PI*pow(POI.norm(),3));
-    vel(2) = sigma*area*POI(2)/(4*M_PI*pow(POI.norm(),3));
+    // Establish panel coordinate system
+    coordSys localSys = getLocalSys(nodes);
+    coordSys globalSys;
+    globalSys.setIdentity();
+    
+    // Transform Panel Vertices and Point of Interest to Local System
+    vector POI = transformCoordinates(POIglobal,globalSys,localSys);
+    
+    double IC;
+    
+    if (POI.norm()/longSide > 4.5)
+    {
+        if (dirichletBC)
+        {
+            IC = -area*POI(2)/(4*M_PI*pow(POI.norm(),3));
+        }
+        else
+        {
+            IC = -area*(pow(POI(0),2)+pow(POI(1),2)-2*pow(POI(2),2))/(4*M_PI*pow(POI.norm(),5));
+        }
+        return IC;
+    }
+    else
+    {
+        Eigen::MatrixXd vertsLocal(verts.rows(),3);
+        for (int i=0; i<verts.rows(); i++)
+        {
+            vertsLocal.row(i) = transformCoordinates(nodes.row(verts(i)),globalSys,localSys);
+        }
+        influenceTerms terms(vertsLocal,POI);
+        IC = panelDoubletIC(POI,vertsLocal,terms,nodes,dirichletBC);
+        return IC;
+    }
 }
 
-void panel::pointDoublet(const double &mu, const point &POI, double &phi, Eigen::Vector3d &vel)
-{
-    phi = -mu*area*POI(2)/(4*M_PI*pow(POI.norm(),3));
-    vel(0) = 3*mu*area*POI(0)*POI(2)/(4*M_PI*pow(POI.norm(),5));
-    vel(1) = 3*mu*area*POI(1)*POI(2)/(4*M_PI*pow(POI.norm(),5));
-    vel(2) = -mu*area*(pow(POI(0),2)+pow(POI(1),2)-2*pow(POI(2),2))/(4*M_PI*pow(POI.norm(),5));
-}
-
-void panel::panelSource(const double &sigma, const point &POI, const Eigen::MatrixXd &vertsLocal, const influenceTerms &terms, const Eigen::MatrixXd &nodes, double &phi, Eigen::Vector3d &vel)
+void panel::panelSourceAll(const double &sigma, const point &POI, const Eigen::MatrixXd &vertsLocal, const influenceTerms &terms, const Eigen::MatrixXd &nodes, double &phi, Eigen::Vector3d &vel)
 {
     Eigen::VectorXd d = terms.d;
     Eigen::VectorXd m = terms.m;
@@ -331,8 +439,61 @@ void panel::panelSource(const double &sigma, const point &POI, const Eigen::Matr
     // Multiplied by negative one to account for traversing the perimeter of the element in a counter clockwise direction (per .tri format). Formulation from Hess and Smith is done based on a clockwise traverse of the perimeter.
 }
 
-void panel::panelDoublet(const double &mu, const point &POI, const Eigen::MatrixXd &vertsLocal, const influenceTerms &terms, const Eigen::MatrixXd &nodes, double &phi, Eigen::Vector3d &vel)
+double panel::panelSourceIC(const point &POI, const Eigen::MatrixXd &vertsLocal, const influenceTerms &terms, const Eigen::MatrixXd &nodes, bool dirichletBC)
 {
+    // BC = TRUE for Dirichlet, FALSE for Neumann
+    
+    Eigen::VectorXd d = terms.d;
+    Eigen::VectorXd m = terms.m;
+    Eigen::VectorXd r = terms.r;
+    Eigen::VectorXd e = terms.e;
+    Eigen::VectorXd h = terms.h;
+    
+    double IC = 0;
+    
+    for (int i=0; i<vertsLocal.rows(); i++)
+    {
+        Eigen::Vector3d p1;
+        Eigen::Vector3d p2;
+        double i1;
+        double i2;
+        if (i!=vertsLocal.rows()-1)
+        {
+            p1 = vertsLocal.row(i);
+            p2 = vertsLocal.row(i+1);
+            i1 = i;
+            i2 = i+1;
+        }
+        else
+        {
+            p1 = vertsLocal.row(i);
+            p2 = vertsLocal.row(0);
+            i1 = i;
+            i2 = 0;
+        }
+        
+        if (dirichletBC)
+        {
+            // Dirichlet BC -> Potential Influence Coefficient
+            IC = IC+1/(4*M_PI)*(((POI(0)-p1(0))*(p2(1)-p1(1))-(POI(1)-p1(1))*(p2(0)-p1(0)))/d(i1)*log((r(i1)+r(i2)+d(i1))/(r(i1)+r(i2)-d(i1)))-abs(POI(2))*(atan2(m(i1)*e(i1)-h(i1),POI(2)*r(i1))-atan2(m(i1)*e(i2)-h(i2),POI(2)*r(i2))));
+        }
+        else
+        {
+            // Neumann BC -> Z-Velocity Influence Coefficient
+            
+            IC = IC-1/(4*M_PI)*(atan2(m(i1)*e(i1)-h(i1),POI(2)*r(i1))-atan2(m(i1)*e(i2)-h(i2),POI(2)*r(i2)));
+        }
+    }
+    
+    // ICs multiplied by negative one to account for traversing the perimeter of the element in a counter clockwise direction (per .tri format). Formulation from Hess and Smith is done based on a clockwise traverse of the perimeter.
+    
+    return IC;
+}
+
+void panel::panelDoubletAll(const double &mu, const point &POI, const Eigen::MatrixXd &vertsLocal, const influenceTerms &terms, const Eigen::MatrixXd &nodes, double &phi, Eigen::Vector3d &vel)
+{
+    // Calculates perturbation potential and velocity components
+    
     Eigen::VectorXd d = terms.d;
     Eigen::VectorXd m = terms.m;
     Eigen::VectorXd r = terms.r;
@@ -373,7 +534,58 @@ void panel::panelDoublet(const double &mu, const point &POI, const Eigen::Matrix
     }
     
     phi = mu/(4*M_PI)*phiTerm;
-    vel = -mu/(4*M_PI)*vTerms; // Multiplied by negative one to account for traversing the perimeter of the element in a counter clockwise direction (per .tri format). Formulation from Hess and Smith is done based on a clockwise traverse of the perimeter.
+    vel = -mu/(4*M_PI)*vTerms;
+    // Multiplied by negative one to account for traversing the perimeter of the element in a counter clockwise direction (per .tri format). Formulation from Hess and Smith is done based on a clockwise traverse of the perimeter.
 }
 
-
+double panel::panelDoubletIC(const point &POI, const Eigen::MatrixXd &vertsLocal, const influenceTerms &terms, const Eigen::MatrixXd &nodes, bool dirichletBC)
+{
+    // BC = TRUE for Dirichlet, FALSE for Neumann
+    
+    Eigen::VectorXd d = terms.d;
+    Eigen::VectorXd m = terms.m;
+    Eigen::VectorXd r = terms.r;
+    Eigen::VectorXd e = terms.e;
+    Eigen::VectorXd h = terms.h;
+    
+    double IC = 0;
+    
+    for (int i=0; i<vertsLocal.rows(); i++)
+    {
+        Eigen::Vector3d p1;
+        Eigen::Vector3d p2;
+        double i1;
+        double i2;
+        if (i!=vertsLocal.rows()-1)
+        {
+            p1 = vertsLocal.row(i);
+            p2 = vertsLocal.row(i+1);
+            i1 = i;
+            i2 = i+1;
+        }
+        else
+        {
+            p1 = vertsLocal.row(i);
+            p2 = vertsLocal.row(0);
+            i1 = i;
+            i2 = 0;
+        }
+        if (dirichletBC)
+        {
+            // Dirichlet BC -> Potential Influence Coefficient
+            IC = IC+1/(4*M_PI)*(atan2(m(i1)*e(i1)-h(i1),POI(2)*r(i1))-atan2(m(i1)*e(i2)-h(i2),POI(2)*r(i2)));
+        }
+        else
+        {
+            // Neumann BC -> Z-Velocity Influence Coefficient
+            double denom = r(i1)*r(i2)*(r(i1)*r(i2)+((POI(0)-p1(0))*(POI(0)-p2(0))+(POI(1)-p1(1))*(POI(1)-p2(1))+pow(POI(2),2)));  // The + following r1*r2(r1*r2... is a - in Katz and Plotkin.  This does not yield velocities that are the same sign as the far field approximation.  Also, in the example programs in the back of Katz and Plotkin, it is a +.  Still waiting on getting a hold of the original Hess and Smith document from which it was drawn to confirm.
+            
+            IC = IC-1/(4*M_PI)*(((POI(0)-p2(0))*(POI(1)-p1(1))-(POI(0)-p1(0))*(POI(1)-p2(1)))*(r(i1)+r(i2))/denom);
+        }
+        
+    }
+    
+    // ICs multiplied by negative one to account for traversing the perimeter of the element in a counter clockwise direction (per .tri format). Formulation from Hess and Smith is done based on a clockwise traverse of the perimeter.
+    
+    return IC;
+}

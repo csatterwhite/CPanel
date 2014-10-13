@@ -45,8 +45,10 @@ class panel
     coordSys getLocalSys(const Eigen::MatrixXd &nodes);
     void pointSource(const double &sigma, const point &POI, double &phi, Eigen::Vector3d &vel);
     void pointDoublet(const double &mu, const point &POI, double &phi, Eigen::Vector3d &vel);
-    void panelSource(const double &sigma, const point &POI, const Eigen::MatrixXd &vertsLocal, const influenceTerms &terms, const Eigen::MatrixXd &nodes, double &phi, Eigen::Vector3d &vel);
-    void panelDoublet(const double &mu, const point &POI, const Eigen::MatrixXd &vertsLocal, const influenceTerms &terms, const Eigen::MatrixXd &nodes, double &phi, Eigen::Vector3d &vel);
+    void panelSourceAll(const double &sigma, const point &POI, const Eigen::MatrixXd &vertsLocal, const influenceTerms &terms, const Eigen::MatrixXd &nodes, double &phi, Eigen::Vector3d &vel);
+    double panelSourceIC(const point &POI, const Eigen::MatrixXd &vertsLocal, const influenceTerms &terms, const Eigen::MatrixXd &nodes, bool dirichletBC);
+    void panelDoubletAll(const double &mu, const point &POI, const Eigen::MatrixXd &vertsLocal, const influenceTerms &terms, const Eigen::MatrixXd &nodes, double &phi, Eigen::Vector3d &vel);
+    double panelDoubletIC(const point &POI, const Eigen::MatrixXd &vertsLocal, const influenceTerms &terms, const Eigen::MatrixXd &nodes, bool dirichletBC);
     
 public:
     panel(short surfaceID) : surfID(surfaceID) , TEpanel(false) {};
@@ -56,6 +58,8 @@ public:
     vector transformCoordinates(const vector &toTransform, const coordSys &fromSys, const coordSys &toSys);
     void sourceInfluence(const double &sigma, const point &POIglobal, const Eigen::MatrixXd &nodes, double &phi, Eigen::Vector3d &vel);
     void doubletInfluence(const double &mu, const point &POIglobal, const Eigen::MatrixXd &nodes, double &phi, Eigen::Vector3d &vel);
+    double sourceIC(const point &POIglobal, const Eigen::MatrixXd &nodes, bool dirichletBC);
+    double doubletIC(const point &POIglobal, const Eigen::MatrixXd &nodes, bool dirichletBC);
     
     
     vector getCenter() const {return center;}
