@@ -138,7 +138,7 @@ void geometry::setTEPanels()
     for (int i=0; i<wakes.size(); i++)
     {
         std::vector<panel*> wakePanels = wakes[i]->getPanels();
-        short targetID = liftingSurfs[i]->getID();
+        int targetID = liftingSurfs[i]->getID();
         for (int j=0; j<wakePanels.size(); j++)
         {
             setNeighbors(wakePanels[j],targetID);
@@ -171,31 +171,31 @@ void geometry::setNeighbors(panel* p, int targetID)
 {
     node<panel>* currentNode = pOctree.findNodeContainingMember(p);
     scanNode(p,currentNode,NULL);
-    bool flag = false; //Flags panels that are known to not have any trailing edge panels for neighbors;
-    while (currentNode != pOctree.getRootNode())
+    bool flag = false; // Flags panels that are known to not have any trailing edge panels for neighbors;
+    while (currentNode != pOctree.getRootNode() && p->getNeighbors().size() <= p->getVerts().size()+2)  // Maximum number of neighbors on wake panel is the number of verts plus two.  This panel exists in the wing fuselage joint, with two neighbors on wing, two neighbors on fuselage, and either 1 (for tris) or 2 (for quads) in the wake.
     {
         scanNode(p,currentNode->getParent(),currentNode);
         currentNode = currentNode->getParent();
-        if (p->getNeighbors().size() == 3)
+        if (p->getNeighbors().size() == p->getVerts().size())
         {
             std::vector<panel*> neighbors = p->getNeighbors();
             short count = 0; //Count neighbors that are not on lifting surface.
-            for (int i=0; i<3; i++)
+            for (int i=0; i<neighbors.size(); i++)
             {
-                if (neighbors[i]->getID() != targetID)
+                if (neighbors[i]->getID() == p->getID())
                 {
                     count++;
                 }
             }
-            if (count == 3)
+            if (count == neighbors.size())
             {
                 flag = true;
-                break; //If there are three neighbors and none of them are on the lifting surface, the panel is not touching the trailing edge.
+                break; // If the panel has as many neighbors as sides and they are all in the wake, the panel cannot possibly be stemming off the trailing edge.
             }
         }
     }
 
-    if (!flag && p->getNeighbors().size()>=3)
+    if (!flag)
     {
         std::vector<panel*> neighbors = p->getNeighbors();
         for (int i=0; i<neighbors.size(); i++)
