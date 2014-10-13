@@ -41,18 +41,31 @@ void influenceTests::testPntClose()
     double phiSource;
     Eigen::Vector3d vSource;
     p.sourceInfluence(1,POI,nodes,phiSource,vSource);
-    TEST_ASSERT(phiSource > -0.01409318 && phiSource < -0.01409317)
-    TEST_ASSERT(vSource(0) > 0.00469304 && vSource(0) < 0.00469305)
-    TEST_ASSERT(vSource(1) > 0.00235937 && vSource(1) < 0.00235938)
-    TEST_ASSERT(vSource(2) > 0.00240016 && vSource(2) < 0.00240017)
+    TEST_ASSERT(isEqual(phiSource,-0.014093178,9))
+    TEST_ASSERT(isEqual(vSource(0),0.004693044,9))
+    TEST_ASSERT(isEqual(vSource(1),0.002359374,9))
+    TEST_ASSERT(isEqual(vSource(2),0.002400169,9))
     
     double phiDoublet;
     Eigen::Vector3d vDoublet;
     p.doubletInfluence(1, POI, nodes, phiDoublet, vDoublet);
-    TEST_ASSERT(phiDoublet > -0.00240017 && phiDoublet < -0.00240016)
-    TEST_ASSERT(vDoublet(0) > 0.00241728 && vDoublet(0) < 0.00241729)
-    TEST_ASSERT(vDoublet(1) > 0.00122408 && vDoublet(1) < 0.00122409)
-    TEST_ASSERT(vDoublet(2) > -0.00114367 && vDoublet(2) < -0.00114366)
+    TEST_ASSERT(isEqual(phiDoublet,-0.002400169,9))
+    TEST_ASSERT(isEqual(vDoublet(0),0.002417289,9))
+    TEST_ASSERT(isEqual(vDoublet(1),0.001224085,9))
+    TEST_ASSERT(isEqual(vDoublet(2),-0.001143661,9))
+    
+    double IC;
+    bool dirichletBC = true;
+    IC = p.sourceIC(POI,nodes,dirichletBC);
+    TEST_ASSERT(isEqual(IC,phiSource,9))
+    IC = p.doubletIC(POI,nodes,dirichletBC);
+    TEST_ASSERT(isEqual(IC,phiDoublet,9));
+    
+    dirichletBC = false;
+    IC = p.sourceIC(POI,nodes,dirichletBC);
+    TEST_ASSERT(isEqual(IC,vSource(2),9))
+    IC = p.doubletIC(POI,nodes,dirichletBC);
+    TEST_ASSERT(isEqual(IC,vDoublet(2),9));
 }
 
 void influenceTests::testPntFar()
@@ -80,18 +93,32 @@ void influenceTests::testPntFar()
     double phiSource;
     Eigen::Vector3d vSource;
     p.sourceInfluence(1,POI,nodes,phiSource,vSource);
-    TEST_ASSERT(phiSource > -0.00639871 && phiSource < -0.00639870)
-    TEST_ASSERT(vSource(0) > 0.00088257 && vSource(0) < 0.00088258)
-    TEST_ASSERT(vSource(1) > 0.00066193 && vSource(1) < 0.00066194)
-    TEST_ASSERT(vSource(2) > 0.00044128 && vSource(2) < 0.00044129)
+    TEST_ASSERT(isEqual(phiSource,-0.006398700,9))
+    TEST_ASSERT(isEqual(vSource(0),0.000882579,9))
+    TEST_ASSERT(isEqual(vSource(1),0.000661934,9))
+    TEST_ASSERT(isEqual(vSource(2),0.000441289,9))
     
     double phiDoublet;
     Eigen::Vector3d vDoublet;
     p.doubletInfluence(1, POI, nodes, phiDoublet, vDoublet);
-    TEST_ASSERT(phiDoublet > -0.00044129 && phiDoublet < -0.00044128)
-    TEST_ASSERT(vDoublet(0) > 0.00018260 && vDoublet(0) < 0.00018261)
-    TEST_ASSERT(vDoublet(1) > 0.00013695 && vDoublet(1) < 0.00013696)
-    TEST_ASSERT(vDoublet(2) > -0.00012935 && vDoublet(2) < -0.00012934)
+    TEST_ASSERT(isEqual(phiDoublet,-0.000441289,9))
+    TEST_ASSERT(isEqual(vDoublet(0),0.000182602,9))
+    TEST_ASSERT(isEqual(vDoublet(1),0.000136952,9))
+    TEST_ASSERT(isEqual(vDoublet(2),-0.000129343,9))
+    
+    double IC;
+    bool dirichletBC = true;
+    IC = p.sourceIC(POI,nodes,dirichletBC);
+    TEST_ASSERT(isEqual(IC,phiSource,9))
+    IC = p.doubletIC(POI,nodes,dirichletBC);
+    TEST_ASSERT(isEqual(IC,phiDoublet,9));
+    
+    dirichletBC = false;
+    IC = p.sourceIC(POI,nodes,dirichletBC);
+    TEST_ASSERT(isEqual(IC,vSource(2),9))
+    IC = p.doubletIC(POI,nodes,dirichletBC);
+    TEST_ASSERT(isEqual(IC,vDoublet(2),9));
+    
 }
 
 void influenceTests::testCollocationPnt()
@@ -130,7 +157,27 @@ void influenceTests::testCollocationPnt()
     TEST_ASSERT(phiDoublet == -0.5)
     TEST_ASSERT(vDoublet(0) == 0)
     TEST_ASSERT(vDoublet(1) == 0)
-    TEST_ASSERT(vDoublet(2) > 1.432394487 && vDoublet(2) < 1.432394488)
+    TEST_ASSERT(isEqual(vDoublet(2),1.432394487,9))
     
+    double IC;
+    bool dirichletBC = true;
+    IC = p.sourceIC(POI,nodes,dirichletBC);
+    TEST_ASSERT(isEqual(IC,phiSource,9))
+    IC = p.doubletIC(POI,nodes,dirichletBC);
+    TEST_ASSERT(isEqual(IC,phiDoublet,9));
+    
+    dirichletBC = false;
+    IC = p.sourceIC(POI,nodes,dirichletBC);
+    TEST_ASSERT(isEqual(IC,vSource(2),9))
+    IC = p.doubletIC(POI,nodes,dirichletBC);
+    TEST_ASSERT(isEqual(IC,vDoublet(2),9));
+    
+    
+}
+
+bool influenceTests::isEqual(double var1, double var2, int decimalPrecision)
+{
+    double eps = pow(10,-decimalPrecision);
+    return (abs(var1-var2)<eps);
     
 }

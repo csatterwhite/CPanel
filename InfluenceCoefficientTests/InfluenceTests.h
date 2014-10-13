@@ -20,6 +20,7 @@ class influenceTests : public Test::Suite
     void testPntClose();
     void testPntFar();
     void testCollocationPnt();
+    bool isEqual(double var1, double var2, int decimalPrecision);
     
 public:
     influenceTests();
