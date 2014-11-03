@@ -15,6 +15,8 @@
 #include <fstream>
 #include "geometry.h"
 #include "surface.h"
+#include "liftingSurf.h"
+#include "wake.h"
 
 class GeomTest : public Test::Suite
 {

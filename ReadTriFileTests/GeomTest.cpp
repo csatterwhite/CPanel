@@ -17,39 +17,41 @@ void GeomTest::test_readGeom()
 {
    // Construct tri file to test
     int nTris = 7;
-    int nVerts = 8;
+    int nNodes = 10;
     std::ofstream fid;
     fid.open("testfile.tri");
     if (fid.is_open())
     {
         // Visual of testfile.tri
         //
-        //  5_____6_____7_____8
+        //  6____7,8____9_____10
         //  |\    |\    |\    |
         //  | \ 2 | \ 5 | \ 7 |
         //  |  \  |  \  |  \  |
         //  | 1 \ |3,4\ | 6 \ |
         //  |____\|____\|____\|
-        //  1     2     3     4
+        //  1     2     3,4   5
         
-        fid << nVerts << "\t" << nTris << "\n";
+        fid << nNodes << "\t" << nTris << "\n";
         
         fid << 0 << "\t" << 0 << "\t" << 0 << "\n"
             << 1 << "\t" << 0 << "\t" << 0 << "\n"
             << 2 << "\t" << 0 << "\t" << 0 << "\n"
+            << 2 << "\t" << 0 << "\t" << 0 << "\n"
             << 3 << "\t" << 0 << "\t" << 0 << "\n"
             << 0 << "\t" << 1 << "\t" << 0 << "\n"
+            << 1 << "\t" << 1 << "\t" << 0 << "\n"
             << 1 << "\t" << 1 << "\t" << 0 << "\n"
             << 2 << "\t" << 1 << "\t" << 0 << "\n"
             << 3 << "\t" << 1 << "\t" << 0 << "\n";
         
-        fid << 1 << "\t" << 2 << "\t" << 5 << "\n"
-            << 2 << "\t" << 6 << "\t" << 5 << "\n"
-            << 3 << "\t" << 6 << "\t" << 2 << "\n"
-            << 3 << "\t" << 6 << "\t" << 2 << "\n"
-            << 3 << "\t" << 7 << "\t" << 6 << "\n"
-            << 4 << "\t" << 7 << "\t" << 3 << "\n"
-            << 4 << "\t" << 8 << "\t" << 7 << "\n";
+        fid << 1 << "\t" << 2 << "\t" << 6 << "\n"
+            << 2 << "\t" << 6 << "\t" << 7 << "\n"
+            << 3 << "\t" << 7 << "\t" << 2 << "\n"
+            << 3 << "\t" << 7 << "\t" << 2 << "\n"
+            << 4 << "\t" << 9 << "\t" << 8 << "\n"
+            << 5 << "\t" << 9 << "\t" << 4 << "\n"
+            << 5 << "\t" << 10 << "\t" << 9 << "\n";
         
         // Fourth panel is a duplicate of the third panel because wake must stem from two panels on the lifting surface sharing the same edge.
         
@@ -57,30 +59,26 @@ void GeomTest::test_readGeom()
         
         fid.close();
         
-        geometry testGeom;
-        testGeom.readGeom("testfile.tri");
-        surface* surf = testGeom.getSurfaces()[0];
-        TEST_ASSERT_MSG(surf->getID() == 1, "Surface does not have assigned surfID");
+        geometry testGeom("testfile.tri");
+        std::vector<surface*> NLsurfs = testGeom.getNonLiftingSurfs();
+        TEST_ASSERT(NLsurfs.size() == 1)
+        TEST_ASSERT(NLsurfs[0]->getID() == 1);
         
-        TEST_ASSERT_MSG(surf->getPanels().size() == 1, "Incorrect number of panels added to surface");
+        TEST_ASSERT(NLsurfs[0]->getPanels().size() == 1);
         
-        TEST_ASSERT_MSG(countTEpanels(surf) == 0, "Incorrect TE panel set")
+        std::vector<liftingSurf*> Lsurfs = testGeom.getLiftingSurfs();
         
-        surf = testGeom.getSurfaces()[1];
+        TEST_ASSERT(Lsurfs[0]->getID() == 2)
         
-        TEST_ASSERT_MSG(surf->getID() == 2, "Surface does not have assigned surfID")
+        TEST_ASSERT(Lsurfs[0]->getPanels().size() == 3);
         
-        TEST_ASSERT_MSG(surf->getPanels().size() == 3, "Incorrect number of panels added to surface");
+        TEST_ASSERT(Lsurfs[0]->getAllPanels().size() == 6);
         
-        TEST_ASSERT_MSG(countTEpanels(surf) == 2, "Incorrect TE panel set");
+        wake* w = Lsurfs[0]->getWake();
         
-        surf = testGeom.getSurfaces()[2];
+        TEST_ASSERT(w->getPanels()[0]->isTEpanel());
         
-        TEST_ASSERT_MSG(surf->getID() == 10002, "Surface does not have assigned surfID")
         
-        TEST_ASSERT_MSG(surf->getPanels().size() == 3, "Incorrect number of panels added to surface");
-        
-        TEST_ASSERT_MSG(countTEpanels(surf) == 0, "Incorrect TE panel set");
         
 
         
@@ -91,16 +89,3 @@ void GeomTest::test_readGeom()
     }    
 }
 
-int GeomTest::countTEpanels(surface *surf)
-{
-    int count = 0;
-    std::vector<panel*> panels = surf->getPanels();
-    for (int i=0; i<panels.size(); i++)
-    {
-        if (panels[i]->isTEpanel())
-        {
-            count++;
-        }
-    }
-    return count;
-}

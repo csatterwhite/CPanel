@@ -10,23 +10,33 @@
 #include <fstream>
 #include <array>
 
-void geometry::readGeom(std::string geom_file)
+geometry::geometry(std::string geom_file)
+{
+    readTri(geom_file);
+}
+
+void geometry::readTri(std::string tri_file)
 {
     std::ifstream fid;
-    fid.open(geom_file);
+    fid.open(tri_file);
     if (fid.is_open())
     {
         fid >> nNodes >> nTris;
         Eigen::MatrixXi connectivity(nTris,3);
-        Eigen::VectorXi surfID(nTris);
+        Eigen::VectorXi allID(nTris);
+        std::vector<int> surfIDs;
+        std::vector<int> wakeIDs;
         std::vector<int> surfTypes;
         nodes.resize(nNodes,3);
+        TEnodes.resize(nNodes,1);
         
         // Read XYZ Locations of Nodes
         for (int i=0; i<nNodes; i++)
         {
             fid >> nodes(i,0) >> nodes(i,1) >> nodes(i,2);
         }
+        
+        findTEnodes();
         
         // Temporarily Store Connectivity
         for (int i=0; i<nTris; i++)
@@ -36,184 +46,146 @@ void geometry::readGeom(std::string geom_file)
         
         connectivity = connectivity.array()-1; //Adjust for 0 based indexing
         
-        fixDuplicateNodes(connectivity);
-        
         // Scan Surface IDs and collect Unique IDs
         for (int i=0; i<nTris; i++)
         {
-            fid >> surfID(i);
-        }
-        createSurfaces(connectivity,surfID);
-        createOctree();
-        setTEPanels();
-        
-        short count = 0;
-        for (int i=0; i<surfaces.size(); i++)
-        {
-            std::vector<panel*> temp = surfaces[i]->getPanels();
-            for (int j=0; j<temp.size(); j++)
+            fid >> allID(i);
+            if (i == 0 || allID(i) != allID(i-1))
             {
-                if (temp[j]->isTEpanel())
+                if (allID(i) > 10000)
                 {
-                    count++;
+                    wakeIDs.push_back(allID(i));
+                }
+                else
+                {
+                    surfIDs.push_back(allID(i));
                 }
             }
         }
-        std::cout << count << std::endl;
+        createSurfaces(connectivity,allID,surfIDs,wakeIDs);
+        createOctree();
+        for (int i=0; i<liftingSurfs.size(); i++)
+        {
+            liftingSurfs[i]->setTEneighbors(&pOctree);
+        }
     }
 }
 
-void geometry::fixDuplicateNodes(Eigen::MatrixXi &connectivity)
+void geometry::findTEnodes()
 {
-    for (int i=0; i<nodes.rows()-1; i++)
+    // Duplicate nodes are on TE because they are generated once for surface and once for wake. In some cases, there is floating point error that makes the points not exactly the same.  In these scenarios, the points are forced to be the exact same.
+    Eigen::Vector3d vec;
+    double eps = pow(10,-15);
+    for (int i=0; i<nNodes; i++)
     {
-        for (int j=i+1; j<nodes.rows(); j++)
+        for (int j=0; j<nNodes; j++)
         {
-            if (isSameNode(nodes.row(i),nodes.row(j)))
+            vec = nodes.row(i)-nodes.row(j);
+            if (vec.norm()<eps && i != j)
             {
-                changeIndex(connectivity, j, i);
+                nodes.row(j) = nodes.row(i);
+                TEnodes(i) = true;
+                TEnodes(j) = true;
             }
         }
     }
 }
 
-bool geometry::isSameNode(Eigen::Vector3d p1, Eigen::Vector3d p2)
+bool geometry::isLiftingSurf(int currentID, std::vector<int> wakeIDs)
 {
-    if (p1(0) == p2(0) && p1(1) == p2(1) && p1(2) == p2(2))
+    for (int i=0; i<wakeIDs.size(); i++)
     {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-
-void geometry::changeIndex(Eigen::MatrixXi &connectivity, int toReplace, int replaceWith)
-{
-    for (int i=0; i<connectivity.rows(); i++)
-    {
-        for (int j=0; j<3; j++)
+        if (wakeIDs[i]-10000 == currentID)
         {
-            if (connectivity(i,j) == toReplace)
-            {
-                connectivity(i,j) = replaceWith;
-            }
+            return true;
         }
     }
+    return false;
 }
 
-void geometry::createSurfaces(Eigen::MatrixXi connectivity, Eigen::VectorXi surfID)
+
+void geometry::createSurfaces(Eigen::MatrixXi connectivity, Eigen::VectorXi allID, std::vector<int> surfIDs, std::vector<int> wakeIDs)
 {
-    surface* surf;
+    surface* surf = nullptr;
+    liftingSurf* surfL = nullptr;
+    bool LS = false;
     for (int i=0; i<nTris; i++)
     {
-        if (i==0 || surfID(i)!=surfID(i-1))
+        if (i==0 || allID(i)!=allID(i-1))
         {
-            surf = new surface(surfID(i));
-            surfaces.push_back(surf);
+            LS = isLiftingSurf(allID(i),wakeIDs);
+            if (LS)
+            {
+                surfL = new liftingSurf(allID(i),&nodes);
+                liftingSurfs.push_back(surfL);
+            }
+            else if (allID(i) <= 10000)
+            {
+                surf = new surface(allID(i),&nodes);
+                nonLiftingSurfs.push_back(surf);
+            }
+            else
+            {
+                surfL = getParentSurf(allID(i));
+            }
         }
-        surfaces.back()->addPanel(connectivity.row(i),nodes);
+        if (LS)
+        {
+            liftingSurfs.back()->addPanel(connectivity.row(i),TEnodes,allID(i));
+        }
+        else if (allID(i) <= 10000)
+        {
+            nonLiftingSurfs.back()->addPanel(connectivity.row(i));
+        }
+        else
+        {
+            surfL->addPanel(connectivity.row(i),TEnodes,allID(i));
+        }
     }
+}
+         
+liftingSurf* geometry::getParentSurf(int wakeID)
+{
+    for (int i=0; i<liftingSurfs.size(); i++)
+    {
+        if (liftingSurfs[i]->getID() == wakeID-10000)
+        {
+            return liftingSurfs[i];
+        }
+    }
+    return nullptr;
 }
 
 void geometry::createOctree()
 {
-    std::vector<panel*> data;
-    for (int i=0; i<surfaces.size(); i++)
+    std::vector<panel*> panels;
+    std::vector<panel*> temp;
+    std::vector<bodyPanel*> tempB;
+    for (int i=0; i<liftingSurfs.size(); i++)
     {
-        for (int j=0; j<surfaces[i]->getPanels().size(); j++)
-        {
-            data.push_back(surfaces[i]->getPanels()[j]);
-        }
+        temp = liftingSurfs[i]->getAllPanels();
+        panels.insert(panels.end(),temp.begin(),temp.end());
     }
-    pOctree.addData(data);
+    for (int i=0; i<nonLiftingSurfs.size(); i++)
+    {
+        tempB = nonLiftingSurfs[i]->getPanels();
+        panels.insert(panels.end(),tempB.begin(),tempB.end());
+    }
+    pOctree.addData(panels);
 }
 
-void geometry::setTEPanels()
+
+std::vector<surface*> geometry::getSurfaces()
 {
-    std::vector<surface*> wakes;
-    std::vector<surface*> liftingSurfs;
-    getLiftingSurfs(wakes,liftingSurfs);
-    for (int i=0; i<wakes.size(); i++)
+    std::vector<surface*> surfs;
+    for (int i=0; i<nonLiftingSurfs.size(); i++)
     {
-        std::vector<panel*> wakePanels = wakes[i]->getPanels();
-        int targetID = liftingSurfs[i]->getID();
-        for (int j=0; j<wakePanels.size(); j++)
-        {
-            setNeighbors(wakePanels[j],targetID);
-        }
+        surfs.push_back(nonLiftingSurfs[i]);
     }
+    for (int i=0; i<liftingSurfs.size(); i++)
+    {
+        surfs.push_back(liftingSurfs[i]);
+    }
+    return surfs;
 }
 
-void geometry::getLiftingSurfs(std::vector<surface*>& wakes, std::vector<surface*>& liftingSurfs)
-{
-    for (int i=0; i<surfaces.size(); i++)
-    {
-        if (surfaces[i]->getID()>10000)
-        {
-            wakes.push_back(surfaces[i]);
-        }
-    }
-    for (int i=0; i<wakes.size(); i++)
-    {
-        for (int j=0; j<surfaces.size(); j++)
-        {
-            if (surfaces[j]->getID() == wakes[i]->getID()-10000)
-            {
-                liftingSurfs.push_back(surfaces[j]);
-            }
-        }
-    }
-}
-
-void geometry::setNeighbors(panel* p, int targetID)
-{
-    node<panel>* currentNode = pOctree.findNodeContainingMember(p);
-    scanNode(p,currentNode,NULL);
-    bool flag = false; // Flags panels that are known to not have any trailing edge panels for neighbors;
-    while (currentNode != pOctree.getRootNode() && p->getNeighbors().size() <= p->getVerts().size()+2)  // Maximum number of neighbors on wake panel is the number of verts plus two.  This panel exists in the wing fuselage joint, with two neighbors on wing, two neighbors on fuselage, and either 1 (for tris) or 2 (for quads) in the wake.
-    {
-        scanNode(p,currentNode->getParent(),currentNode);
-        currentNode = currentNode->getParent();
-        if (p->getNeighbors().size() == p->getVerts().size())
-        {
-            std::vector<panel*> neighbors = p->getNeighbors();
-            short count = 0; //Count neighbors that are not on lifting surface.
-            for (int i=0; i<neighbors.size(); i++)
-            {
-                if (neighbors[i]->getID() == p->getID())
-                {
-                    count++;
-                }
-            }
-            if (count == neighbors.size())
-            {
-                flag = true;
-                break; // If the panel has as many neighbors as sides and they are all in the wake, the panel cannot possibly be stemming off the trailing edge.
-            }
-        }
-    }
-
-    if (!flag)
-    {
-        std::vector<panel*> neighbors = p->getNeighbors();
-        for (int i=0; i<neighbors.size(); i++)
-        {
-            if (neighbors[i]->getID() == targetID)
-            {
-                neighbors[i]->setTE();
-            }
-        }
-    }
-    
-}
-
-void geometry::scanNode(panel* p, node<panel>* current, node<panel>* exception)
-{
-    std::vector<panel*> nodeMembers = current->getMembers(exception);
-    for (int i=0; i<nodeMembers.size(); i++)
-    {
-        p->checkNeighbor(nodeMembers[i]);
-    }
-}

@@ -12,52 +12,64 @@
 #include <iostream>
 #include <vector>
 #include <Eigen/Dense>
-#include <unordered_map>
 #include "panelOctree.h"
 #include "surface.h"
+#include "liftingSurf.h"
+#include "wake.h"
 #include "wakePanel.h"
 #include "bodyPanel.h"
 
 class geometry
 {
-    std::vector<surface*> surfaces;
+    std::vector<liftingSurf*> liftingSurfs;
+    std::vector<surface*> nonLiftingSurfs;
     panelOctree pOctree;
     Eigen::MatrixXd nodes;
+    Eigen::Matrix<bool,Eigen::Dynamic,1> TEnodes;
     short nNodes;
     short nTris;
 
-    void createSurfaces(Eigen::MatrixXi connectivity, Eigen::VectorXi surfID);
+    void readTri(std::string tri_file);
+    void createSurfaces(Eigen::MatrixXi connectivity, Eigen::VectorXi allID, std::vector<int> surfIDs, std::vector<int> wakeIDs);
     void createOctree();
     void setTEPanels();
     void getLiftingSurfs(std::vector<surface*>& wakes, std::vector<surface*>& liftingSurfs);
     void setNeighbors(panel* p,int targetID);
     void scanNode(panel* p, node<panel>* current, node<panel>* exception);
-    bool isSameNode(Eigen::Vector3d p1, Eigen::Vector3d p2);
-    void fixDuplicateNodes(Eigen::MatrixXi &connectivity);
-    void changeIndex(Eigen::MatrixXi &connectivity, int toReplace, int replaceWith);
+    bool isLiftingSurf(int currentID, std::vector<int> wakeIDs);
+    void findTEnodes();
+    liftingSurf* getParentSurf(int wakeID);
     
 public:
-    geometry() {}
+    geometry(std::string geom_file);
     
     ~geometry()
     {
-        for (int i=0; i<surfaces.size(); i++)
+        for (int i=0; i<nonLiftingSurfs.size(); i++)
         {
-            delete surfaces[i];
+            delete nonLiftingSurfs[i];
+        }
+        for (int i=0; i<liftingSurfs.size(); i++)
+        {
+            delete liftingSurfs[i];
         }
     }
     
     geometry(const geometry& copy) : pOctree(copy.pOctree), nodes(copy.nodes), nNodes(copy.nNodes), nTris(copy.nTris)
     {
-        for (int i=0; i<copy.surfaces.size(); i++)
+        for (int i=0; i<copy.nonLiftingSurfs.size(); i++)
         {
-            surfaces[i] = new surface(*copy.surfaces[i]);
+            nonLiftingSurfs[i] = new surface(*copy.nonLiftingSurfs[i]);
+        }
+        for (int i=0; i<copy.liftingSurfs.size(); i++)
+        {
+            liftingSurfs[i] = new liftingSurf(*copy.liftingSurfs[i]);
         }
     }
     
-    void readGeom(std::string geom_file);
-    
-    std::vector<surface*> getSurfaces() const {return surfaces;}
+    std::vector<liftingSurf*> getLiftingSurfs() {return liftingSurfs;}
+    std::vector<surface*> getNonLiftingSurfs() {return nonLiftingSurfs;}
+    std::vector<surface*> getSurfaces();
     
 };
 

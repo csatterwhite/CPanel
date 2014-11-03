@@ -17,7 +17,9 @@
 #include <cmath>
 #include "math.h"
 #include "convexHull.h"
-#include "InfluenceTerms.h"
+#include "panelOctree.h"
+
+class panelOctree;
 
 class panel
 {
@@ -31,45 +33,62 @@ class panel
     //  |v2x v2y v2z|
     //  |v3x v3y v3z|
     
+    double area;
+    double longSide;
+    Eigen::VectorXd d;
+    Eigen::VectorXd m;
+
+    bool neighborExists(panel* other);
+    bool isNeighbor(panel* other);
+    void scanForNeighbors(node<panel>* current, node<panel>* exception);
+    bool isOnPanel(const point &POI);
+    void checkNeighbor(panel* other);
+    vector getUnitVector(const point &p1, const point &p2);
+    coordSys getLocalSys();
+    void getREH(Eigen::VectorXd &r, Eigen::VectorXd &e, Eigen::VectorXd &h,const Eigen::MatrixXd &verts, const point POI);
+    void setMD(const Eigen::MatrixXd &verts);
+    
+protected:
     point center;
     vector normal;
     vertices verts;
-    double area;
-    double longSide;
-    short surfID;
-    bool TEpanel;
+    double potential;
+    Eigen::MatrixXd* nodes;
+    int ID;
     std::vector<panel*> neighbors; //Share two vertices
-    bool neighborExists(panel* other);
-    bool isOnPanel(const point &POI, const Eigen::MatrixXd &nodes);
-    vector getUnitVector(const point &p1, const point &p2);
-    coordSys getLocalSys(const Eigen::MatrixXd &nodes);
-    void pointSource(const double &sigma, const point &POI, double &phi, Eigen::Vector3d &vel);
-    void pointDoublet(const double &mu, const point &POI, double &phi, Eigen::Vector3d &vel);
-    void panelSourceAll(const double &sigma, const point &POI, const Eigen::MatrixXd &vertsLocal, const influenceTerms &terms, const Eigen::MatrixXd &nodes, double &phi, Eigen::Vector3d &vel);
-    double panelSourceIC(const point &POI, const Eigen::MatrixXd &vertsLocal, const influenceTerms &terms, const Eigen::MatrixXd &nodes, bool dirichletBC);
-    void panelDoubletAll(const double &mu, const point &POI, const Eigen::MatrixXd &vertsLocal, const influenceTerms &terms, const Eigen::MatrixXd &nodes, double &phi, Eigen::Vector3d &vel);
-    double panelDoubletIC(const point &POI, const Eigen::MatrixXd &vertsLocal, const influenceTerms &terms, const Eigen::MatrixXd &nodes, bool dirichletBC);
     
 public:
-    panel(short surfaceID) : surfID(surfaceID) , TEpanel(false) {};
-    void setGeom(const vertices &panelVertices, const Eigen::MatrixXd &nodes);
-    void checkNeighbor(panel* other);
+    panel(const vertices &panelVertices,Eigen::MatrixXd* nodes,int surfID) : ID(surfID), verts(panelVertices), nodes(nodes)
+    {
+//        d.resize(verts.rows());
+//        m.resize(verts.size());
+//        d(0) = -10000; //Used as catch to set d and m if they haven't been set yet.
+        setGeom();
+        
+    };
+    
+    virtual ~panel() {}
+    
+    panel(const panel &copy) : ID(copy.ID), verts(copy.verts), nodes(copy.nodes)
+    {
+        setGeom();
+    }
+    
+    void setGeom();
+    void setNeighbors(panelOctree *oct,bool wakePanel);
     void addNeighbor(panel* other);
-    vector transformCoordinates(const vector &toTransform, const coordSys &fromSys, const coordSys &toSys);
-    void sourceInfluence(const double &sigma, const point &POIglobal, const Eigen::MatrixXd &nodes, double &phi, Eigen::Vector3d &vel);
-    void doubletInfluence(const double &mu, const point &POIglobal, const Eigen::MatrixXd &nodes, double &phi, Eigen::Vector3d &vel);
-    double sourceIC(const point &POIglobal, const Eigen::MatrixXd &nodes, bool dirichletBC);
-    double doubletIC(const point &POIglobal, const Eigen::MatrixXd &nodes, bool dirichletBC);
+    vector transformCoordinates(const vector &toTransform, const coordSys &fromSys, const coordSys &toSys, const vector &translation);
+    double doubletPhi(const double &mu, const point &POIglobal);
+    vector doubletV(const double &mu, const point &POIglobal);
+    double sourcePhi(const double &sigma, const point &POIglobal);
+    vector sourceV(const double &sigma, const point &POIglobal);
     
-    
+    int getID() {return ID;}
     vector getCenter() const {return center;}
     vector getNormal() const {return normal;}
     vertices getVerts() const {return verts;}
     std::vector<panel*> getNeighbors() const {return neighbors;}
-    short getID() const {return surfID;}
-    void setTE() {TEpanel = true;}
-    bool isTEpanel() {return TEpanel;}
-    
+    double getPotential() {return potential;}
 };
 
 #endif /* defined(__CPanel__panel__) */

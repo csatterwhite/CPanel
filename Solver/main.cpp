@@ -8,10 +8,18 @@
 
 #include <iostream>
 #include "geometry.h"
+#include "runCase.h"
 
 int main(int argc, const char * argv[])
 {
-    geometry temp;
-    temp.readGeom("exampletri.tri");
+    time_t ts;
+    time(&ts);
+    time_t tf;
+    geometry temp("ellipse.tri");
+    
+    runCase case1(&temp,1,0,0);
+    
+    time(&tf);
+    double t = difftime(tf,ts);
+    std::cout << "Elapsed time for program execution : " << t << " seconds" << std::endl;
 }
-

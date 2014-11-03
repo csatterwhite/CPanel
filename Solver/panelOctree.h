@@ -13,22 +13,15 @@
 #include "octree.h"
 #include "panel.h"
 
+class panel;
+
 class panelOctree : public octree<panel>
 {
     
 public:
     panelOctree() : octree() {}
     
-    std::array<double,3> findRefPoint(const panel* obj)
-    {
-        std::array<double,3> center;
-        for (int i=0; i<3; i++)
-        {
-            center[i] = obj->getCenter()(i);
-        }
-        return center;
-    }
+    std::array<double,3> findRefPoint(const panel &obj);
 };
-
 
 #endif /* defined(__CPanel__panelOctree__) */

@@ -12,6 +12,7 @@
 #include <iostream>
 #include <cpptest/cpptest.h>
 #include "panel.h"
+#include "panelOctree.h"
 
 
 class PanelTest : public Test::Suite

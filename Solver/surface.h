@@ -21,31 +21,27 @@ class surface
     typedef Eigen::Vector3i vertices;
     typedef Eigen::MatrixXd coordinates;
     
-    std::vector<panel*> panels;
+protected:
+    std::vector<bodyPanel*> panels;
     short surfID;
+    Eigen::MatrixXd* nodes;
     
 public:
-    surface(const int &surfaceID) : surfID(surfaceID) {}
+    surface(const int &surfaceID,Eigen::MatrixXd* nodes) : surfID(surfaceID), nodes(nodes) {}
     
-    ~surface()
-    {
-        for (int i=0; i<panels.size(); i++)
-        {
-            delete panels[i];
-        }
-    }
+    ~surface();
     
-    surface(const surface& copy) : surfID(copy.surfID)
+    surface(const surface& copy) : surfID(copy.surfID), nodes(copy.nodes)
     {
         for (int i=0; i<copy.panels.size(); i++)
         {
-            panels[i] = new panel(*copy.panels[i]);
+            panels[i] = new bodyPanel(*copy.panels[i]);
         }
     }
     
-    void addPanel(const vertices &verts, const coordinates &nodes);
+    void addPanel(const vertices &verts);
 
-    std::vector<panel*> getPanels() const {return panels;}
+    std::vector<bodyPanel*> getPanels() const {return panels;}
     int getID() const {return surfID;}
     
 };

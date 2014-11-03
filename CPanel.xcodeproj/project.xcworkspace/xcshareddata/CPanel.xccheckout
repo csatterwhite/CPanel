@@ -11,17 +11,17 @@
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
 		<key>E7DA6919A406C7701D52630B8E7FC7ED0E150255</key>
-		<string>ssh://github.com/csatterwhite/CPanel.git</string>
+		<string>github.com:csatterwhite/CPanel.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
-	<string>CPanel.xcodeproj/project.xcworkspace</string>
+	<string>CPanel.xcodeproj</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
 		<key>E7DA6919A406C7701D52630B8E7FC7ED0E150255</key>
 		<string>../..</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
-	<string>ssh://github.com/csatterwhite/CPanel.git</string>
+	<string>github.com:csatterwhite/CPanel.git</string>
 	<key>IDESourceControlProjectVersion</key>
 	<integer>111</integer>
 	<key>IDESourceControlProjectWCCIdentifier</key>

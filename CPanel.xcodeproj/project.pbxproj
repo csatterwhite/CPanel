@@ -13,6 +13,10 @@
 		83039E1019129C7F00271526 /* bodyPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83039E0E19129C7F00271526 /* bodyPanel.cpp */; };
 		83039E1319129C9100271526 /* wakePanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83039E1119129C9100271526 /* wakePanel.cpp */; };
 		83039E1619129DA600271526 /* panel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83039E1419129DA600271526 /* panel.cpp */; };
+		8305DA8819EC48F30022270D /* runCase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8305DA8619EC48F30022270D /* runCase.cpp */; };
+		830B4F3919F97660001BC710 /* panelOctree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83AEFF721918068000A697F5 /* panelOctree.cpp */; };
+		830B4F3A19F97C7E001BC710 /* liftingSurf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83EF7A2519EF004700E54C6E /* liftingSurf.cpp */; };
+		830B4F3B19F97CDE001BC710 /* wake.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83EF7A2B19EF015F00E54C6E /* wake.cpp */; };
 		831070EC192ADA6700BE80B6 /* panel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83039E1419129DA600271526 /* panel.cpp */; };
 		8334B02F192AD2CE008241DB /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8334B02E192AD2CE008241DB /* main.cpp */; };
 		8334B031192AD2CE008241DB /* InfluenceCoefficientTests.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8334B030192AD2CE008241DB /* InfluenceCoefficientTests.1 */; };
@@ -42,12 +46,13 @@
 		83B4B8FD18F0AF4F00EEBC34 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83B4B8FC18F0AF4F00EEBC34 /* main.cpp */; };
 		83B4B8FF18F0AF4F00EEBC34 /* Octree.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 83B4B8FE18F0AF4F00EEBC34 /* Octree.1 */; };
 		83B5BDAE19D310B100506A12 /* convexHull.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83B5BDAC19D310B100506A12 /* convexHull.cpp */; };
-		83B5E8FB19E343E500F7EEDF /* InfluenceTerms.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83B5E8F919E343E500F7EEDF /* InfluenceTerms.cpp */; };
-		83B5E8FC19E343E500F7EEDF /* InfluenceTerms.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83B5E8F919E343E500F7EEDF /* InfluenceTerms.cpp */; };
+		83BB320D19FD508C005EE19C /* wakeLine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83BB320B19FD508C005EE19C /* wakeLine.cpp */; };
 		83C1148919D38EF6005D7239 /* convexHullTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83C1148719D38EF6005D7239 /* convexHullTests.cpp */; };
 		83C1148A19D3A416005D7239 /* convexHull.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83B5BDAC19D310B100506A12 /* convexHull.cpp */; };
 		83C9D30B19E7918200D27CE2 /* InfluenceTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83DCB1BC19E4BC670028C33E /* InfluenceTests.cpp */; };
 		83DCB1BE19E4BC670028C33E /* InfluenceTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83DCB1BC19E4BC670028C33E /* InfluenceTests.cpp */; };
+		83EF7A2719EF004700E54C6E /* liftingSurf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83EF7A2519EF004700E54C6E /* liftingSurf.cpp */; };
+		83EF7A2D19EF015F00E54C6E /* wake.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83EF7A2B19EF015F00E54C6E /* wake.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -116,6 +121,8 @@
 		83039E1219129C9100271526 /* wakePanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wakePanel.h; sourceTree = "<group>"; };
 		83039E1419129DA600271526 /* panel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = panel.cpp; sourceTree = "<group>"; };
 		83039E1519129DA600271526 /* panel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = panel.h; sourceTree = "<group>"; };
+		8305DA8619EC48F30022270D /* runCase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = runCase.cpp; path = ../runCase.cpp; sourceTree = "<group>"; };
+		8305DA8719EC48F30022270D /* runCase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = runCase.h; path = ../runCase.h; sourceTree = "<group>"; };
 		8334B02C192AD2CE008241DB /* InfluenceCoefficientTests */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = InfluenceCoefficientTests; sourceTree = BUILT_PRODUCTS_DIR; };
 		8334B02E192AD2CE008241DB /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		8334B030192AD2CE008241DB /* InfluenceCoefficientTests.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = InfluenceCoefficientTests.1; sourceTree = "<group>"; };
@@ -153,12 +160,16 @@
 		83B4B90718F0C12500EEBC34 /* octree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = octree.h; sourceTree = "<group>"; };
 		83B5BDAC19D310B100506A12 /* convexHull.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = convexHull.cpp; sourceTree = "<group>"; };
 		83B5BDAD19D310B100506A12 /* convexHull.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = convexHull.h; sourceTree = "<group>"; };
-		83B5E8F919E343E500F7EEDF /* InfluenceTerms.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = InfluenceTerms.cpp; sourceTree = "<group>"; };
-		83B5E8FA19E343E500F7EEDF /* InfluenceTerms.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InfluenceTerms.h; sourceTree = "<group>"; };
+		83BB320B19FD508C005EE19C /* wakeLine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = wakeLine.cpp; sourceTree = "<group>"; };
+		83BB320C19FD508C005EE19C /* wakeLine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wakeLine.h; sourceTree = "<group>"; };
 		83C1148719D38EF6005D7239 /* convexHullTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = convexHullTests.cpp; sourceTree = "<group>"; };
 		83C1148819D38EF6005D7239 /* convexHullTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = convexHullTests.h; sourceTree = "<group>"; };
 		83DCB1BC19E4BC670028C33E /* InfluenceTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = InfluenceTests.cpp; sourceTree = "<group>"; };
 		83DCB1BD19E4BC670028C33E /* InfluenceTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InfluenceTests.h; sourceTree = "<group>"; };
+		83EF7A2519EF004700E54C6E /* liftingSurf.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = liftingSurf.cpp; sourceTree = "<group>"; };
+		83EF7A2619EF004700E54C6E /* liftingSurf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = liftingSurf.h; sourceTree = "<group>"; };
+		83EF7A2B19EF015F00E54C6E /* wake.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = wake.cpp; path = ../wake.cpp; sourceTree = "<group>"; };
+		83EF7A2C19EF015F00E54C6E /* wake.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = wake.h; path = ../wake.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -206,22 +217,28 @@
 		83039DFC191152A300271526 /* Solver */ = {
 			isa = PBXGroup;
 			children = (
+				83EF7A2B19EF015F00E54C6E /* wake.cpp */,
+				83EF7A2C19EF015F00E54C6E /* wake.h */,
+				8305DA8619EC48F30022270D /* runCase.cpp */,
+				8305DA8719EC48F30022270D /* runCase.h */,
+				83BB320B19FD508C005EE19C /* wakeLine.cpp */,
+				83BB320C19FD508C005EE19C /* wakeLine.h */,
 				83AEFF721918068000A697F5 /* panelOctree.cpp */,
 				83AEFF731918068000A697F5 /* panelOctree.h */,
 				83039E05191152C300271526 /* geometry.cpp */,
 				83039E06191152C300271526 /* geometry.h */,
-				83039E0919129C4D00271526 /* surface.h */,
+				83EF7A2519EF004700E54C6E /* liftingSurf.cpp */,
+				83EF7A2619EF004700E54C6E /* liftingSurf.h */,
 				83AE7F501918637200CEC299 /* surface.cpp */,
+				83039E0919129C4D00271526 /* surface.h */,
 				83039E0E19129C7F00271526 /* bodyPanel.cpp */,
 				83039E0F19129C7F00271526 /* bodyPanel.h */,
 				83039E1119129C9100271526 /* wakePanel.cpp */,
 				83039E1219129C9100271526 /* wakePanel.h */,
 				83039E1419129DA600271526 /* panel.cpp */,
-				83B5E8F919E343E500F7EEDF /* InfluenceTerms.cpp */,
-				83B5E8FA19E343E500F7EEDF /* InfluenceTerms.h */,
+				83039E1519129DA600271526 /* panel.h */,
 				83B5BDAC19D310B100506A12 /* convexHull.cpp */,
 				83B5BDAD19D310B100506A12 /* convexHull.h */,
-				83039E1519129DA600271526 /* panel.h */,
 				83039DFD191152A300271526 /* main.cpp */,
 				83039DFF191152A300271526 /* Solver.1 */,
 			);
@@ -264,11 +281,11 @@
 			isa = PBXGroup;
 			children = (
 				83B4B8CE18F0A9D100EEBC34 /* GeomTest.cpp */,
-				83B4B8CF18F0A9D100EEBC34 /* SurfaceTest.cpp */,
 				83B4B8D218F0A9D100EEBC34 /* GeomTest.h */,
+				83B4B8CF18F0A9D100EEBC34 /* SurfaceTest.cpp */,
+				83B4B8D518F0A9D100EEBC34 /* SurfaceTest.h */,
 				83B4B8D318F0A9D100EEBC34 /* PanelTest.cpp */,
 				83B4B8D418F0A9D100EEBC34 /* PanelTest.h */,
-				83B4B8D518F0A9D100EEBC34 /* SurfaceTest.h */,
 				83A88C9E190F56F7006A8CB2 /* main.cpp */,
 				83A88CA0190F56F7006A8CB2 /* ReadTriFileTests.1 */,
 			);
@@ -437,12 +454,15 @@
 			files = (
 				83039E1619129DA600271526 /* panel.cpp in Sources */,
 				83039DFE191152A300271526 /* main.cpp in Sources */,
+				83EF7A2D19EF015F00E54C6E /* wake.cpp in Sources */,
 				83AEFF741918068000A697F5 /* panelOctree.cpp in Sources */,
 				83039E1319129C9100271526 /* wakePanel.cpp in Sources */,
+				83BB320D19FD508C005EE19C /* wakeLine.cpp in Sources */,
 				83AE7F511918637200CEC299 /* surface.cpp in Sources */,
-				83B5E8FC19E343E500F7EEDF /* InfluenceTerms.cpp in Sources */,
+				8305DA8819EC48F30022270D /* runCase.cpp in Sources */,
 				83039E07191152C300271526 /* geometry.cpp in Sources */,
 				83039E1019129C7F00271526 /* bodyPanel.cpp in Sources */,
+				83EF7A2719EF004700E54C6E /* liftingSurf.cpp in Sources */,
 				83B5BDAE19D310B100506A12 /* convexHull.cpp in Sources */,
 				83C9D30B19E7918200D27CE2 /* InfluenceTests.cpp in Sources */,
 			);
@@ -457,7 +477,6 @@
 				831070EC192ADA6700BE80B6 /* panel.cpp in Sources */,
 				83C1148919D38EF6005D7239 /* convexHullTests.cpp in Sources */,
 				83C1148A19D3A416005D7239 /* convexHull.cpp in Sources */,
-				83B5E8FB19E343E500F7EEDF /* InfluenceTerms.cpp in Sources */,
 				83DCB1BE19E4BC670028C33E /* InfluenceTests.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -480,6 +499,7 @@
 			files = (
 				83A88CA8190F583C006A8CB2 /* PanelTest.cpp in Sources */,
 				83A88C9F190F56F7006A8CB2 /* main.cpp in Sources */,
+				830B4F3B19F97CDE001BC710 /* wake.cpp in Sources */,
 				83A8103B191C02870077AD86 /* geometry.cpp in Sources */,
 				83A8103A191C02800077AD86 /* panel.cpp in Sources */,
 				83A81039191C027C0077AD86 /* wakePanel.cpp in Sources */,
@@ -487,7 +507,9 @@
 				83A88CA5190F5820006A8CB2 /* GeomTest.cpp in Sources */,
 				83A81038191C02780077AD86 /* bodyPanel.cpp in Sources */,
 				83A88CA6190F5826006A8CB2 /* SurfaceTest.cpp in Sources */,
+				830B4F3A19F97C7E001BC710 /* liftingSurf.cpp in Sources */,
 				83B4333119E0A38C009EA44C /* convexHull.cpp in Sources */,
+				830B4F3919F97660001BC710 /* panelOctree.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

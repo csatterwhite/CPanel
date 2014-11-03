@@ -13,12 +13,12 @@
 #include "cpptest/cpptest.h"
 #include "panel.h"
 
-class CoordTransformTest : public Test::Suite
-{
-    void testTransform();
-    
-public:
-    CoordTransformTest();
-};
+//class CoordTransformTest : public Test::Suite
+//{
+//    void testTransform();
+//    
+//public:
+//    CoordTransformTest();
+//};
 
 #endif /* defined(__CPanel__CoordTransformTest__) */

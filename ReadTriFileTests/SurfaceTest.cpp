@@ -19,8 +19,8 @@ void SurfaceTest::test_addPanel()
     Eigen::Vector3i indices = {0,1,2};
     Eigen::MatrixXd nodes(3,3);
     nodes << 0,0,0,0,1,0,1,0,0;
-    surface surf(1);
-    surf.addPanel(indices,nodes);
+    surface surf(1,&nodes);
+    surf.addPanel(indices);
     TEST_ASSERT_MSG(surf.getPanels().size() == 1,"Failed to add panel to surface");
     TEST_ASSERT_MSG(surf.getPanels()[0] != NULL, "Panel not created (pointer is NULL)");
 }

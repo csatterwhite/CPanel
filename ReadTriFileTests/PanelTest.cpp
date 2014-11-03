@@ -19,11 +19,10 @@ PanelTest::PanelTest()
 
 void PanelTest::test_setGeomTri()
 {
-    panel p(1);
     Eigen::Vector3i vertices = {0,1,2};
     Eigen::MatrixXd nodes(3,3);
     nodes << 0,0,0,3,0,0,0,3,0;
-    p.setGeom(vertices,nodes);
+    panel p(vertices,&nodes,1);
     
     bool flag = true;
     Eigen::Vector3i verts = p.getVerts();
@@ -52,11 +51,10 @@ void PanelTest::test_setGeomTri()
 
 void PanelTest::test_setGeomQuad()
 {
-    panel p(1);
     Eigen::Vector4i vertices = {0,1,2,3};
     Eigen::MatrixXd nodes(4,3);
     nodes << 0,0,0,1,0,0,1,1,0,0,1,0;
-    p.setGeom(vertices,nodes);
+    panel p(vertices,&nodes,1);
     
     bool flag = true;
     Eigen::Vector4i verts = p.getVerts();
@@ -103,23 +101,23 @@ void PanelTest::test_addNeighbor()
     panel* p;
     for (int i=0; i<4; i++)
     {
-        p = new panel(1);
-        p->setGeom(indices.row(i),nodes);
+        p = new panel(indices.row(i),&nodes,1);
         panels.push_back(p);
     }
     
-    panels[0]->checkNeighbor(panels[1]);
-    panels[0]->checkNeighbor(panels[2]);
-    panels[0]->checkNeighbor(panels[3]);
+    panelOctree oct;
+    oct.addData(panels);
+    
+    for (int i=0; i<panels.size(); i++)
+    {
+        panels[i]->setNeighbors(&oct,false);
+    }
     
     TEST_ASSERT_MSG(panels[0]->getNeighbors().size() == 1, "Wrong number of primary neighbors")
-    TEST_ASSERT_MSG(panels[1]->getNeighbors().size() == 1, "Reciprocal addition of neighbor failed")
-    TEST_ASSERT_MSG(panels[2]->getNeighbors().size() == 0, "False neighbor added to panel")
-    TEST_ASSERT_MSG(panels[3]->getNeighbors().size() == 0, "False neighbor added to panel")
+    TEST_ASSERT_MSG(panels[1]->getNeighbors().size() == 2, "Reciprocal addition of neighbor failed")
+    TEST_ASSERT_MSG(panels[2]->getNeighbors().size() == 2, "False neighbor added to panel")
+    TEST_ASSERT_MSG(panels[3]->getNeighbors().size() == 1, "False neighbor added to panel")
     
-    panels[1]->checkNeighbor(panels[0]);
-    
-    TEST_ASSERT_MSG(panels[1]->getNeighbors().size() == 1, "Duplicate neighbor added")
     
     
     for (int i=0; i<4; i++)

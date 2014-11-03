@@ -9,22 +9,19 @@
 #include "surface.h"
 
 
-void surface::addPanel(const vertices &verts, const coordinates &nodes)
+surface::~surface()
 {
-    bodyPanel* b;
-    wakePanel* w;
-    
-    if (surfID<=10000)
+    for (int i=0; i<panels.size(); i++)
     {
-        b = new bodyPanel(surfID);
-        panels.push_back(b);
-        panels.back()->setGeom(verts,nodes);
-    }
-    
-    else
-    {
-        w = new wakePanel(surfID);
-        panels.push_back(w);
-        panels.back()->setGeom(verts,nodes);
+        delete panels[i];
     }
 }
+
+void surface::addPanel(const vertices &verts)
+{
+    bodyPanel* b;
+    
+    b = new bodyPanel(verts,nodes,surfID);
+    panels.push_back(b);
+}
+

@@ -7,3 +7,13 @@
 //
 
 #include "panelOctree.h"
+
+std::array<double,3> panelOctree::findRefPoint(const panel &obj)
+{
+    std::array<double,3> center;
+    for (int i=0; i<3; i++)
+    {
+        center[i] = obj.getCenter()(i);
+    }
+    return center;
+}

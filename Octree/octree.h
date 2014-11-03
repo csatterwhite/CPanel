@@ -83,7 +83,7 @@ class octree
     
     member<type> createMember(type* obj)
     {
-        point refPoint = findRefPoint(obj);
+        point refPoint = findRefPoint(*obj);
         member<type> newMember(obj,refPoint);
         return newMember;
     }
@@ -192,7 +192,7 @@ public:
         }
     }
     
-    node<type> *findNodeContainingMember(type* obj)
+    node<type>* findNodeContainingMember(type* obj)
     {
         member<type> temp = createMember(obj);
         assert(isInsideOctree(temp));
@@ -219,7 +219,7 @@ public:
         return true;
     }
     
-    virtual std::array<double,3> findRefPoint(const type* obj) = 0;
+    virtual std::array<double,3> findRefPoint(const type &obj) = 0;
     // Returns 3 element array of X,Y,Z locations of point used to determine which node the member belongs to. i.e. (return center of triangle for unstructured grid)
     
     int getMaxMembersPerNode() {return maxMembersPerNode;}

@@ -15,7 +15,7 @@
 int main()
 {
     Test::Suite tests;
-    tests.add(std::auto_ptr<Test::Suite>(new CoordTransformTest));
+//    tests.add(std::auto_ptr<Test::Suite>(new CoordTransformTest));
     tests.add(std::auto_ptr<Test::Suite>(new convexHullTests));
     tests.add(std::auto_ptr<Test::Suite>(new influenceTests));
     
