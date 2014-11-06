@@ -42,8 +42,7 @@ public:
     
     void setPotential(Eigen::Vector3d Vinf)
     {
-        potential = mu+sigma;
-        //+Vinf.dot(center);
+        potential = mu+Vinf.dot(center);
     }
     
     void setTEpanel() {TEpanel = true;}

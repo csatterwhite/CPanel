@@ -60,9 +60,6 @@ protected:
 public:
     panel(const vertices &panelVertices,Eigen::MatrixXd* nodes,int surfID) : ID(surfID), verts(panelVertices), nodes(nodes)
     {
-//        d.resize(verts.rows());
-//        m.resize(verts.size());
-//        d(0) = -10000; //Used as catch to set d and m if they haven't been set yet.
         setGeom();
         
     };

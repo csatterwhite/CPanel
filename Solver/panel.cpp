@@ -226,12 +226,15 @@ double panel::doubletPhi(const double &mu, const point &POIglobal)
     coordSys globalSys;
     globalSys.setIdentity();
     
+//    std::cout << POIglobal(0) << "," << POIglobal(1) << "," << POIglobal(2) << std::endl;
+    
     // Transform Panel Vertices and Point of Interest to Local System
     vector POI = transformCoordinates(POIglobal,globalSys,localSys,center);
+//    std::cout << POI(0) << "," << POI(1) << "," << POI(2) << std::endl;
     
     if (POI.norm()/longSide > 5)
     {
-        return area*POI(2)/(4*M_PI*pow(POI.norm(),3));
+        return mu*area*POI(2)/(4*M_PI*pow(POI.norm(),3));
     }
     
     else
@@ -241,15 +244,21 @@ double panel::doubletPhi(const double &mu, const point &POIglobal)
         for (int i=0; i<verts.rows(); i++)
         {
             vertsLocal.row(i) = transformCoordinates(nodes->row(verts(i)),globalSys,localSys,center);
+//            std::cout << vertsLocal.row(i)(0) << "," << vertsLocal.row(i)(1) << "," << vertsLocal.row(i)(2) << std::endl;
         }
         if (d.rows() == 0)
         {
             setMD(vertsLocal);
+//            std::cout << d(0) << "," << d(1) << "," << d(2) << std::endl;
+//            std::cout << m(0) << "," << m(1) << "," << m(2) << std::endl;
         }
         
         Eigen::VectorXd r(verts.size()),e(verts.size()),h(verts.size());
         
         getREH(r,e,h,vertsLocal,POI);
+//        std::cout << r(0) << "," << r(1) << "," << r(2) << std::endl;
+//        std::cout << e(0) << "," << e(1) << "," << e(2) << std::endl;
+//        std::cout << h(0) << "," << h(1) << "," << h(2) << std::endl;
         for (int i=0; i<vertsLocal.rows(); i++)
         {
             Eigen::Vector3d p1;
@@ -270,10 +279,10 @@ double panel::doubletPhi(const double &mu, const point &POIglobal)
                 i1 = i;
                 i2 = 0;
             }
-            phi = phi+1/(4*M_PI)*(atan2(m(i1)*e(i1)-h(i1),POI(2)*r(i1))-atan2(m(i1)*e(i2)-h(i2),POI(2)*r(i2)));
+            phi = phi+1/(4*M_PI)*(atan((m(i1)*e(i1)-h(i1))/(POI(2)*r(i1)))-atan((m(i1)*e(i2)-h(i2))/(POI(2)*r(i2))));
         }
 
-        return phi;
+        return -mu*phi;
     }
 }
 
@@ -353,6 +362,8 @@ double panel::sourcePhi(const double &sigma, const point &POIglobal)
     
     // Transform Panel Vertices and Point of Interest to Local System
     vector POI = transformCoordinates(POIglobal,globalSys,localSys,center);
+//    std::cout << POI(0) << "," << POI(1) << "," << POI(2) << std::endl;
+
     
     if (POI.norm()/longSide > 5)
     {
@@ -365,14 +376,23 @@ double panel::sourcePhi(const double &sigma, const point &POIglobal)
         for (int i=0; i<verts.rows(); i++)
         {
             vertsLocal.row(i) = transformCoordinates(nodes->row(verts(i)),globalSys,localSys,center);
+//            std::cout << vertsLocal.row(i)(0) << "," << vertsLocal.row(i)(1) << "," << vertsLocal.row(i)(2) << std::endl;
+
         }
-        if (d(0) == -10000)
+        
+        if (d.size() == 0)
         {
             setMD(vertsLocal);
         }
+//        std::cout << d(0) << "," << d(1) << "," << d(2) << std::endl;
+//        std::cout << m(0) << "," << m(1) << "," << m(2) << std::endl;
         Eigen::VectorXd r(verts.size()),e(verts.size()),h(verts.size());
         
         getREH(r,e,h,vertsLocal,POI);
+        
+//        std::cout << r(0) << "," << r(1) << "," << r(2) << std::endl;
+//        std::cout << e(0) << "," << e(1) << "," << e(2) << std::endl;
+//        std::cout << h(0) << "," << h(1) << "," << h(2) << std::endl;
         double phiTerm1 = 0;
         double phiTerm2 = 0;
         for (int i=0; i<vertsLocal.rows(); i++)
@@ -397,7 +417,7 @@ double panel::sourcePhi(const double &sigma, const point &POIglobal)
             }
             phiTerm1 = phiTerm1+((POI(0)-p1(0))*(p2(1)-p1(1))-(POI(1)-p1(1))*(p2(0)-p1(0)))/d(i1)*log((r(i1)+r(i2)+d(i1))/(r(i1)+r(i2)-d(i1)));
             
-            phiTerm2 = phiTerm2+(atan2(m(i1)*e(i1)-h(i1),POI(2)*r(i1))-atan2(m(i1)*e(i2)-h(i2),POI(2)*r(i2)));
+            phiTerm2 = phiTerm2+(atan((m(i1)*e(i1)-h(i1))/(POI(2)*r(i1)))-atan((m(i1)*e(i2)-h(i2))/(POI(2)*r(i2))));
         }
         return sigma/(4*M_PI)*(phiTerm1-abs(POI(2))*phiTerm2);
         // Multiplied by negative one to account for traversing the perimeter of the element in a counter clockwise direction (per .tri format). Formulation from Hess and Smith is done based on a clockwise traverse of the perimeter.
@@ -435,7 +455,7 @@ vector panel::sourceV(const double &sigma, const point &POIglobal)
         {
             setMD(vertsLocal);
         }
-        Eigen::VectorXd r(verts.size()),e(verts.size()),h(verts.size());
+        Eigen::VectorXd r(verts.rows()),e(verts.rows()),h(verts.rows());
         
         getREH(r,e,h,vertsLocal,POI);
         vector vTerms;
@@ -473,22 +493,9 @@ void panel::getREH(Eigen::VectorXd &r, Eigen::VectorXd &e, Eigen::VectorXd &h,co
 {
     for (int i=0; i<verts.rows(); i++)
     {
-        Eigen::Vector3d p1;
-        Eigen::Vector3d p2;
-        if (i!=verts.rows()-1)
-        {
-            p1 = verts.row(i);
-            p2 = verts.row(i+1);
-            
-        }
-        else
-        {
-            p1 = verts.row(i);
-            p2 = verts.row(0);
-        }
-        r(i) = sqrt(pow(POI(0)-p1(0),2)+pow(POI(1)-p1(1),2)+pow(POI(2),2));
-        e(i) = pow(POI(0)-p1(0),2)+pow(POI(2),2);
-        h(i) = (POI(0)-p1(0))*(POI(1)-p1(1));
+        r(i) = sqrt(pow(POI(0)-verts(i,0),2)+pow(POI(1)-verts(i,1),2)+pow(POI(2),2));
+        e(i) = pow(POI(0)-verts(i,0),2)+pow(POI(2),2);
+        h(i) = (POI(0)-verts(i,0))*(POI(1)-verts(i,1));
     }
 
 }

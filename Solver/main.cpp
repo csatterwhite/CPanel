@@ -15,9 +15,9 @@ int main(int argc, const char * argv[])
     time_t ts;
     time(&ts);
     time_t tf;
-    geometry temp("ellipse.tri");
+    geometry temp("ellipse_coarse.tri");
     
-    runCase case1(&temp,1,0,0);
+    runCase case1(&temp,1,0,0,"ellipse_coarse_CP.vtu");
     
     time(&tf);
     double t = difftime(tf,ts);

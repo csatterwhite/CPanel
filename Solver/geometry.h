@@ -41,7 +41,7 @@ class geometry
     liftingSurf* getParentSurf(int wakeID);
     
 public:
-    geometry(std::string geom_file);
+    geometry(std::string tri_file);
     
     ~geometry()
     {
@@ -67,6 +67,9 @@ public:
         }
     }
     
+    short getNumberOfNodes() {return nNodes;}
+    short getNumberOfTris() {return nTris;}
+    Eigen::MatrixXd getNodes() {return nodes;}
     std::vector<liftingSurf*> getLiftingSurfs() {return liftingSurfs;}
     std::vector<surface*> getNonLiftingSurfs() {return nonLiftingSurfs;}
     std::vector<surface*> getSurfaces();

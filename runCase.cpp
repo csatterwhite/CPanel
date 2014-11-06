@@ -8,7 +8,7 @@
 
 #include "runCase.h"
 
-runCase::runCase(geometry *geom,double V,double alpha,double beta) : geom(geom)
+runCase::runCase(geometry *geom,double V,double alpha,double beta,std::string outFile) : geom(geom), outFile(outFile)
 {
     Vinf = windToBody(V,alpha,beta);
     setSourceStrengths();
@@ -49,6 +49,8 @@ void runCase::setSourceStrengths()
         for (int j=0; j<panels.size(); j++)
         {
             panels[j]->setSigma(Vinf,0);
+//            std::cout << panels[j]->getSigma() << std::endl;
+//            std::cout << panels[j]->getCenter() << std::endl;
         }
     }
 }
@@ -56,8 +58,6 @@ void runCase::setSourceStrengths()
 void runCase::solveMatrixEq()
 {
     std::vector<surface*> surfaces = geom->getSurfaces();
-    std::vector<bodyPanel*> bPanels;
-    std::vector<wakePanel*> wPanels;
     std::vector<bodyPanel*> tempB;
     std::vector<wakePanel*> tempW;
     
@@ -94,13 +94,11 @@ void runCase::solveMatrixEq()
     double influence;
     double interpCoeff;
     Eigen::MatrixXi indices(nWakePans,4);
+    doubletInfs.resize(nBodyPans);
+    sourceInfs.resize(nBodyPans);
+    firstDists.resize(nBodyPans);
 
     std::cout << "Computing Doublet Influence Coefficients..." << std::endl;
-    Eigen::VectorXi percentComplete(4);
-    percentComplete(0) = 25;
-    percentComplete(1) = 50;
-    percentComplete(2) = 75;
-    percentComplete(3) = 100;
     
     for (int i=0; i<nBodyPans; i++)
     {
@@ -112,8 +110,16 @@ void runCase::solveMatrixEq()
             }
             else
             {
-                Ab(i,j) = bPanels[j]->doubletPhi(1,bPanels[i]->getCenter());
+//                std::cout << j << ", ";
+                Ab(i,j) = bPanels[j]->doubletPhi(1,bPanels[i]->getCenter()-0.000001*bPanels[i]->getNormal());
             }
+            if (i==0)
+            {
+                doubletInfs(j) = Ab(i,j);
+                firstDists(j) = (bPanels[i]->getCenter()-bPanels[j]->getCenter()).norm();
+            }
+            
+//            std::cout << Ab(i,j) << std::endl;
         }
         for (int j=0; j<nWakePans; j++)
         {
@@ -125,26 +131,15 @@ void runCase::solveMatrixEq()
             
             if (i==0)
             {
-                indices.row(j) = getIndices(interpPans,bPanels);
+                indices.row(j) = getIndices(interpPans);
             }
             Ab(i,indices(j,0)) += influence*(1-interpCoeff);
             Ab(i,indices(j,1)) += influence*(interpCoeff-1);
             Ab(i,indices(j,2)) += influence*interpCoeff;
             Ab(i,indices(j,3)) -= influence*interpCoeff;
         }
-        if (i>0)
-        {
-            for (int k=0; k<percentComplete.size(); k++)
-            {
-                if (i/nBodyPans >= (percentComplete(k)/100) && (i-1)/nBodyPans < (percentComplete(k)/100))
-                {
-                    std::cout << percentComplete(k) << "%" << std::endl;
-                }
-            }
-        }
     }
-    std::cout << std::endl;
-    Eigen::VectorXd RHS = getRHS(bPanels);
+    Eigen::VectorXd RHS = getRHS();
     Eigen::VectorXd doubletStrengths(bPanels.size());
     Eigen::VectorXd sourceStrengths(bPanels.size());
     
@@ -156,7 +151,11 @@ void runCase::solveMatrixEq()
     {
         bPanels[i]->setMu(doubletStrengths(i));
         bPanels[i]->setPotential(Vinf);
-        potentials[i] = bPanels[i]->getPotential();
+        potentials(i) = bPanels[i]->getPotential();
+//        if (bPanels[i]->getCenter()(0) < (-.95))
+//        {
+//            std::cout << bPanels[i]->getCenter()(0) << "," << doubletStrengths(i) << "," << potentials(i) << std::endl;
+//        }
         sourceStrengths(i) = bPanels[i]->getSigma();
         centers.row(i) = bPanels[i]->getCenter();
     }
@@ -171,9 +170,10 @@ void runCase::solveMatrixEq()
         wPanels[i]->setMu();
     }
     
+    writeVTU(outFile);
 }
 
-Eigen::Vector4i runCase::getIndices(std::vector<bodyPanel*> interpPans, std::vector<bodyPanel*> bPanels)
+Eigen::Vector4i runCase::getIndices(std::vector<bodyPanel*> interpPans)
 {
     Eigen::Vector4i indices;
     for (int i=0; i<interpPans.size(); i++)
@@ -190,25 +190,117 @@ Eigen::Vector4i runCase::getIndices(std::vector<bodyPanel*> interpPans, std::vec
     return indices;
 }
 
-Eigen::VectorXd runCase::getRHS(const std::vector<bodyPanel*> &bPanels)
+Eigen::VectorXd runCase::getRHS()
 {
-    Eigen::VectorXd RHS(bPanels.size());
+    sourceInfs(0) = 0;
+    Eigen::VectorXd RHS = Eigen::VectorXd::Zero(bPanels.size());;
     Bb.resize(bPanels.size(),bPanels.size());
     for (int i=0; i<bPanels.size(); i++)
     {
-        RHS(i) = bPanels[i]->getSigma();
         for (int j=0; j<bPanels.size(); j++)
         {
             if (i==j)
             {
-                Bb(i,j) = 0;
+//                RHS(i) += 0.5*bPanels[j]->getSigma();
+//                RHS(i) += bPanels[j]->sourcePhi(bPanels[j]->getSigma(), bPanels[i]->getCenter());
+                RHS(i) += 0;
             }
             else
             {
-                Bb(i,j) = bPanels[j]->sourcePhi(1,bPanels[i]->getCenter());
+                if (i==0)
+                {
+//                    std::cout << j << ", ";
+                    sourceInfs(j) = bPanels[j]->sourcePhi(1, bPanels[i]->getCenter());
+                    RHS(i) += bPanels[j]->getSigma()*sourceInfs(j);
+
+                }
+                else
+                {
+                    RHS(i) += bPanels[j]->sourcePhi(bPanels[j]->getSigma(), bPanels[i]->getCenter());
+                }
             }
+//            std::cout << RHS(i) << std::endl;
         }
     }
-    RHS = -Bb*RHS;
-    return RHS;
+    return -RHS;
+}
+
+void runCase::writeVTU(std::string filename)
+{
+    std::ofstream fid;
+    fid.open(filename);
+    if (fid.is_open())
+    {
+        fid << "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"BigEndian\">" << std::endl;
+        fid << "  <UnstructuredGrid>" << std::endl;
+        fid << "    <Piece NumberOfPoints=\"" << geom->getNumberOfNodes() << "\" NumberOfCells=\"" << bPanels.size() << "\">" << std::endl;
+        fid << "      <CellData Scalars=\"scalars\">" << std::endl;
+        fid << "        <DataArray type=\"Float64\" Name=\"Potential\" NumberOfComponents=\"1\" Format=\"ascii\">" << std::endl;
+        for (int i=0; i<bPanels.size(); i++)
+        {
+            fid << bPanels[i]->getPotential() << std::endl;
+        }
+        fid << "        </DataArray>" << std::endl;
+        fid << "        <DataArray type=\"Float64\" Name=\"DoubletStrength\" NumberOfComponents=\"1\" Format=\"ascii\">" << std::endl;
+        for (int i=0; i<bPanels.size(); i++)
+        {
+            fid << bPanels[i]->getMu() << std::endl;
+        }
+        fid << "        </DataArray>" << std::endl;
+        fid << "        <DataArray type=\"Float64\" Name=\"DoubletInfluence\" NumberOfComponents=\"1\" Format=\"ascii\">" << std::endl;
+        for (int i=0; i<bPanels.size(); i++)
+        {
+            fid << doubletInfs(i) << std::endl;
+        }
+        fid << "        </DataArray>" << std::endl;
+        fid << "        <DataArray type=\"Float64\" Name=\"SourceInfluence\" NumberOfComponents=\"1\" Format=\"ascii\">" << std::endl;
+        for (int i=0; i<bPanels.size(); i++)
+        {
+            fid << sourceInfs(i) << std::endl;
+        }
+        fid << "        </DataArray>" << std::endl;
+        fid << "        <DataArray type=\"Float64\" Name=\"Distance\" NumberOfComponents=\"1\" Format=\"ascii\">" << std::endl;
+        for (int i=0; i<bPanels.size(); i++)
+        {
+            fid << firstDists(i) << std::endl;
+        }
+        fid << "        </DataArray>" << std::endl;
+        fid << "      </CellData>" << std::endl;
+        fid << "      <Points>" << std::endl;
+        fid << "        <DataArray type=\"Float64\" Name=\"Position\" NumberOfComponents=\"3\" Format=\"ascii\">" << std::endl;
+        Eigen::MatrixXd nodes = geom->getNodes();
+        for (int i=0; i<nodes.rows(); i++)
+        {
+            fid << nodes(i,0) << "  " << nodes(i,1) << "  " << nodes(i,2) << std::endl;
+        }
+        fid << "        </DataArray>" << std::endl;
+        fid << "      </Points>" << std::endl;
+        fid << "      <Cells>" << std::endl;
+        fid << "        <DataArray type=\"Int32\" Name=\"connectivity\" Format=\"ascii\">" << std::endl;
+        Eigen::VectorXi verts;
+        for (int i=0; i<bPanels.size(); i++)
+        {
+            verts = bPanels[i]->getVerts();
+            fid << verts(0) << "  " << verts(1) << "  " << verts(2) << std::endl;
+        }
+        fid << "        </DataArray>" << std::endl;
+        fid << "        <DataArray type=\"Int32\" Name=\"offsets\" Format=\"ascii\">" << std::endl;
+        for (int i=0; i<bPanels.size(); i++)
+        {
+            fid << 3*(i+1) << std::endl;
+        }
+        fid << "        </DataArray>" << std::endl;
+        fid << "        <DataArray type=\"UInt8\" Name=\"types\" Format=\"ascii\">" << std::endl;
+        for (int i=0; i<bPanels.size(); i++)
+        {
+            fid << 5 << std::endl;
+        }
+        fid << "        </DataArray>" << std::endl;
+        fid << "      </Cells>" << std::endl;
+        fid << "    </Piece>" << std::endl;
+        fid << "  </UnstructuredGrid>" << std::endl;
+        fid << "</VTKFile>" << std::endl;
+        std::cout << "Data written to " << filename << std::endl;
+    }
+    fid.close();
 }
