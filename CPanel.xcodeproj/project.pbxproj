@@ -52,6 +52,18 @@
 		83C9D30B19E7918200D27CE2 /* InfluenceTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83DCB1BC19E4BC670028C33E /* InfluenceTests.cpp */; };
 		83D856CA1A152E2700A81D8E /* bodyPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83039E0E19129C7F00271526 /* bodyPanel.cpp */; };
 		83DCB1BE19E4BC670028C33E /* InfluenceTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83DCB1BC19E4BC670028C33E /* InfluenceTests.cpp */; };
+		83E347C51A17F1A80054842E /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83E347C41A17F1A80054842E /* main.cpp */; };
+		83E347D81A17F2790054842E /* octreeFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83E347D61A17F2790054842E /* octreeFile.cpp */; };
+		83E347D91A17F2790054842E /* octreeFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83E347D61A17F2790054842E /* octreeFile.cpp */; };
+		83E347DA1A1806A20054842E /* geometry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83039E05191152C300271526 /* geometry.cpp */; };
+		83E347DB1A1806CD0054842E /* panelOctree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83AEFF721918068000A697F5 /* panelOctree.cpp */; };
+		83E347DC1A1806E10054842E /* liftingSurf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83EF7A2519EF004700E54C6E /* liftingSurf.cpp */; };
+		83E347DD1A1806E60054842E /* surface.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83AE7F501918637200CEC299 /* surface.cpp */; };
+		83E347DE1A1806EE0054842E /* panel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83039E1419129DA600271526 /* panel.cpp */; };
+		83E347DF1A18070D0054842E /* wake.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8358C3E51A0C2767004E94E0 /* wake.cpp */; };
+		83E347E01A1807130054842E /* convexHull.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83B5BDAC19D310B100506A12 /* convexHull.cpp */; };
+		83E347E11A1807170054842E /* bodyPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83039E0E19129C7F00271526 /* bodyPanel.cpp */; };
+		83E347E21A18071A0054842E /* wakePanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83039E1119129C9100271526 /* wakePanel.cpp */; };
 		83EF7A2719EF004700E54C6E /* liftingSurf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83EF7A2519EF004700E54C6E /* liftingSurf.cpp */; };
 /* End PBXBuildFile section */
 
@@ -103,6 +115,15 @@
 			dstSubfolderSpec = 0;
 			files = (
 				83B4B8FF18F0AF4F00EEBC34 /* Octree.1 in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+		83E347C01A17F1A80054842E /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
@@ -168,6 +189,10 @@
 		83C1148819D38EF6005D7239 /* convexHullTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = convexHullTests.h; sourceTree = "<group>"; };
 		83DCB1BC19E4BC670028C33E /* InfluenceTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = InfluenceTests.cpp; sourceTree = "<group>"; };
 		83DCB1BD19E4BC670028C33E /* InfluenceTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InfluenceTests.h; sourceTree = "<group>"; };
+		83E347C21A17F1A80054842E /* WriteOutputFiles */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = WriteOutputFiles; sourceTree = BUILT_PRODUCTS_DIR; };
+		83E347C41A17F1A80054842E /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		83E347D61A17F2790054842E /* octreeFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = octreeFile.cpp; sourceTree = "<group>"; };
+		83E347D71A17F2790054842E /* octreeFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = octreeFile.h; sourceTree = "<group>"; };
 		83EF7A2519EF004700E54C6E /* liftingSurf.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = liftingSurf.cpp; sourceTree = "<group>"; };
 		83EF7A2619EF004700E54C6E /* liftingSurf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = liftingSurf.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -205,6 +230,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		83B4B8F718F0AF4F00EEBC34 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		83E347BF1A17F1A80054842E /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -301,6 +333,7 @@
 				83A88C9D190F56F7006A8CB2 /* ReadTriFileTests */,
 				83039DFC191152A300271526 /* Solver */,
 				8334B02D192AD2CE008241DB /* InfluenceCoefficientTests */,
+				83E347C31A17F1A80054842E /* WriteOutputFiles */,
 				83B4B8C118F0A90200EEBC34 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -313,6 +346,7 @@
 				83A88C9C190F56F7006A8CB2 /* ReadTriFileTests */,
 				83039DFB191152A300271526 /* Solver */,
 				8334B02C192AD2CE008241DB /* InfluenceCoefficientTests */,
+				83E347C21A17F1A80054842E /* WriteOutputFiles */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -327,6 +361,16 @@
 				83B4B90418F0B02D00EEBC34 /* node.h */,
 			);
 			path = Octree;
+			sourceTree = "<group>";
+		};
+		83E347C31A17F1A80054842E /* WriteOutputFiles */ = {
+			isa = PBXGroup;
+			children = (
+				83E347C41A17F1A80054842E /* main.cpp */,
+				83E347D61A17F2790054842E /* octreeFile.cpp */,
+				83E347D71A17F2790054842E /* octreeFile.h */,
+			);
+			path = WriteOutputFiles;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -417,6 +461,23 @@
 			productReference = 83B4B8FA18F0AF4F00EEBC34 /* Octree */;
 			productType = "com.apple.product-type.tool";
 		};
+		83E347C11A17F1A80054842E /* WriteOutputFiles */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 83E347C91A17F1A90054842E /* Build configuration list for PBXNativeTarget "WriteOutputFiles" */;
+			buildPhases = (
+				83E347BE1A17F1A80054842E /* Sources */,
+				83E347BF1A17F1A80054842E /* Frameworks */,
+				83E347C01A17F1A80054842E /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = WriteOutputFiles;
+			productName = WriteOutputFiles;
+			productReference = 83E347C21A17F1A80054842E /* WriteOutputFiles */;
+			productType = "com.apple.product-type.tool";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -425,6 +486,11 @@
 			attributes = {
 				LastUpgradeCheck = 0510;
 				ORGANIZATIONNAME = "Chris Satterwhite";
+				TargetAttributes = {
+					83E347C11A17F1A80054842E = {
+						CreatedOnToolsVersion = 6.1;
+					};
+				};
 			};
 			buildConfigurationList = 83B4B8BB18F0A90200EEBC34 /* Build configuration list for PBXProject "CPanel" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -443,6 +509,7 @@
 				83A88C9B190F56F7006A8CB2 /* ReadTriFileTests */,
 				8334B02B192AD2CE008241DB /* InfluenceCoefficientTests */,
 				83039DFA191152A300271526 /* Solver */,
+				83E347C11A17F1A80054842E /* WriteOutputFiles */,
 			);
 		};
 /* End PBXProject section */
@@ -465,6 +532,7 @@
 				83EF7A2719EF004700E54C6E /* liftingSurf.cpp in Sources */,
 				83B5BDAE19D310B100506A12 /* convexHull.cpp in Sources */,
 				83C9D30B19E7918200D27CE2 /* InfluenceTests.cpp in Sources */,
+				83E347D81A17F2790054842E /* octreeFile.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -518,6 +586,24 @@
 			buildActionMask = 2147483647;
 			files = (
 				83B4B8FD18F0AF4F00EEBC34 /* main.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		83E347BE1A17F1A80054842E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				83E347DE1A1806EE0054842E /* panel.cpp in Sources */,
+				83E347DF1A18070D0054842E /* wake.cpp in Sources */,
+				83E347C51A17F1A80054842E /* main.cpp in Sources */,
+				83E347D91A17F2790054842E /* octreeFile.cpp in Sources */,
+				83E347DC1A1806E10054842E /* liftingSurf.cpp in Sources */,
+				83E347DB1A1806CD0054842E /* panelOctree.cpp in Sources */,
+				83E347DA1A1806A20054842E /* geometry.cpp in Sources */,
+				83E347E01A1807130054842E /* convexHull.cpp in Sources */,
+				83E347E21A18071A0054842E /* wakePanel.cpp in Sources */,
+				83E347E11A1807170054842E /* bodyPanel.cpp in Sources */,
+				83E347DD1A1806E60054842E /* surface.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -925,6 +1011,43 @@
 			};
 			name = Release;
 		};
+		83E347C61A17F1A80054842E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		83E347C71A17F1A80054842E /* Coverage */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Coverage;
+		};
+		83E347C81A17F1A80054842E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -987,6 +1110,15 @@
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
+		};
+		83E347C91A17F1A90054842E /* Build configuration list for PBXNativeTarget "WriteOutputFiles" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				83E347C61A17F1A80054842E /* Debug */,
+				83E347C71A17F1A80054842E /* Coverage */,
+				83E347C81A17F1A80054842E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
 		};
 /* End XCConfigurationList section */
 	};
