@@ -115,20 +115,6 @@ Eigen::Vector3d wakePanel::panelV(const Eigen::Vector3d &POI)
     return doubletStrength*dubVInf(POI);
 }
 
-void wakePanel::boundingLines(wakeLine* &w1, wakeLine* &w2)
-{
-    w1 = (*wakeLines)[0];
-    w2 = (*wakeLines)[1];
-    for (int i=0; i<wakeLines->size()-1; i++)
-    {
-        if (((*wakeLines)[i]->getY() <= center(1) && (*wakeLines)[i+1]->getY() > center(1)) || i == wakeLines->size()-2)
-        {
-            w1 = (*wakeLines)[i];
-            w2 = (*wakeLines)[i+1];
-        }
-    }
-}
-
 void wakePanel::setMu()
 {
     std::vector<bodyPanel*> interpPans(4);

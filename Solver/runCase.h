@@ -13,6 +13,7 @@
 #include <iostream>
 #include <fstream>
 #include <Eigen/Dense>
+#include <Eigen/IterativeLinearSolvers>
 #include "geometry.h"
 
 class runCase

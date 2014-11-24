@@ -301,7 +301,7 @@ Eigen::Vector3d panel::vortexV(const Eigen::Vector3d &a, const Eigen::Vector3d &
 
 double panel::vortexPhi(const double &PN,const double &Al, const Eigen::Vector3d &a,const Eigen::Vector3d &b, const Eigen::Vector3d &s, const Eigen::Vector3d &l,const Eigen::Vector3d &m,const Eigen::Vector3d &n)
 {
-    if (std::abs(PN) < pow(10,-8))
+    if (std::abs(PN) < pow(10,-10))
     {
         return 0;
     }

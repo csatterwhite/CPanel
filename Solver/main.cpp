@@ -13,16 +13,15 @@
 int main(int argc, const char * argv[])
 {
     std::string path = "/Users/Chris/Desktop/Thesis/Code/Geometry and Solution Files/";
-    std::string inFile = "genericAC_noWake.tri";
-    std::string outFile = "genericAC_test.vtu";
+    std::string inFile = "NACA4412_fineTE.tri";
+    std::string outFile = "NACA4412_alpha5_CGA_v100.vtu";
     time_t ts;
     time(&ts);
     time_t tf;
     geometry temp(path+inFile);
     
-    runCase case1(&temp,1,0,0,path+outFile);
+    runCase case1(&temp,100,5,0,path+outFile);
     
     time(&tf);
-    double t = difftime(tf,ts);
-    std::cout << "Elapsed time for program execution : " << t << " seconds" << std::endl;
+    std::cout << "Elapsed time for program execution : " << difftime(tf,ts) << " seconds" << std::endl;
 }

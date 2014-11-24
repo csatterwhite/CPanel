@@ -130,7 +130,11 @@ double bodyPanel::srcSidePhi(const double &PN,const double &Al, const double &ph
     A = a.norm();
     B = b.norm();
     S = s.norm();
-    double GL = 1/S*log(std::abs((A+B+S)/(A+B-S)));
+    double GL = 0;
+    if (std::abs(A+B-S) > 0 && S > 0)
+    {
+    	GL = 1/S*log(std::abs((A+B+S)/(A+B-S)));
+    }
     return (Al*GL-PN*phiV);
 }
 
@@ -140,7 +144,11 @@ Eigen::Vector3d bodyPanel::srcSideV(const double &PN,const double &Al, const Eig
     A = a.norm();
     B = b.norm();
     S = s.norm();
-    double GL = 1/S*log(std::abs((A+B+S)/(A+B-S)));
+    double GL = 0;
+    if (std::abs(A+B-S) > 0 && S > 0)
+    {
+        GL = 1/S*log(std::abs((A+B+S)/(A+B-S)));
+    }
     double CJK = vortexPhi(PN,Al,a,b,s,l,m,n);
     return (GL*(s.dot(m)*l-s.dot(l)*m)+CJK*n);
 }

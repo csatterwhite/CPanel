@@ -148,16 +148,27 @@ void runCase::solveMatrixEq()
                 std::cout << percentage(i) << "%" << std::endl;
             }
         }
+        
     }
     std::cout << "Complete" << std::endl;
     
     // Solve matrix equations and set potential for all panels;
+    
     Eigen::VectorXd RHS = -Bb*sigmas;
     Eigen::VectorXd doubletStrengths(bPanels.size());
     
-    
     std::cout << "Solving system of equations..." << std::endl;
+    time_t ts;
+    time(&ts);
+    time_t tf;
+    
+//    Eigen::ConjugateGradient<Eigen::MatrixXd> cg(Ab);
+//    doubletStrengths = cg.solve(RHS);
+//    std::cout << "#iterations:     " << cg.iterations() << std::endl;
+//    std::cout << "estimated error: " << cg.error()      << std::endl;
     doubletStrengths = Ab.householderQr().solve(RHS);
+    time(&tf);
+    std::cout << "Time to solve Ax=b : " << difftime(tf,ts) << "seconds" << std::endl;
     
     std::cout << "Complete" << std::endl;
     for (int i=0; i<nBodyPans; i++)

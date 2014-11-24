@@ -19,11 +19,9 @@ class wakePanel : public panel
 {
     bodyPanel* upperPan;
     bodyPanel* lowerPan;
-    bool TEpanel;
     std::vector<wakeLine*>* wakeLines;
     
     void addWakeLine();
-    void boundingLines(wakeLine* &w1, wakeLine* &w2);
     
     struct compareX
     {

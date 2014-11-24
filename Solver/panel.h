@@ -35,8 +35,7 @@ protected:
     Eigen::VectorXi verts;
     double area;
     double longSide;
-    Eigen::VectorXd d;
-    Eigen::VectorXd m;
+    bool TEpanel;
 
     double doubletStrength;
     double potential;
