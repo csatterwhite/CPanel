@@ -76,25 +76,41 @@ void panel::setGeom()
     }
 }
 
-void panel::setNeighbors(panelOctree *oct,bool wakePanel)
+void panel::setNeighbors(panelOctree *oct)
 {
     node<panel>* currentNode = oct->findNodeContainingMember(this);
     
     scanForNeighbors(currentNode,NULL);
     short maxNeighbors;
-    if (wakePanel)
+    if (TEpanel)
     {
-        maxNeighbors = verts.size()+2;
-        // Maximum number of neighbors on wake panel is the number of verts plus two.  This panel exists in the wing fuselage joint, with two neighbors on wing, two neighbors on fuselage, and either 1 (for tris) or 2 (for quads) in the wake.
+        maxNeighbors = verts.size()+1;
+        // Maximum number of neighbors on TE panel is the number of verts plus two.  This panel exists in the wing fuselage joint, with two neighbors on wing, two neighbors on fuselage, and either 1 (for tris) or 2 (for quads) in the wake.
     }
     else
     {
         maxNeighbors = verts.size();
     }
     
-    while (currentNode != oct->getRootNode() && neighbors.size() <= maxNeighbors)
+    while (currentNode != oct->getRootNode() && neighbors.size() < maxNeighbors)
     {
         scanForNeighbors(currentNode->getParent(),currentNode);
+        if (TEpanel && ID > 10000 && neighbors.size()==verts.size()+1)
+        {
+            int wakePans = 0;
+            for (int i=0; i<neighbors.size(); i++)
+            {
+                if (neighbors[i]->getID() > 10000)
+                {
+                    wakePans++;
+                }
+            }
+            if (wakePans==verts.size()-2)
+            {
+                // Can only be wake panel in wing fuse joint so add one to max neighbors;
+                maxNeighbors = verts.size()+2;
+            }
+        }
         currentNode = currentNode->getParent();
     }
 
@@ -146,6 +162,26 @@ bool panel::neighborExists(panel* other)
     return false;
 }
 
+void panel::checkNeighbor(panel* other)
+{
+    if (!neighborExists(other) && other != this) //Do not check and add panel if it is already a neighbor
+    {
+        if (isNeighbor(other))
+        {
+            addNeighbor(other);
+            if (!other->isNeighbor(this))
+            {
+                other->addNeighbor(this);
+            }
+        }
+    }
+}
+
+void panel::addNeighbor(panel* other)
+{
+    neighbors.push_back(other);
+}
+
 bool panel::isOnPanel(const Eigen::Vector3d &POI)
 {
     Eigen::MatrixXd points(verts.rows()+1,3);
@@ -157,23 +193,6 @@ bool panel::isOnPanel(const Eigen::Vector3d &POI)
         
     convexHull hull(points,false);
     return (hull.getHull().size() == verts.size());
-}
-
-void panel::checkNeighbor(panel* other)
-{
-    if (neighbors.size() <= verts.size() && !neighborExists(other) && other != this) //Do not check and add panel if it is already a neighbor or if maximum number of neighbors (4 for Tri, 5 for Quad) is already reached;
-    {
-        if (isNeighbor(other))
-        {
-            addNeighbor(other);
-            other->addNeighbor(this);
-        }
-    }
-}
-
-void panel::addNeighbor(panel* other)
-{
-    neighbors.push_back(other);
 }
 
 coordSys panel::getLocalSys()

@@ -13,7 +13,7 @@ void liftingSurf::addPanel(const Eigen::VectorXi &verts,Eigen::Matrix<bool,Eigen
 {
     if (surfID <= 10000)
     {
-        surface::addPanel(verts);
+        surface::addPanel(verts,TEnodes);
     }
     else
     {
@@ -27,9 +27,4 @@ std::vector<panel*> liftingSurf::getAllPanels()
     allPans.insert(allPans.end(),panels.begin(),panels.end());
     allPans.insert(allPans.end(),wakePans.begin(),wakePans.end());
     return allPans;
-}
-
-void liftingSurf::setTEneighbors(panelOctree* oct)
-{
-    wakeSurf->setTEneighbors(oct);
 }

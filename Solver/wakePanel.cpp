@@ -8,9 +8,8 @@
 
 #include "wakePanel.h"
 
-void wakePanel::findParentPanels(panelOctree* oct)
+void wakePanel::setParentPanels()
 {
-    setNeighbors(oct,true);
     std::vector<bodyPanel*> parentPanels;
     bodyPanel* ptr;
     for (int i=0; i<neighbors.size(); i++)
@@ -22,45 +21,14 @@ void wakePanel::findParentPanels(panelOctree* oct)
         }
     }
     
-    std::sort(parentPanels.begin(),parentPanels.end(),compareX());
-    std::sort(parentPanels.begin(),parentPanels.begin()+1,compareY());
-    if (parentPanels.size() == 4)
-    {
-        // Special case where wake panel is at wing body joint and has two neighbors on wing and two neighbors on body. Filters neighbors on body so that wake panel parents are those on lifting surface.
-        
-        std::vector<bodyPanel*> temp;
-        for (int i=0; i<parentPanels.size(); i++)
-        {
-            if (parentPanels[i]->getID() == ID-10000)
-            {
-                temp.push_back(parentPanels[i]);
-            }
-        }
-        parentPanels = temp;
-    }
-    
+    std::sort(parentPanels.begin(),parentPanels.end(),compareX()); // Ensures lifting surface panels are parent panels if the wake panel is at the wing body joint
+    std::sort(parentPanels.begin(),parentPanels.begin()+1,compareZ());
+   
     lowerPan = parentPanels[0];
     upperPan = parentPanels[1];
     lowerPan->setTEpanel();
     upperPan->setTEpanel();
     addWakeLine();
-}
-
-void wakePanel::setTEpanel(Eigen::Matrix<bool,Eigen::Dynamic,1> TEnodes)
-{
-    short count = 0;
-    for (int i=0; i<verts.size(); i++)
-    {
-        if (TEnodes(verts(i)))
-        {
-            count++;
-        }
-        if (count == 2)
-        {
-            TEpanel = true;
-            break;
-        }
-    }
 }
 
 void wakePanel::addWakeLine()

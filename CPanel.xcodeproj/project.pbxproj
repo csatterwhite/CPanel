@@ -20,6 +20,7 @@
 		8334B031192AD2CE008241DB /* InfluenceCoefficientTests.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8334B030192AD2CE008241DB /* InfluenceCoefficientTests.1 */; };
 		8334B036192AD35D008241DB /* libcpptest.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 83B4B8F418F0AAC900EEBC34 /* libcpptest.a */; };
 		8334B039192AD55A008241DB /* CoordTransformTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8334B037192AD55A008241DB /* CoordTransformTest.cpp */; };
+		83539BD71A23B443002C6865 /* chtlsnd.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83539BD51A23B443002C6865 /* chtlsnd.cpp */; };
 		8358C3E71A0C2767004E94E0 /* runCase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8358C3E31A0C2767004E94E0 /* runCase.cpp */; };
 		8358C3E81A0C2767004E94E0 /* wake.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8358C3E51A0C2767004E94E0 /* wake.cpp */; };
 		83A7DF1A18FDF5CA002DDEB6 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83A7DF1918FDF5CA002DDEB6 /* main.cpp */; };
@@ -126,6 +127,8 @@
 		8334B030192AD2CE008241DB /* InfluenceCoefficientTests.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = InfluenceCoefficientTests.1; sourceTree = "<group>"; };
 		8334B037192AD55A008241DB /* CoordTransformTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CoordTransformTest.cpp; sourceTree = "<group>"; };
 		8334B038192AD55A008241DB /* CoordTransformTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CoordTransformTest.h; sourceTree = "<group>"; };
+		83539BD51A23B443002C6865 /* chtlsnd.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = chtlsnd.cpp; sourceTree = "<group>"; };
+		83539BD61A23B443002C6865 /* chtlsnd.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = chtlsnd.h; sourceTree = "<group>"; };
 		8358C3E31A0C2767004E94E0 /* runCase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = runCase.cpp; sourceTree = "<group>"; };
 		8358C3E41A0C2767004E94E0 /* runCase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = runCase.h; sourceTree = "<group>"; };
 		8358C3E51A0C2767004E94E0 /* wake.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = wake.cpp; sourceTree = "<group>"; };
@@ -220,6 +223,8 @@
 				8358C3E31A0C2767004E94E0 /* runCase.cpp */,
 				8358C3E41A0C2767004E94E0 /* runCase.h */,
 				8358C3E51A0C2767004E94E0 /* wake.cpp */,
+				83539BD51A23B443002C6865 /* chtlsnd.cpp */,
+				83539BD61A23B443002C6865 /* chtlsnd.h */,
 				8358C3E61A0C2767004E94E0 /* wake.h */,
 				83BB320B19FD508C005EE19C /* wakeLine.cpp */,
 				83BB320C19FD508C005EE19C /* wakeLine.h */,
@@ -462,6 +467,7 @@
 				83AE7F511918637200CEC299 /* surface.cpp in Sources */,
 				83039E07191152C300271526 /* geometry.cpp in Sources */,
 				83039E1019129C7F00271526 /* bodyPanel.cpp in Sources */,
+				83539BD71A23B443002C6865 /* chtlsnd.cpp in Sources */,
 				83EF7A2719EF004700E54C6E /* liftingSurf.cpp in Sources */,
 				83B5BDAE19D310B100506A12 /* convexHull.cpp in Sources */,
 				83C9D30B19E7918200D27CE2 /* InfluenceTests.cpp in Sources */,
