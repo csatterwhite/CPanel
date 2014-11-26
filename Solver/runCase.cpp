@@ -215,12 +215,12 @@ void runCase::solveMatrixEq()
     
     std::vector<cellDataArray*> cellData;
     cellDataArray mu,pot;
-    Eigen::MatrixXd dub,potential;
-    Eigen::MatrixXi bodyCon;
+    Eigen::MatrixXd dub(bPanels.size(),1),potential(bPanels.size(),1);
+    Eigen::MatrixXi bodyCon(bPanels.size(),3);
     for (int i=0; i<bPanels.size(); i++)
     {
-        dub(i,1) = bPanels[i]->getMu();
-        potential(i,1) = bPanels[i]->getPotential();
+        dub(i,0) = bPanels[i]->getMu();
+        potential(i,0) = bPanels[i]->getPotential();
         bodyCon.row(i) = bPanels[i]->getVerts();
     }
     mu.name = "DoubletStrengths";

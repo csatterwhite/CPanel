@@ -226,4 +226,3 @@ std::vector<panel*> geometry::getPanels()
     }
     return panels;
 }
-

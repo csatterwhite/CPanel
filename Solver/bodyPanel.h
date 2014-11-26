@@ -47,7 +47,6 @@ public:
     
     double getSigma() {return sourceStrength;}
     double getMu() {return doubletStrength;}
-    bool isTEpanel() {return TEpanel;}
 };
 
 #endif /* defined(__CPanel__bodyPanel__) */

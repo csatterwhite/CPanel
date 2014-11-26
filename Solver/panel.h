@@ -106,6 +106,7 @@ public:
     std::vector<panel*> getNeighbors() const {return neighbors;}
     double getMu() {return doubletStrength;}
     double getPotential() {return potential;}
+    bool isTEpanel() {return TEpanel;}
 };
 
 #endif /* defined(__CPanel__panel__) */

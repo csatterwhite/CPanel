@@ -13,30 +13,24 @@
 int main(int argc, const char * argv[])
 {
     std::string path = "/Users/Chris/Desktop/Thesis/Code/Geometry and Solution Files/";
-<<<<<<< HEAD
-<<<<<<< HEAD
-    std::string inFile = "NACA4412_fineTE.tri";
-    std::string outFile = "NACA4412_alpha5_CGA_v100.vtu";
-=======
-    std::string inFile = "sphere_coarse.tri";
-    std::string outFile = "sphere_coarse_testVTUfile.vtu";
->>>>>>> OutputFileWriting
-=======
     std::string inFile = "genericAC.tri";
-    std::string outFile = "generic_AC_neighborTest.vtu";
->>>>>>> CHTSLS
+    std::string outFile = "sphere_coarse_testVTUfile.vtu";
+
     time_t ts;
     time(&ts);
     time_t tf;
     geometry temp(path+inFile);
     
-    std::string neighborFile = "neighborCheck.txt";
+    std::string neighborFile = "TECheck.txt";
     std::ofstream fid;
     fid.open(path+neighborFile);
     std::vector<panel*> pans = temp.getPanels();
     for (int i=0; i<pans.size(); i++)
     {
-        fid << pans[i]->getCenter()(0) << "\t" << pans[i]->getCenter()(1) << "\t" << pans[i]->getCenter()(2) << "\t" << pans[i]->getNeighbors().size() << "\n";
+        if (pans[i]->isTEpanel())
+        {
+            fid << pans[i]->getCenter()(0) << "\t" << pans[i]->getCenter()(1) << "\t" << pans[i]->getCenter()(2) << "\n";
+        }
     }
     fid.close();
     

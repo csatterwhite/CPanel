@@ -63,7 +63,7 @@ void VTUfile::write(std::string filename)
                     exit(EXIT_FAILURE);
                 }
             }
-            printIntArray(f, "offset", offset);
+            printIntArray(f, "offsets", offset);
             printIntArray(f, "types", type);
             f << "\t\t\t</Cells>\n";
             f << "\t\t</Piece>\n";
@@ -95,7 +95,7 @@ void VTUfile::printDoubleArray(std::ofstream &f,std::string name,Eigen::MatrixXd
 
 void VTUfile::printIntArray(std::ofstream &f,std::string name,Eigen::MatrixXi array)
 {
-    f << "\t\t\t\t<DataArray type=\"Int32\" Name=\"" << name << "\" NumberOfComponents=\"" << array.cols() << "\" Format=\"ascii\">\n";
+    f << "\t\t\t\t<DataArray type=\"Int32\" Name=\"" << name << "\" Format=\"ascii\">\n";
     for (int i=0; i<array.rows(); i++)
     {
         for (int j=0; j<array.cols(); j++)
