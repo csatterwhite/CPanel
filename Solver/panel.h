@@ -59,20 +59,33 @@ protected:
     }
     
 public:
-    panel(const Eigen::VectorXi &panelVertices,Eigen::MatrixXd* nodes,int surfID) : ID(surfID), verts(panelVertices), nodes(nodes)
+    panel(const Eigen::VectorXi &panelVertices,Eigen::MatrixXd* nodes,int surfID,Eigen::Matrix<bool,Eigen::Dynamic,1> TEnodes) : ID(surfID), verts(panelVertices), nodes(nodes), TEpanel(false)
     {
         setGeom();
-        
+        // Check for TE panel;
+        short count = 0;
+        for (int i=0; i<verts.size(); i++)
+        {
+            if (TEnodes(verts(i)))
+            {
+                count++;
+            }
+            if (count == 2)
+            {
+                TEpanel = true;
+                break;
+            }
+        }
     };
     
     virtual ~panel() {}
     
-    panel(const panel &copy) : ID(copy.ID), verts(copy.verts), nodes(copy.nodes)
+    panel(const panel &copy) : ID(copy.ID), verts(copy.verts), nodes(copy.nodes), TEpanel(copy.TEpanel)
     {
         setGeom();
     }
     void setGeom();
-    void setNeighbors(panelOctree *oct,bool wakePanel);
+    void setNeighbors(panelOctree *oct);
     void setPotential(Eigen::Vector3d Vinf)
     {
         potential = Vinf.dot(center)-doubletStrength;

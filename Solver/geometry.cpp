@@ -64,9 +64,26 @@ void geometry::readTri(std::string tri_file)
         }
         createSurfaces(connectivity,allID,surfIDs,wakeIDs);
         createOctree();
+        
+        // Set neighbors
+        
+        std::vector<panel*> panels = getPanels();
+        for (int i=0; i<panels.size(); i++)
+        {
+            panels[i]->setNeighbors(&pOctree);
+        }
+        
+        // Set parents of trailing edge wake panels
         for (int i=0; i<liftingSurfs.size(); i++)
         {
-            liftingSurfs[i]->setTEneighbors(&pOctree);
+            std::vector<wakePanel*> pans = liftingSurfs[i]->getWakePanels();
+            for (int j=0; j<pans.size(); j++)
+            {
+                if (pans[j]->isTEpanel())
+                {
+                    pans[j]->setParentPanels();
+                }
+            }
         }
     }
     else
@@ -140,7 +157,7 @@ void geometry::createSurfaces(Eigen::MatrixXi connectivity, Eigen::VectorXi allI
         }
         else if (allID(i) <= 10000)
         {
-            nonLiftingSurfs.back()->addPanel(connectivity.row(i));
+            nonLiftingSurfs.back()->addPanel(connectivity.row(i),TEnodes);
         }
         else
         {
@@ -192,5 +209,21 @@ std::vector<surface*> geometry::getSurfaces()
         surfs.push_back(liftingSurfs[i]);
     }
     return surfs;
+}
+
+std::vector<panel*> geometry::getPanels()
+{
+    std::vector<panel*> panels;
+    for (int i=0; i<liftingSurfs.size(); i++)
+    {
+        std::vector<panel*> temp = liftingSurfs[i]->getAllPanels();
+        panels.insert(panels.end(),temp.begin(),temp.end());
+    }
+    for (int i=0; i<nonLiftingSurfs.size(); i++)
+    {
+        std::vector<bodyPanel*> temp = nonLiftingSurfs[i]->getPanels();
+        panels.insert(panels.end(),temp.begin(),temp.end());
+    }
+    return panels;
 }
 

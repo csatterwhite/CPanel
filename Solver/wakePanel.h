@@ -30,11 +30,11 @@ class wakePanel : public panel
             return (p1->getCenter()(0) < p2->getCenter()(0));
         }
     };
-    struct compareY
+    struct compareZ
     {
         inline bool operator()(panel* p1, panel* p2)
         {
-            return (p1->getCenter()(1) < p2->getCenter()(1));
+            return (p1->getCenter()(2) < p2->getCenter()(2));
         }
     };
     struct compareLines
@@ -46,11 +46,11 @@ class wakePanel : public panel
     };
     
 public:
-    wakePanel(const Eigen::VectorXi &panelVertices, Eigen::MatrixXd* nodes,int surfID,std::vector<wakeLine*>* wLines) : panel(panelVertices,nodes,surfID), wakeLines(wLines), TEpanel(false) {};
+    wakePanel(const Eigen::VectorXi &panelVertices, Eigen::MatrixXd* nodes,int surfID,Eigen::Matrix<bool,Eigen::Dynamic,1> TEnodes,std::vector<wakeLine*>* wLines) : panel(panelVertices,nodes,surfID,TEnodes), wakeLines(wLines) {};
     
+    wakePanel(const wakePanel &copy) : panel(copy), wakeLines(copy.wakeLines), upperPan(copy.upperPan), lowerPan(copy.lowerPan) {}
     
-    void setTEpanel(Eigen::Matrix<bool,Eigen::Dynamic,1> TEnodes);
-    void findParentPanels(panelOctree* oct);
+    void setParentPanels();
     void interpPanels(std::vector<bodyPanel*> &interpP, double &interpC);
     double panelPhi(const Eigen::Vector3d &POI);
     Eigen::Vector3d panelV(const Eigen::Vector3d &POI);

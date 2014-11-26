@@ -17,11 +17,11 @@ surface::~surface()
     }
 }
 
-void surface::addPanel(const vertices &verts)
+void surface::addPanel(const vertices &verts,Eigen::Matrix<bool,Eigen::Dynamic,1> TEnodes)
 {
     bodyPanel* b;
     
-    b = new bodyPanel(verts,nodes,surfID);
+    b = new bodyPanel(verts,nodes,surfID,TEnodes);
     panels.push_back(b);
 }
 

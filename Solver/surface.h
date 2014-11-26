@@ -39,7 +39,7 @@ public:
         }
     }
     
-    void addPanel(const vertices &verts);
+    void addPanel(const vertices &verts,Eigen::Matrix<bool,Eigen::Dynamic,1> TEnodes);
 
     std::vector<bodyPanel*> getPanels() const {return panels;}
     int getID() const {return surfID;}

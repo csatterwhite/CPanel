@@ -46,7 +46,6 @@ public:
     
     void addPanel(const Eigen::VectorXi &panelVertices,Eigen::MatrixXd* nodes,Eigen::Matrix<bool,Eigen::Dynamic,1> TEnodes,int surfID);
     
-    void setTEneighbors(panelOctree* oct);
     
     std::vector<wakePanel*> getPanels() const {return wpanels;}
     

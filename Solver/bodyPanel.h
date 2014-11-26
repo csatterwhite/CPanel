@@ -22,10 +22,10 @@ class bodyPanel : public panel
     inline Eigen::Vector3d pntSrcV(const Eigen::Vector3d &pjk);
     
 public:
-    bodyPanel(const Eigen::VectorXi &panelVertices,Eigen::MatrixXd* nodes,int surfID) : panel(panelVertices,nodes,surfID), TEpanel(false) {}
+    bodyPanel(const Eigen::VectorXi &panelVertices,Eigen::MatrixXd* nodes,int surfID,Eigen::Matrix<bool,Eigen::Dynamic,1> TEnodes) : panel(panelVertices,nodes,surfID,TEnodes) {}
     
     
-    bodyPanel(const bodyPanel &copy) : panel(copy.verts,copy.nodes,copy.ID), sourceStrength(copy.sourceStrength), TEpanel(copy.TEpanel) {}
+    bodyPanel(const bodyPanel &copy) : panel(copy), sourceStrength(copy.sourceStrength) {}
     
     double panelPhi(const Eigen::Vector3d &POI);
     Eigen::Vector3d panelV(const Eigen::Vector3d &POI);

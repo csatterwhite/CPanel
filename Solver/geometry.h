@@ -73,7 +73,11 @@ public:
     std::vector<liftingSurf*> getLiftingSurfs() {return liftingSurfs;}
     std::vector<surface*> getNonLiftingSurfs() {return nonLiftingSurfs;}
     std::vector<surface*> getSurfaces();
+<<<<<<< HEAD
     panelOctree* getOctree() {return &pOctree;}
+=======
+    std::vector<panel*> getPanels();
+>>>>>>> CHTSLS
     
 };
 
