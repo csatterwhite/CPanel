@@ -14,13 +14,13 @@
 #include <fstream>
 #include <Eigen/Dense>
 #include "geometry.h"
+#include "VTUfile.h"
 
 class runCase
 {
     geometry *geom;
     std::string outFile;
     Eigen::Vector3d Vinf;
-    Eigen::MatrixXd velocities;
     Eigen::VectorXd sigmas;
     std::vector<bodyPanel*> bPanels;
     std::vector<wakePanel*> wPanels;

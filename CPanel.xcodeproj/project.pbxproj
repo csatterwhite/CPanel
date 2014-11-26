@@ -20,6 +20,8 @@
 		8334B031192AD2CE008241DB /* InfluenceCoefficientTests.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8334B030192AD2CE008241DB /* InfluenceCoefficientTests.1 */; };
 		8334B036192AD35D008241DB /* libcpptest.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 83B4B8F418F0AAC900EEBC34 /* libcpptest.a */; };
 		8334B039192AD55A008241DB /* CoordTransformTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8334B037192AD55A008241DB /* CoordTransformTest.cpp */; };
+		8348F5891A253542003FDE1B /* VTUfile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8348F5871A253542003FDE1B /* VTUfile.cpp */; };
+		8348F58A1A253543003FDE1B /* VTUfile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8348F5871A253542003FDE1B /* VTUfile.cpp */; };
 		83539BD41A23A99C002C6865 /* chtlsnd.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83539BD21A23A99C002C6865 /* chtlsnd.cpp */; };
 		8358C3E71A0C2767004E94E0 /* runCase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8358C3E31A0C2767004E94E0 /* runCase.cpp */; };
 		8358C3E81A0C2767004E94E0 /* wake.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8358C3E51A0C2767004E94E0 /* wake.cpp */; };
@@ -148,6 +150,8 @@
 		8334B030192AD2CE008241DB /* InfluenceCoefficientTests.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = InfluenceCoefficientTests.1; sourceTree = "<group>"; };
 		8334B037192AD55A008241DB /* CoordTransformTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CoordTransformTest.cpp; sourceTree = "<group>"; };
 		8334B038192AD55A008241DB /* CoordTransformTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CoordTransformTest.h; sourceTree = "<group>"; };
+		8348F5871A253542003FDE1B /* VTUfile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VTUfile.cpp; sourceTree = "<group>"; };
+		8348F5881A253542003FDE1B /* VTUfile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VTUfile.h; sourceTree = "<group>"; };
 		83539BD21A23A99C002C6865 /* chtlsnd.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = chtlsnd.cpp; sourceTree = "<group>"; };
 		83539BD31A23A99C002C6865 /* chtlsnd.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = chtlsnd.h; sourceTree = "<group>"; };
 		8358C3E31A0C2767004E94E0 /* runCase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = runCase.cpp; sourceTree = "<group>"; };
@@ -252,9 +256,9 @@
 		83039DFC191152A300271526 /* Solver */ = {
 			isa = PBXGroup;
 			children = (
-				8358C3E31A0C2767004E94E0 /* runCase.cpp */,
 				83539BD21A23A99C002C6865 /* chtlsnd.cpp */,
 				83539BD31A23A99C002C6865 /* chtlsnd.h */,
+				8358C3E31A0C2767004E94E0 /* runCase.cpp */,
 				8358C3E41A0C2767004E94E0 /* runCase.h */,
 				8358C3E51A0C2767004E94E0 /* wake.cpp */,
 				8358C3E61A0C2767004E94E0 /* wake.h */,
@@ -374,6 +378,8 @@
 				83E347C41A17F1A80054842E /* main.cpp */,
 				83E347D61A17F2790054842E /* octreeFile.cpp */,
 				83E347D71A17F2790054842E /* octreeFile.h */,
+				8348F5871A253542003FDE1B /* VTUfile.cpp */,
+				8348F5881A253542003FDE1B /* VTUfile.h */,
 			);
 			path = WriteOutputFiles;
 			sourceTree = "<group>";
@@ -535,6 +541,7 @@
 				83039E07191152C300271526 /* geometry.cpp in Sources */,
 				83039E1019129C7F00271526 /* bodyPanel.cpp in Sources */,
 				83EF7A2719EF004700E54C6E /* liftingSurf.cpp in Sources */,
+				8348F5891A253542003FDE1B /* VTUfile.cpp in Sources */,
 				83B5BDAE19D310B100506A12 /* convexHull.cpp in Sources */,
 				83539BD41A23A99C002C6865 /* chtlsnd.cpp in Sources */,
 				83C9D30B19E7918200D27CE2 /* InfluenceTests.cpp in Sources */,
@@ -602,6 +609,7 @@
 				83E347DE1A1806EE0054842E /* panel.cpp in Sources */,
 				83E347DF1A18070D0054842E /* wake.cpp in Sources */,
 				83E347C51A17F1A80054842E /* main.cpp in Sources */,
+				8348F58A1A253543003FDE1B /* VTUfile.cpp in Sources */,
 				83E347D91A17F2790054842E /* octreeFile.cpp in Sources */,
 				83E347DC1A1806E10054842E /* liftingSurf.cpp in Sources */,
 				83E347DB1A1806CD0054842E /* panelOctree.cpp in Sources */,

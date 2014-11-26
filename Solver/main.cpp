@@ -13,8 +13,8 @@
 int main(int argc, const char * argv[])
 {
     std::string path = "/Users/Chris/Desktop/Thesis/Code/Geometry and Solution Files/";
-    std::string inFile = "genericAC_noWake.tri";
-    std::string outFile = "genericAC_test.vtu";
+    std::string inFile = "sphere_coarse.tri";
+    std::string outFile = "sphere_coarse_testVTUfile.vtu";
     time_t ts;
     time(&ts);
     time_t tf;
