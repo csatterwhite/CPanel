@@ -15,13 +15,13 @@
 #include <Eigen/Dense>
 #include <Eigen/IterativeLinearSolvers>
 #include "geometry.h"
+#include "VTUfile.h"
 
 class runCase
 {
     geometry *geom;
     std::string outFile;
     Eigen::Vector3d Vinf;
-    Eigen::MatrixXd velocities;
     Eigen::VectorXd sigmas;
     std::vector<bodyPanel*> bPanels;
     std::vector<wakePanel*> wPanels;

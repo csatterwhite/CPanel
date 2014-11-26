@@ -184,35 +184,62 @@ void runCase::solveMatrixEq()
     
     //  Velocity Survey with known doublet and source strengths
     
-    std::cout << "Performing Velocity Survey..." << std::endl;
+//    std::cout << "Performing Velocity Survey..." << std::endl;
     allPanels.insert(allPanels.end(),bPanels.begin(),bPanels.end());
     allPanels.insert(allPanels.end(),wPanels.begin(),wPanels.end());
-
-    velocities = Eigen::MatrixXd::Zero(geom->getNumberOfTris(),3);
-    Eigen::MatrixXd nodes = geom->getNodes();
+//
+//    velocities = Eigen::MatrixXd::Zero(geom->getNumberOfTris(),3);
+//    Eigen::MatrixXd nodes = geom->getNodes();
+//    
+//    for (int j=0; j<allPanels.size(); j++)
+//    {
+//        for (int i=0; i<allPanels.size(); i++)
+//        {
+//            if (j==0)
+//            {
+//                velocities.row(i) += Vinf;
+//            }
+//            velocities.row(i) += allPanels[j]->panelV(allPanels[i]->getCenter());
+//        }
+//        for (int i=0; i<percentage.size(); i++)
+//        {
+//            if ((100*j/allPanels.size()) <= percentage(i) && 100*(j+1)/allPanels.size() > percentage(i))
+//            {
+//                std::cout << percentage(i) << "%" << std::endl;
+//            }
+//        }
+//    }
+//    std::cout << "Complete" << std::endl;
     
-    for (int j=0; j<allPanels.size(); j++)
-    {
-        for (int i=0; i<allPanels.size(); i++)
-        {
-            if (j==0)
-            {
-                velocities.row(i) += Vinf;
-            }
-            velocities.row(i) += allPanels[j]->panelV(allPanels[i]->getCenter());
-        }
-        for (int i=0; i<percentage.size(); i++)
-        {
-            if ((100*j/allPanels.size()) <= percentage(i) && 100*(j+1)/allPanels.size() > percentage(i))
-            {
-                std::cout << percentage(i) << "%" << std::endl;
-            }
-        }
-    }
-    std::cout << "Complete" << std::endl;
-
     std::cout << "Writing .vtu file" << std::endl;
-    writeVTU(outFile);
+    
+    std::vector<cellDataArray*> cellData;
+    cellDataArray mu,pot;
+    Eigen::MatrixXd dub,potential;
+    Eigen::MatrixXi bodyCon;
+    for (int i=0; i<bPanels.size(); i++)
+    {
+        dub(i,1) = bPanels[i]->getMu();
+        potential(i,1) = bPanels[i]->getPotential();
+        bodyCon.row(i) = bPanels[i]->getVerts();
+    }
+    mu.name = "DoubletStrengths";
+    mu.data = dub;
+    cellData.push_back(&mu);
+    
+    pot.name = "Velocity Potential";
+    pot.data = potential;
+    cellData.push_back(&pot);
+    
+    piece body;
+    body.pnts = geom->getNodes();
+    body.connectivity = bodyCon;
+    body.cellData = cellData;
+    
+    std::vector<piece*> pieces;
+    pieces.push_back(&body);
+    VTUfile bodyVTU(pieces);
+    bodyVTU.write(outFile);
 }
 
 Eigen::Vector4i runCase::getIndices(std::vector<bodyPanel*> interpPans)
@@ -234,73 +261,74 @@ Eigen::Vector4i runCase::getIndices(std::vector<bodyPanel*> interpPans)
 
 void runCase::writeVTU(std::string filename)
 {
-    std::ofstream fid;
-    fid.open(filename);
-    if (fid.is_open())
-    {
-        fid << "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"BigEndian\">" << std::endl;
-        fid << "  <UnstructuredGrid>" << std::endl;
-        fid << "    <Piece NumberOfPoints=\"" << geom->getNumberOfNodes() << "\" NumberOfCells=\"" << geom->getNumberOfTris() << "\">" << std::endl;
-        fid << "      <CellData Scalars=\"scalars\">" << std::endl;
-        fid << "        <DataArray type=\"Float64\" Name=\"Potential\" NumberOfComponents=\"1\" Format=\"ascii\">" << std::endl;
-        for (int i=0; i<allPanels.size(); i++)
-        {
-            fid << allPanels[i]->getPotential() << std::endl;
-        }
-        fid << "        </DataArray>" << std::endl;
-        fid << "        <DataArray type=\"Float64\" Name=\"DoubletStrength\" NumberOfComponents=\"1\" Format=\"ascii\">" << std::endl;
-        for (int i=0; i<allPanels.size(); i++)
-        {
-            fid << allPanels[i]->getMu() << std::endl;
-        }
-        fid << "        </DataArray>" << std::endl;
-        fid << "        <DataArray type=\"Float64\" Name=\"Velocities\" NumberOfComponents=\"3\" Format=\"ascii\">" << std::endl;
-        for (int i=0; i<velocities.rows(); i++)
-        {
-            fid << velocities(i,0) << "\t" << velocities(i,1) << "\t" << velocities(i,2) << std::endl;
-        }
-        fid << "        </DataArray>" << std::endl;
-        fid << "      </CellData>" << std::endl;
-        fid << "      <Points>" << std::endl;
-        fid << "        <DataArray type=\"Float64\" Name=\"Position\" NumberOfComponents=\"3\" Format=\"ascii\">" << std::endl;
-        Eigen::MatrixXd nodes = geom->getNodes();
-        for (int i=0; i<nodes.rows(); i++)
-        {
-            fid << nodes(i,0) << "  " << nodes(i,1) << "  " << nodes(i,2) << std::endl;
-        }
-        fid << "        </DataArray>" << std::endl;
-        fid << "      </Points>" << std::endl;
-        fid << "      <Cells>" << std::endl;
-        fid << "        <DataArray type=\"Int32\" Name=\"connectivity\" Format=\"ascii\">" << std::endl;
-        Eigen::VectorXi verts;
-        for (int i=0; i<bPanels.size(); i++)
-        {
-            verts = bPanels[i]->getVerts();
-            fid << verts(0) << "  " << verts(1) << "  " << verts(2) << std::endl;
-        }
-        for (int i=0; i<wPanels.size(); i++)
-        {
-            verts = wPanels[i]->getVerts();
-            fid << verts(0) << "  " << verts(1) << "  " << verts(2) << std::endl;
-        }
-        fid << "        </DataArray>" << std::endl;
-        fid << "        <DataArray type=\"Int32\" Name=\"offsets\" Format=\"ascii\">" << std::endl;
-        for (int i=0; i<geom->getNumberOfTris(); i++)
-        {
-            fid << 3*(i+1) << std::endl;
-        }
-        fid << "        </DataArray>" << std::endl;
-        fid << "        <DataArray type=\"UInt8\" Name=\"types\" Format=\"ascii\">" << std::endl;
-        for (int i=0; i<geom->getNumberOfTris(); i++)
-        {
-            fid << 5 << std::endl;
-        }
-        fid << "        </DataArray>" << std::endl;
-        fid << "      </Cells>" << std::endl;
-        fid << "    </Piece>" << std::endl;
-        fid << "  </UnstructuredGrid>" << std::endl;
-        fid << "</VTKFile>" << std::endl;
-        std::cout << "Data written to " << filename << std::endl;
-    }
-    fid.close();
+    
+//    std::ofstream fid;
+//    fid.open(filename);
+//    if (fid.is_open())
+//    {
+//        fid << "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"BigEndian\">" << std::endl;
+//        fid << "  <UnstructuredGrid>" << std::endl;
+//        fid << "    <Piece NumberOfPoints=\"" << geom->getNumberOfNodes() << "\" NumberOfCells=\"" << geom->getNumberOfTris() << "\">" << std::endl;
+//        fid << "      <CellData Scalars=\"scalars\">" << std::endl;
+//        fid << "        <DataArray type=\"Float64\" Name=\"Potential\" NumberOfComponents=\"1\" Format=\"ascii\">" << std::endl;
+//        for (int i=0; i<allPanels.size(); i++)
+//        {
+//            fid << allPanels[i]->getPotential() << std::endl;
+//        }
+//        fid << "        </DataArray>" << std::endl;
+//        fid << "        <DataArray type=\"Float64\" Name=\"DoubletStrength\" NumberOfComponents=\"1\" Format=\"ascii\">" << std::endl;
+//        for (int i=0; i<allPanels.size(); i++)
+//        {
+//            fid << allPanels[i]->getMu() << std::endl;
+//        }
+//        fid << "        </DataArray>" << std::endl;
+//        fid << "        <DataArray type=\"Float64\" Name=\"Velocities\" NumberOfComponents=\"3\" Format=\"ascii\">" << std::endl;
+//        for (int i=0; i<velocities.rows(); i++)
+//        {
+//            fid << velocities(i,0) << "\t" << velocities(i,1) << "\t" << velocities(i,2) << std::endl;
+//        }
+//        fid << "        </DataArray>" << std::endl;
+//        fid << "      </CellData>" << std::endl;
+//        fid << "      <Points>" << std::endl;
+//        fid << "        <DataArray type=\"Float64\" Name=\"Position\" NumberOfComponents=\"3\" Format=\"ascii\">" << std::endl;
+//        Eigen::MatrixXd nodes = geom->getNodes();
+//        for (int i=0; i<nodes.rows(); i++)
+//        {
+//            fid << nodes(i,0) << "  " << nodes(i,1) << "  " << nodes(i,2) << std::endl;
+//        }
+//        fid << "        </DataArray>" << std::endl;
+//        fid << "      </Points>" << std::endl;
+//        fid << "      <Cells>" << std::endl;
+//        fid << "        <DataArray type=\"Int32\" Name=\"connectivity\" Format=\"ascii\">" << std::endl;
+//        Eigen::VectorXi verts;
+//        for (int i=0; i<bPanels.size(); i++)
+//        {
+//            verts = bPanels[i]->getVerts();
+//            fid << verts(0) << "  " << verts(1) << "  " << verts(2) << std::endl;
+//        }
+//        for (int i=0; i<wPanels.size(); i++)
+//        {
+//            verts = wPanels[i]->getVerts();
+//            fid << verts(0) << "  " << verts(1) << "  " << verts(2) << std::endl;
+//        }
+//        fid << "        </DataArray>" << std::endl;
+//        fid << "        <DataArray type=\"Int32\" Name=\"offsets\" Format=\"ascii\">" << std::endl;
+//        for (int i=0; i<geom->getNumberOfTris(); i++)
+//        {
+//            fid << 3*(i+1) << std::endl;
+//        }
+//        fid << "        </DataArray>" << std::endl;
+//        fid << "        <DataArray type=\"UInt8\" Name=\"types\" Format=\"ascii\">" << std::endl;
+//        for (int i=0; i<geom->getNumberOfTris(); i++)
+//        {
+//            fid << 5 << std::endl;
+//        }
+//        fid << "        </DataArray>" << std::endl;
+//        fid << "      </Cells>" << std::endl;
+//        fid << "    </Piece>" << std::endl;
+//        fid << "  </UnstructuredGrid>" << std::endl;
+//        fid << "</VTKFile>" << std::endl;
+//        std::cout << "Data written to " << filename << std::endl;
+//    }
+//    fid.close();
 }

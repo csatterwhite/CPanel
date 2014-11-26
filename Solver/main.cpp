@@ -13,8 +13,13 @@
 int main(int argc, const char * argv[])
 {
     std::string path = "/Users/Chris/Desktop/Thesis/Code/Geometry and Solution Files/";
+<<<<<<< HEAD
     std::string inFile = "NACA4412_fineTE.tri";
     std::string outFile = "NACA4412_alpha5_CGA_v100.vtu";
+=======
+    std::string inFile = "sphere_coarse.tri";
+    std::string outFile = "sphere_coarse_testVTUfile.vtu";
+>>>>>>> OutputFileWriting
     time_t ts;
     time(&ts);
     time_t tf;

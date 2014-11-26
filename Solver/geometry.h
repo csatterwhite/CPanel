@@ -73,6 +73,7 @@ public:
     std::vector<liftingSurf*> getLiftingSurfs() {return liftingSurfs;}
     std::vector<surface*> getNonLiftingSurfs() {return nonLiftingSurfs;}
     std::vector<surface*> getSurfaces();
+    panelOctree* getOctree() {return &pOctree;}
     
 };
 

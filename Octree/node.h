@@ -248,6 +248,33 @@ public:
         
     }
     
+    std::vector<node<type>*> getSubNodes()
+    {
+        if (isLeafNode())
+        {
+            std::vector<node<type>*> temp;
+            temp.push_back(this);
+            return temp;
+        }
+        else
+        {
+            std::vector<node<type>*> recursiveNodes;
+            recursiveNodes.push_back(this);
+            for (int i=0; i<8; i++)
+            {
+                if (children[i] != NULL)
+                {
+                    std::vector<node<type>*> temp = children[i]->getSubNodes();
+                    for (int j=0; j<temp.size(); j++)
+                    {
+                        recursiveNodes.push_back(temp[j]);
+                    }
+                }
+            }
+            return recursiveNodes;
+        }
+    }
+    
     std::vector<type*> getMembers(node<type>* exception)
     {
         // Used if searching tree starting at bottom to avoid searching the same node twice.

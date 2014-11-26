@@ -47,14 +47,14 @@ class octree
     
     void setDimensions(Eigen::Vector3d &center, Eigen::Vector3d &halfDimension)
     {
+        halfDimension << 1,1,1;
         Eigen::Vector3d boxMin;
         Eigen::Vector3d boxMax;
         boundingBox(boxMin,boxMax);
-        for (int i=0; i<3; i++)
-        {
-            center[i] = 0.5*(boxMax[i]+boxMin[i]);
-            halfDimension[i] = 0.51*(boxMax[i]-boxMin[i]); // Added 1% to half dimension to handle unique cases where floating point error leaves a node outside the octree.
-        }
+        
+        center = 0.5*(boxMin+boxMax);
+        double maxD = (boxMax-boxMin).maxCoeff();
+        halfDimension *= 0.51*maxD; // Added 1% to half dimension to handle unique cases where floating point error leaves a node outside the octree.
     }
     
     int findCorner(const member<type> &member)
@@ -216,6 +216,11 @@ public:
             }
         }
         return true;
+    }
+    
+    std::vector<node<type>*> getNodes()
+    {
+        return root_node->getSubNodes();
     }
     
     virtual Eigen::Vector3d findRefPoint(const type &obj) = 0;
