@@ -26,8 +26,6 @@ void wakePanel::setParentPanels()
    
     lowerPan = parentPanels[0];
     upperPan = parentPanels[1];
-    lowerPan->setTEpanel();
-    upperPan->setTEpanel();
     addWakeLine();
 }
 
@@ -89,4 +87,90 @@ void wakePanel::setMu()
     double interpCoeff;
     interpPanels(interpPans, interpCoeff);
     doubletStrength = (1-interpCoeff)*interpPans[0]->getMu() + (interpCoeff-1)*interpPans[1]->getMu() + interpCoeff*interpPans[2]->getMu() - interpCoeff*interpPans[3]->getMu();
+}
+
+void wakePanel::setNeighbors(panelOctree *oct, short normalMax)
+{
+    short absMax = normalMax;
+    neighborCases(normalMax, absMax);
+    node<panel>* currentNode = oct->findNodeContainingMember(this);
+    node<panel>* exception = NULL;
+    while (neighbors.size() < absMax)
+    {
+        scanForNeighbors(currentNode,exception);
+        if (neighbors.size() >= absMax && normalMax > 1)
+        {
+            neighborCases(normalMax, absMax);
+        }
+        if (currentNode == oct->getRootNode())
+        {
+            break;
+        }
+        else
+        {
+            exception = currentNode;
+            currentNode = currentNode->getParent();
+        }
+    }
+}
+
+void wakePanel::neighborCases(const short &normalMax, short &absMax)
+{
+    if (neighbors.size() < 2)
+    {
+        return;
+    }
+    short w = 0;
+    short ls = 0;
+    short nls = 0;
+    for (int i=0; i<neighbors.size(); i++)
+    {
+        if (neighbors[i]->getID() == ID)
+        {
+            w++;
+        }
+        else if (neighbors[i]->getID() == ID-10000)
+        {
+            ls++;
+            neighbors[i]->setTEpanel();
+        }
+        else
+        {
+            nls++;
+            neighbors[i]->setTEpanel();
+        }
+    }
+    if (ls > 0 || nls > 0)
+    {
+        TEpanel = true;
+    }
+    if (normalMax == verts.size()-1 && ls != 0)
+    {
+        // Wake panel is on outer edge of wake at the wing tip and will have three neighbors (2 body, 1 wake) for tris and four neighbors (2 body, 2 wake) for quads.
+        absMax = verts.size();
+    }
+    if (normalMax == verts.size())
+    {
+        // Check special cases for wake panels shed off body
+        if (w == verts.size())
+        {
+            // Only panels in the middle of the wake will have as many neighbors as vertices all in the wake
+            return;
+        }
+        else if (ls > 0 && nls > 0)
+        {
+            // Corresponds to wake panel in the wing body joint
+            absMax = verts.size()+2;
+        }
+        else if (w < verts.size())
+        {
+            // Only two neighbors in wake means panel is shed from trailing edge and there will be one additional neighbor
+            absMax = verts.size()+1;
+        }
+        else
+        {
+            int dummy = 0;
+        }
+    }
+
 }

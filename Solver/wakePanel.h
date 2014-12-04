@@ -21,6 +21,7 @@ class wakePanel : public panel
     bodyPanel* lowerPan;
     std::vector<wakeLine*>* wakeLines;
     
+    void neighborCases(const short &normalMax, short &absMax);
     void addWakeLine();
     
     struct compareX
@@ -50,12 +51,12 @@ public:
     
     wakePanel(const wakePanel &copy) : panel(copy), wakeLines(copy.wakeLines), upperPan(copy.upperPan), lowerPan(copy.lowerPan) {}
     
+    void setNeighbors(panelOctree *oct, short normalMax);
     void setParentPanels();
     void interpPanels(std::vector<bodyPanel*> &interpP, double &interpC);
     double panelPhi(const Eigen::Vector3d &POI);
     Eigen::Vector3d panelV(const Eigen::Vector3d &POI);
 
-    bool isTEpanel() {return TEpanel;}
     void setMu();
     bodyPanel* getUpper() {return upperPan;}
     bodyPanel* getLower() {return lowerPan;}

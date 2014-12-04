@@ -37,7 +37,7 @@ class geometry
     void setNeighbors(panel* p,int targetID);
     void scanNode(panel* p, node<panel>* current, node<panel>* exception);
     bool isLiftingSurf(int currentID, std::vector<int> wakeIDs);
-    void findTEnodes();
+    void correctWakeNodes(int wakeNodeStart);
     liftingSurf* getParentSurf(int wakeID);
     
 public:
@@ -75,6 +75,7 @@ public:
     std::vector<surface*> getSurfaces();
     panelOctree* getOctree() {return &pOctree;}
     std::vector<panel*> getPanels();
+    std::vector<wakePanel*> getWakePanels();
     
 };
 

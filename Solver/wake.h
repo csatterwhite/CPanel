@@ -20,9 +20,15 @@ class wake
     
     std::vector<wakePanel*> wpanels;
     std::vector<wakeLine*> wakeLines;
+    Eigen::MatrixXd* nodes;
+    Eigen::Vector2d xlim;
+    Eigen::Vector2d ylim;
+    
+    void setWakeDimensions();
+    short edgePanel(wakePanel* p);
     
 public:
-    wake() {}
+    wake(Eigen::MatrixXd* nodes) : nodes(nodes) {}
     
     ~wake()
     {
@@ -48,6 +54,8 @@ public:
     
     
     std::vector<wakePanel*> getPanels() const {return wpanels;}
+    
+    void setNeighbors(panelOctree* oct);
     
 };
 

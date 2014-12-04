@@ -40,6 +40,7 @@ public:
     }
     
     void addPanel(const vertices &verts,Eigen::Matrix<bool,Eigen::Dynamic,1> TEnodes);
+    void setNeighbors(panelOctree* oct);
 
     std::vector<bodyPanel*> getPanels() const {return panels;}
     int getID() const {return surfID;}

@@ -213,33 +213,63 @@ void runCase::solveMatrixEq()
     
     std::cout << "Writing .vtu file" << std::endl;
     
-    std::vector<cellDataArray*> cellData;
-    cellDataArray mu,pot;
-    Eigen::MatrixXd dub(bPanels.size(),1),potential(bPanels.size(),1);
-    Eigen::MatrixXi bodyCon(bPanels.size(),3);
+    std::vector<cellDataArray*> bCellData,wCellData;
+    cellDataArray bMu,bPot,bNeighbs,wMu,wPot,wNeighbs;
+    Eigen::MatrixXd bDub(bPanels.size(),1),bPotential(bPanels.size(),1),bNeighbors(bPanels.size(),1),wDub(wPanels.size(),1),wPotential(wPanels.size(),1),wNeighbors(wPanels.size(),1);
+    Eigen::MatrixXi bodyCon(bPanels.size(),3),wakeCon(wPanels.size(),3);
     for (int i=0; i<bPanels.size(); i++)
     {
-        dub(i,0) = bPanels[i]->getMu();
-        potential(i,0) = bPanels[i]->getPotential();
+        bDub(i,0) = bPanels[i]->getMu();
+        bPotential(i,0) = bPanels[i]->getPotential();
         bodyCon.row(i) = bPanels[i]->getVerts();
+        bNeighbors(i,0) = bPanels[i]->getNeighbors().size();
     }
-    mu.name = "DoubletStrengths";
-    mu.data = dub;
-    cellData.push_back(&mu);
+    for (int i=0; i<wPanels.size(); i++)
+    {
+        wDub(i,0) = wPanels[i]->getMu();
+        wPotential(i,0) = wPanels[i]->getPotential();
+        wakeCon.row(i) = wPanels[i]->getVerts();
+        wNeighbors(i,0) = wPanels[i]->getNeighbors().size();
+    }
+    bMu.name = "DoubletStrengths";
+    bMu.data = bDub;
+    bCellData.push_back(&bMu);
     
-    pot.name = "Velocity Potential";
-    pot.data = potential;
-    cellData.push_back(&pot);
+    bPot.name = "Velocity Potential";
+    bPot.data = bPotential;
+    bCellData.push_back(&bPot);
+    
+    bNeighbs.name = "Number of Neighbors";
+    bNeighbs.data = bNeighbors;
+    bCellData.push_back(&bNeighbs);
     
     piece body;
     body.pnts = geom->getNodes();
     body.connectivity = bodyCon;
-    body.cellData = cellData;
+    body.cellData = bCellData;
+    
+    wMu.name = "DoubletStrengths";
+    wMu.data = wDub;
+    wCellData.push_back(&wMu);
+    
+    wPot.name = "Velocity Potential";
+    wPot.data = wPotential;
+    wCellData.push_back(&wPot);
+    
+    wNeighbs.name = "Number of Neighbors";
+    wNeighbs.data = wNeighbors;
+    wCellData.push_back(&wNeighbs);
+    
+    piece wake;
+    wake.pnts = geom->getNodes();
+    wake.connectivity = wakeCon;
+    wake.cellData = wCellData;
     
     std::vector<piece*> pieces;
     pieces.push_back(&body);
-    VTUfile bodyVTU(pieces);
-    bodyVTU.write(outFile);
+    pieces.push_back(&wake);
+    VTUfile VTU(pieces);
+    VTU.write(outFile);
 }
 
 Eigen::Vector4i runCase::getIndices(std::vector<bodyPanel*> interpPans)

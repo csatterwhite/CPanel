@@ -23,18 +23,13 @@ class panelOctree;
 
 class panel
 {
-    bool neighborExists(panel* other);
-    bool isNeighbor(panel* other);
-    void scanForNeighbors(node<panel>* current, node<panel>* exception);
-    bool isOnPanel(const Eigen::Vector3d &POI);
-    void checkNeighbor(panel* other);
-    
 protected:
     Eigen::Vector3d center;
     Eigen::Vector3d normal;
     Eigen::VectorXi verts;
     double area;
     double longSide;
+    
     bool TEpanel;
 
     double doubletStrength;
@@ -42,6 +37,12 @@ protected:
     Eigen::MatrixXd* nodes;
     int ID;
     std::vector<panel*> neighbors;
+    
+    bool neighborExists(panel* other);
+    bool isNeighbor(panel* other);
+    void scanForNeighbors(node<panel>* current, node<panel>* exception);
+    bool isOnPanel(const Eigen::Vector3d &POI);
+    void checkNeighbor(panel* other);
     
     Eigen::Vector3d vortexV(const Eigen::Vector3d &a, const Eigen::Vector3d &b, const Eigen::Vector3d &s);
     double vortexPhi(const double &PN,const double &Al, const Eigen::Vector3d &a,const Eigen::Vector3d &b, const Eigen::Vector3d &s, const Eigen::Vector3d &l,const Eigen::Vector3d &m,const Eigen::Vector3d &n);
@@ -62,30 +63,20 @@ public:
     panel(const Eigen::VectorXi &panelVertices,Eigen::MatrixXd* nodes,int surfID,Eigen::Matrix<bool,Eigen::Dynamic,1> TEnodes) : ID(surfID), verts(panelVertices), nodes(nodes), TEpanel(false)
     {
         setGeom();
-        // Check for TE panel;
-        short count = 0;
-        for (int i=0; i<verts.size(); i++)
-        {
-            if (TEnodes(verts(i)))
-            {
-                count++;
-            }
-            if (count == 2)
-            {
-                TEpanel = true;
-                break;
-            }
-        }
     };
     
     virtual ~panel() {}
     
-    panel(const panel &copy) : ID(copy.ID), verts(copy.verts), nodes(copy.nodes), TEpanel(copy.TEpanel)
+    panel(const panel &copy) : ID(copy.ID), verts(copy.verts), nodes(copy.nodes)
     {
         setGeom();
     }
     void setGeom();
-    void setNeighbors(panelOctree *oct);
+    virtual void setNeighbors(panelOctree *oct, short normalMax) = 0;
+    void setTEpanel()
+    {
+        TEpanel = true;
+    }
     void setPotential(Eigen::Vector3d Vinf)
     {
         potential = Vinf.dot(center)-doubletStrength;
@@ -103,10 +94,10 @@ public:
     Eigen::Vector3d getNormal() const {return normal;}
     Eigen::VectorXi getVerts() const {return verts;}
     double getArea() {return area;}
+    bool isTEpanel() {return TEpanel;}
     std::vector<panel*> getNeighbors() const {return neighbors;}
     double getMu() {return doubletStrength;}
     double getPotential() {return potential;}
-    bool isTEpanel() {return TEpanel;}
 };
 
 #endif /* defined(__CPanel__panel__) */

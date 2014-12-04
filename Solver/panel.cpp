@@ -75,46 +75,6 @@ void panel::setGeom()
         normal.normalize();
     }
 }
-
-void panel::setNeighbors(panelOctree *oct)
-{
-    node<panel>* currentNode = oct->findNodeContainingMember(this);
-    
-    scanForNeighbors(currentNode,NULL);
-    short maxNeighbors;
-    if (TEpanel)
-    {
-        maxNeighbors = verts.size()+1;
-        // Maximum number of neighbors on TE panel is the number of verts plus two.  This panel exists in the wing fuselage joint, with two neighbors on wing, two neighbors on fuselage, and either 1 (for tris) or 2 (for quads) in the wake.
-    }
-    else
-    {
-        maxNeighbors = verts.size();
-    }
-    
-    while (currentNode != oct->getRootNode() && neighbors.size() < maxNeighbors)
-    {
-        scanForNeighbors(currentNode->getParent(),currentNode);
-        if (TEpanel && ID > 10000 && neighbors.size()==verts.size()+1)
-        {
-            int wakePans = 0;
-            for (int i=0; i<neighbors.size(); i++)
-            {
-                if (neighbors[i]->getID() > 10000)
-                {
-                    wakePans++;
-                }
-            }
-            if (wakePans==verts.size()-2)
-            {
-                // Can only be wake panel in wing fuse joint so add one to max neighbors;
-                maxNeighbors = verts.size()+2;
-            }
-        }
-        currentNode = currentNode->getParent();
-    }
-
-}
     
 void panel::scanForNeighbors(node<panel>* current, node<panel>* exception)
 {
@@ -129,11 +89,14 @@ bool panel::isNeighbor(panel* other)
 {
     Eigen::VectorXi otherVerts = other->getVerts();
     short count = 0;
+    Eigen::Vector3d p1,p2;
     for (int i=0; i<verts.size(); i++)
     {
         for (int j=0; j<otherVerts.size(); j++)
         {
-            if (nodes->row(verts(i)) == nodes->row(otherVerts(j)))
+            p1 = nodes->row(verts(i));
+            p2 = nodes->row(otherVerts(j));
+            if (p1(0) == p2(0) && p1(1) == p2(1) && p1(2) == p2(2))
             {
                 count++;
             }

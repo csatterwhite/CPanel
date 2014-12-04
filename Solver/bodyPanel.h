@@ -27,6 +27,8 @@ public:
     
     bodyPanel(const bodyPanel &copy) : panel(copy), sourceStrength(copy.sourceStrength) {}
     
+    void setNeighbors(panelOctree *oct, short normalMax);
+    
     double panelPhi(const Eigen::Vector3d &POI);
     Eigen::Vector3d panelV(const Eigen::Vector3d &POI);
     
@@ -42,8 +44,6 @@ public:
     {
         doubletStrength = dubStrength;
     }
-    
-    void setTEpanel() {TEpanel = true;}
     
     double getSigma() {return sourceStrength;}
     double getMu() {return doubletStrength;}

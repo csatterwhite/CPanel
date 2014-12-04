@@ -25,3 +25,11 @@ void surface::addPanel(const vertices &verts,Eigen::Matrix<bool,Eigen::Dynamic,1
     panels.push_back(b);
 }
 
+void surface::setNeighbors(panelOctree* oct)
+{
+    for (int i=0; i<panels.size(); i++)
+    {
+        panels[i]->setNeighbors(oct, panels[i]->getVerts().size());
+    }
+}
+

@@ -8,6 +8,35 @@
 
 #include "bodyPanel.h"
 
+void bodyPanel::setNeighbors(panelOctree *oct, short normalMax)
+{
+    short absMax = normalMax;
+    if (TEpanel)
+    {
+        absMax = verts.size()+1;
+    }
+    else
+    {
+        absMax = normalMax;
+    }
+    node<panel>* currentNode = oct->findNodeContainingMember(this);
+    node<panel>* exception = NULL;
+    
+    while (neighbors.size() < absMax)
+    {
+        scanForNeighbors(currentNode,exception);
+        if (currentNode == oct->getRootNode())
+        {
+            break;
+        }
+        else
+        {
+            exception = currentNode;
+            currentNode = currentNode->getParent();
+        }
+    }
+}
+
 double bodyPanel::panelPhi(const Eigen::Vector3d &POI)
 {
     double mu,sigma,phiSrc,phiDub;

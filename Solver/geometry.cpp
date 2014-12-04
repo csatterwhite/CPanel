@@ -36,8 +36,6 @@ void geometry::readTri(std::string tri_file)
             fid >> nodes(i,0) >> nodes(i,1) >> nodes(i,2);
         }
         
-        findTEnodes();
-        
         // Temporarily Store Connectivity
         for (int i=0; i<nTris; i++)
         {
@@ -47,6 +45,7 @@ void geometry::readTri(std::string tri_file)
         connectivity = connectivity.array()-1; //Adjust for 0 based indexing
         
         // Scan Surface IDs and collect Unique IDs
+        int wakeNodeStart = nNodes;
         for (int i=0; i<nTris; i++)
         {
             fid >> allID(i);
@@ -61,29 +60,29 @@ void geometry::readTri(std::string tri_file)
                     surfIDs.push_back(allID(i));
                 }
             }
+            if (allID(i) > 10000 && allID(i-1) < 10000)
+            {
+                wakeNodeStart = connectivity.row(i).minCoeff();
+            }
         }
         createSurfaces(connectivity,allID,surfIDs,wakeIDs);
         createOctree();
-        
-        // Set neighbors
-        
-        std::vector<panel*> panels = getPanels();
-        for (int i=0; i<panels.size(); i++)
+        if (wakeIDs.size() > 0)
         {
-            panels[i]->setNeighbors(&pOctree);
+            correctWakeNodes(wakeNodeStart);
         }
         
-        // Set parents of trailing edge wake panels
+        // Set neighbors
         for (int i=0; i<liftingSurfs.size(); i++)
         {
-            std::vector<wakePanel*> pans = liftingSurfs[i]->getWakePanels();
-            for (int j=0; j<pans.size(); j++)
-            {
-                if (pans[j]->isTEpanel())
-                {
-                    pans[j]->setParentPanels();
-                }
-            }
+            // Set wake neighbors first to deal with special cases
+            liftingSurfs[i]->getWake()->setNeighbors(&pOctree);
+        }
+        
+        std::vector<surface*> surfs = getSurfaces();
+        for (int i=0; i<surfs.size(); i++)
+        {
+            surfs[i]->setNeighbors(&pOctree);
         }
     }
     else
@@ -93,21 +92,19 @@ void geometry::readTri(std::string tri_file)
     }
 }
 
-void geometry::findTEnodes()
+void geometry::correctWakeNodes(int wakeNodeStart)
 {
-    // Duplicate nodes are on TE because they are generated once for surface and once for wake. In some cases, there is floating point error that makes the points not exactly the same.  In these scenarios, the points are forced to be the exact same.
+    // Duplicate nodes are on TE because they are generated once for surface and once for wake. In some cases, there is error that makes the points not exactly the same.  In these scenarios, the points are forced to be the exact same. The highest error scene has been on the order of 10^-5.  This error comes from VSPs node generation and is not part of CPanel
     Eigen::Vector3d vec;
-    double eps = pow(10,-15);
-    for (int i=0; i<nNodes; i++)
+    double diff = pow(10,-3);
+    for (int i=0; i<wakeNodeStart; i++)
     {
-        for (int j=0; j<nNodes; j++)
+        for (int j=wakeNodeStart; j<nNodes; j++)
         {
             vec = nodes.row(i)-nodes.row(j);
-            if (vec.norm()<eps && i != j)
+            if (vec.lpNorm<Eigen::Infinity>() < diff)
             {
                 nodes.row(j) = nodes.row(i);
-                TEnodes(i) = true;
-                TEnodes(j) = true;
             }
         }
     }
@@ -225,4 +222,14 @@ std::vector<panel*> geometry::getPanels()
         panels.insert(panels.end(),temp.begin(),temp.end());
     }
     return panels;
+}
+
+std::vector<wakePanel*> geometry::getWakePanels()
+{
+    std::vector<wakePanel*> wps;
+    for (int i=0; i<liftingSurfs.size(); i++)
+    {
+        wps.insert(wps.end(),liftingSurfs[i]->getWakePanels().begin(),liftingSurfs[i]->getWakePanels().end());
+    }
+    return wps;
 }

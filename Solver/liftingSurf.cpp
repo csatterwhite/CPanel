@@ -28,3 +28,4 @@ std::vector<panel*> liftingSurf::getAllPanels()
     allPans.insert(allPans.end(),wakePans.begin(),wakePans.end());
     return allPans;
 }
+
