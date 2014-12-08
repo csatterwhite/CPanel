@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <Eigen/Dense>
 #include <Eigen/QR>
+#include <iostream>
 
 class chtlsnd
 {
@@ -22,11 +23,14 @@ class chtlsnd
     Eigen::MatrixXi derivSequence(int q, int N);
     Eigen::MatrixXi sortBySum(Eigen::MatrixXi m);
     Eigen::MatrixXi insertRow(const Eigen::Matrix<int,Eigen::Dynamic,3> &m, const Eigen::Matrix<int,1,3> &insert, int row);
-    int factorial(int i);
+    
     
 public:
     chtlsnd(const Eigen::Matrix<double,1,3> &X0, const Eigen::Matrix<double,Eigen::Dynamic,3> &Xf, int order, const Eigen::Matrix<double,Eigen::Dynamic,3> &Xb, const Eigen::Matrix<double,Eigen::Dynamic,3> &Vb, Eigen::Vector3d V0);
-    
+    static int factorial(int i);
+    Eigen::MatrixXd getF() {return F;}
+    Eigen::MatrixXd getG() {return G;} 
+    Eigen::MatrixXd getH() {return H;}
 };
 
 #endif /* defined(__CPanel__chtlsnd__) */
