@@ -10,6 +10,7 @@
 #define __CPanel__panel__
 
 #include <iostream>
+#include <fstream>
 #include <array>
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
@@ -18,11 +19,14 @@
 #include "math.h"
 #include "convexHull.h"
 #include "panelOctree.h"
+#include "chtlsnd.h"
 
 class panelOctree;
 
 class panel
 {
+    std::vector<panel*> gatherNeighbors(int nPanels);
+    
 protected:
     Eigen::Vector3d center;
     Eigen::Vector3d normal;
@@ -34,6 +38,7 @@ protected:
 
     double doubletStrength;
     double potential;
+    Eigen::Vector3d velocity;
     Eigen::MatrixXd* nodes;
     int ID;
     std::vector<panel*> neighbors;
@@ -82,7 +87,7 @@ public:
         potential = Vinf.dot(center)-doubletStrength;
     }
     void addNeighbor(panel* other);
-    Eigen::MatrixXd getLocalVerts();
+    void computeVelocity();
     
     double dubPhiInf(const Eigen::Vector3d &POI);
     Eigen::Vector3d dubVInf(const Eigen::Vector3d &POI);
@@ -98,6 +103,7 @@ public:
     std::vector<panel*> getNeighbors() const {return neighbors;}
     double getMu() {return doubletStrength;}
     double getPotential() {return potential;}
+    Eigen::Vector3d getGlobalV() {return velocity;}
 };
 
 #endif /* defined(__CPanel__panel__) */

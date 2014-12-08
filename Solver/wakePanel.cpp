@@ -21,11 +21,14 @@ void wakePanel::setParentPanels()
         }
     }
     
-    std::sort(parentPanels.begin(),parentPanels.end(),compareX()); // Ensures lifting surface panels are parent panels if the wake panel is at the wing body joint
-    std::sort(parentPanels.begin(),parentPanels.begin()+1,compareZ());
+    std::sort(parentPanels.begin(),parentPanels.end(),[](const panel* p1,const panel* p2) {return p1->getCenter()(0) < p2->getCenter()(0);}); // Ensures lifting surface panels are parent panels if the wake panel is at the wing body joint
+    std::vector<bodyPanel*> pp;
+    pp.push_back(parentPanels[0]);
+    pp.push_back(parentPanels[1]);
+    std::sort(pp.begin(),pp.end(),[](const panel* p1,const panel* p2) {return p1->getCenter()(2) < p2->getCenter()(2);});
    
-    lowerPan = parentPanels[0];
-    upperPan = parentPanels[1];
+    lowerPan = pp[0];
+    upperPan = pp[1];
     addWakeLine();
 }
 

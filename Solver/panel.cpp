@@ -299,3 +299,124 @@ double panel::vortexPhi(const double &PN,const double &Al, const Eigen::Vector3d
         return atan2(num,denom);
     }
 }
+
+std::vector<panel*> panel::gatherNeighbors(int nPanels)
+{
+    std::vector<panel*> cluster;
+    unsigned long oldSize = 0;
+    int count = 0;
+    while (cluster.size() < nPanels)
+    {
+        std::vector<panel*> toAdd;
+        if (cluster.size() == 0)
+        {
+            toAdd = neighbors;
+        }
+        for (unsigned long i=oldSize; i<cluster.size(); i++)
+        {
+            std::vector<panel*> temp = cluster[i]->getNeighbors();
+            for (int j=0; j<temp.size(); j++)
+            {
+                double dot = temp[j]->getNormal().dot(normal);
+                // Floating point error can cause panels with the same normal vector to result in a dot product greater than one, causing acos to return nan.
+                if (dot > 1)
+                {
+                    dot = 1;
+                }
+                else if (dot < -1)
+                {
+                    dot = -1;
+                }
+                double theta = acos(dot);
+                if (theta < 5*M_PI/6 && std::find(cluster.begin(),cluster.end(),temp[j])==cluster.end() && temp[j] != this)
+                    {
+                        // Do not include panels on other side of discontinuity (i.e. trailing edge), panels already in cluster, or this panel
+                        toAdd.push_back(temp[j]);
+                    }
+            }
+        }
+        oldSize = cluster.size();
+        for (int i=0; i<toAdd.size(); i++)
+        {
+            cluster.push_back(toAdd[i]);
+            if (cluster.size() == nPanels)
+            {
+                break;
+            }
+        }
+        count++;
+        if (count > 2*nPanels)
+        {
+            std::cout << cluster.size() << std::endl;
+        }
+    }
+    return cluster;
+}
+
+void panel::computeVelocity()
+{
+    int TSorder = 3;
+    int obs = chtlsnd::factorial(TSorder+3)/(6*chtlsnd::factorial(TSorder)); // Binomial Coefficient
+    obs += 0;
+    std::vector<panel*> cluster = gatherNeighbors(obs);
+    Eigen::MatrixXd Xf(obs,3),Xb(obs,3),Vb(obs,3);
+    Eigen::VectorXd df(obs);
+    for (int i=0; i<obs; i++)
+    {
+        Xf.row(i) = cluster[i]->getCenter();
+        df(i) = cluster[i]->getPotential()-potential;
+        Vb.row(i) = cluster[i]->getNormal();
+    }
+//    std::ofstream fout;
+//
+//    std::string filename = "/Users/Chris/Desktop/Thesis/Code/Geometry and Solution Files/chtlsnd_inputs.txt";
+//    std::ifstream fin(filename);
+//    if (!fin.good())
+//    {
+//        fout.open(filename);
+//        if (fout.is_open())
+//        {
+//            int dummy = 0;
+//        }
+//        fout << center(0) << "\t" << center(1) << "\t" << center(2) << "\n";
+//        fout << normal(0) << "\t" << normal(1) << "\t" << normal(2) << "\n";
+//        fout << Xf.rows() << "\t" << Xf.cols() << "\n";
+//        for (int i=0; i<Xf.rows(); i++)
+//        {
+//            for (int j=0; j<Xf.cols(); j++)
+//            {
+//                fout << Xf(i,j) << "\t";
+//            }
+//            fout << "\n";
+//        }
+//        fout << Vb.rows() << "\t" << Vb.cols() << "\n";
+//        for (int i=0; i<Vb.rows(); i++)
+//        {
+//            for (int j=0; j<Vb.cols(); j++)
+//            {
+//                fout << Vb(i,j) << "\t";
+//            }
+//            fout << "\n";
+//        }
+//        fout << df.rows() << "\t" << df.cols() << "\n";
+//        for (int i=0; i<df.rows(); i++)
+//        {
+//            for (int j=0; j<df.cols(); j++)
+//            {
+//                fout << df(i,j) << "\t";
+//            }
+//            fout << "\n";
+//        }
+//        fout.close();
+//    }
+//        
+//    
+    
+    
+    Xb = Xf;
+    chtlsnd derivWeights(center,Xf,TSorder,Xb,Vb,normal);
+    Eigen::MatrixXd F = derivWeights.getF();
+    velocity(0) = F.row(0)*df;
+    velocity(1) = F.row(1)*df;
+    velocity(2) = F.row(2)*df;
+}

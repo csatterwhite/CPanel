@@ -152,8 +152,6 @@
 		8334B038192AD55A008241DB /* CoordTransformTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CoordTransformTest.h; sourceTree = "<group>"; };
 		8348F5871A253542003FDE1B /* VTUfile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VTUfile.cpp; sourceTree = "<group>"; };
 		8348F5881A253542003FDE1B /* VTUfile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VTUfile.h; sourceTree = "<group>"; };
-		83539BD21A23A99C002C6865 /* chtlsnd.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = chtlsnd.cpp; sourceTree = "<group>"; };
-		83539BD31A23A99C002C6865 /* chtlsnd.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = chtlsnd.h; sourceTree = "<group>"; };
 		83539BD51A23B443002C6865 /* chtlsnd.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = chtlsnd.cpp; sourceTree = "<group>"; };
 		83539BD61A23B443002C6865 /* chtlsnd.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = chtlsnd.h; sourceTree = "<group>"; };
 		8358C3E31A0C2767004E94E0 /* runCase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = runCase.cpp; sourceTree = "<group>"; };
@@ -258,8 +256,6 @@
 		83039DFC191152A300271526 /* Solver */ = {
 			isa = PBXGroup;
 			children = (
-				83539BD21A23A99C002C6865 /* chtlsnd.cpp */,
-				83539BD31A23A99C002C6865 /* chtlsnd.h */,
 				8358C3E31A0C2767004E94E0 /* runCase.cpp */,
 				8358C3E41A0C2767004E94E0 /* runCase.h */,
 				83539BD51A23B443002C6865 /* chtlsnd.cpp */,
