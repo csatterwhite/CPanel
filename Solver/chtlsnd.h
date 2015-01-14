@@ -22,11 +22,11 @@ class chtlsnd
     
     Eigen::MatrixXi derivSequence(int q, int N);
     Eigen::MatrixXi sortBySum(Eigen::MatrixXi m);
-    Eigen::MatrixXi insertRow(const Eigen::Matrix<int,Eigen::Dynamic,3> &m, const Eigen::Matrix<int,1,3> &insert, int row);
+    Eigen::MatrixXi insertRow(const Eigen::MatrixXi &m, const Eigen::MatrixXi &insert, int row);
     
     
 public:
-    chtlsnd(const Eigen::Matrix<double,1,3> &X0, const Eigen::Matrix<double,Eigen::Dynamic,3> &Xf, int order, const Eigen::Matrix<double,Eigen::Dynamic,3> &Xb, const Eigen::Matrix<double,Eigen::Dynamic,3> &Vb, Eigen::Vector3d V0);
+    chtlsnd(const Eigen::Matrix<double,1,Eigen::Dynamic> &X0, const Eigen::MatrixXd &Xf, int order, const Eigen::MatrixXd &Xb, const Eigen::MatrixXd &Vb, Eigen::VectorXd V0);
     static int factorial(int i);
     Eigen::MatrixXd getF() {return F;}
     Eigen::MatrixXd getG() {return G;} 

@@ -11,7 +11,7 @@
 void bodyPanel::setNeighbors(panelOctree *oct, short normalMax)
 {
     short absMax = normalMax;
-    if (TEpanel)
+    if (upper || lower)
     {
         absMax = verts.size()+1;
     }
@@ -192,3 +192,197 @@ inline Eigen::Vector3d bodyPanel::pntSrcV(const Eigen::Vector3d &pjk)
     return area*pjk/(4*M_PI*pow(pjk.norm(),3));
 }
 
+std::vector<bodyPanel*> bodyPanel::getBodyNeighbors()
+{
+    std::vector<bodyPanel*> bodyNeighbors;
+    for (int i=0; i<neighbors.size(); i++)
+    {
+        if (neighbors[i]->getID() < 10000)
+        {
+            bodyPanel* p = dynamic_cast<bodyPanel*>(neighbors[i]);
+            bodyNeighbors.push_back(p);
+        }
+    }
+    return bodyNeighbors;
+}
+
+std::vector<bodyPanel*> bodyPanel::gatherNeighbors(int nPanels)
+{
+    std::vector<bodyPanel*> cluster;
+    unsigned long oldSize = cluster.size();
+    cluster.push_back(this);
+    bool tipFlag = wingTipTest(this);
+    while (cluster.size() < nPanels+1)
+    {
+        std::vector<bodyPanel*> toAdd;
+        for (unsigned long i=oldSize; i<cluster.size(); i++)
+        {
+            std::vector<bodyPanel*> temp = cluster[i]->getBodyNeighbors();
+            for (int j=0; j<temp.size(); j++)
+            {
+                if (tipFlag)
+                {
+                    if (clusterTest(temp[j], 0.1, cluster))
+                    {
+                        // If panel is on wing tip, only include panels also on wing tip
+                        toAdd.push_back(temp[j]);
+                    }
+                }
+                else if (nearTrailingEdge())
+                {
+                    if (clusterTest(temp[j], M_PI/2.1, cluster))
+                    {
+                        toAdd.push_back(temp[j]);
+                    }
+                }
+                else if (clusterTest(temp[j], 5*M_PI/6, cluster))
+                {
+                    // Do not include panels on other side of discontinuity (i.e. wake), panels already in cluster, this panel, or wake panels
+                    toAdd.push_back(temp[j]);
+                }
+            }
+        }
+        assert(cluster.size() != oldSize);
+        oldSize = cluster.size();
+        for (int i=0; i<toAdd.size(); i++)
+        {
+            cluster.push_back(toAdd[i]);
+            if (cluster.size() == nPanels+1)
+            {
+                break;
+            }
+        }
+    }
+    cluster.erase(cluster.begin());
+    bool flag = false;
+    if (wingTipTest(this) && flag == false)
+    {
+        flag = true;
+        std::ofstream fid;
+        fid.open("/Users/Chris/Desktop/Thesis/Code/Geometry and Solution Files/ClusterCheck_lower.txt");
+        fid << center(0) << "\t" << center(1) << "\t" << center(2) << "\n";
+        for (int i=0; i<cluster.size(); i++)
+        {
+            fid << cluster[i]->getCenter()(0) << "\t" << cluster[i]->getCenter()(1) << "\t" << cluster[i]->getCenter()(2) << "\n";
+        }
+        fid.close();
+    }
+    return cluster;
+}
+
+void bodyPanel::computeVelocity()
+{
+    int TSorder = 3;
+    int obs,dim;
+    std::vector<bodyPanel*> cluster;
+    Eigen::MatrixXd Xf,Xb,Vb;
+    Eigen::VectorXd df;
+    if (wingTipTest(this))
+    {
+        Eigen::Vector2d X0 = Eigen::Vector2d::Zero();
+        Eigen::Vector2d V0 = Eigen::Vector2d::Zero();
+        dim = 2;
+        obs = chtlsnd::factorial(TSorder+dim)/(chtlsnd::factorial(dim)*chtlsnd::factorial(TSorder)); // Binomial Coefficient
+        obs += 5;
+        cluster = gatherNeighbors(obs);
+        Xf.resize(obs,3);
+        Xb = Eigen::MatrixXd::Zero(0,dim);
+        Vb = Eigen::MatrixXd::Zero(0,dim);
+        df.resize(obs);
+        for (int i=0; i<obs; i++)
+        {
+            Xf.row(i) = global2local(cluster[i]->getCenter(),true);
+            df(i) = cluster[i]->getPotential()-potential;
+        }
+        Eigen::MatrixXd xLocal = Xf.block(0,0,obs,2);
+        chtlsnd tipV(X0,xLocal,TSorder,Xb,Vb,V0);
+        Eigen::Vector3d vLocal;
+        vLocal(0) = tipV.getF().row(0)*df;
+        vLocal(1) = tipV.getF().row(1)*df;
+        vLocal(2) = 0;
+        velocity = local2global(vLocal,false);
+    }
+    else
+    {
+        dim = 3;
+        obs = chtlsnd::factorial(TSorder+dim)/(chtlsnd::factorial(dim)*chtlsnd::factorial(TSorder)); // Binomial Coefficient
+        obs += 5;
+        cluster = gatherNeighbors(obs);
+        Xf.resize(obs,dim);
+        Xb.resize(obs,dim);
+        Vb.resize(obs,dim);
+        df.resize(obs);
+        for (int i=0; i<obs; i++)
+        {
+            Xf.row(i) = cluster[i]->getCenter();
+            Vb.row(i) = cluster[i]->getBezNormal();
+            df(i) = cluster[i]->getPotential()-potential;
+        }
+        Xb = Xf;
+        chtlsnd vWeights(center,Xf,TSorder,Xb,Vb,bezNormal);
+        velocity(0) = vWeights.getF().row(0)*df;
+        velocity(1) = vWeights.getF().row(1)*df;
+        velocity(2) = vWeights.getF().row(2)*df;
+    }
+}
+
+void bodyPanel::computeCp(double Vinf)
+{
+    Cp = 1-pow(velocity.norm()/Vinf,2);
+}
+
+bool bodyPanel::clusterTest(bodyPanel* other,double angle, const std::vector<bodyPanel*> &cluster)
+{
+    double dot = other->getNormal().dot(normal);
+    // Floating point error can cause panels with the same normal vector to result in a dot product greater than one, causing acos to return nan.
+    if (dot > 1)
+    {
+        dot = 1;
+    }
+    else if (dot < -1)
+    {
+        dot = -1;
+    }
+    return (acos(dot) < angle && std::find(cluster.begin(),cluster.end(),other)==cluster.end() && other != this);
+}
+
+bool bodyPanel::wingTipTest(bodyPanel* p)
+{
+    if (!p->isLiftSurf())
+    {
+        return false;
+    }
+    else
+    {
+        // Catch panels with a wingtip normal component in y direction corresponding to max sweep and dihedral of 45 and 15 degrees, respectively.
+        return std::abs(p->getNormal()(1)) >= .7;
+    }
+    
+}
+
+bool bodyPanel::nearTrailingEdge()
+{
+    // Returns true if panel is on trailing edge or a neighbor is on trailing edge
+    if (lsFlag && (upper || lower))
+    {
+        return true;
+    }
+    else if (lsFlag)
+    {
+        std::vector<bodyPanel*> neighbs = getBodyNeighbors();
+        for (int i=0; i<neighbs.size(); i++)
+        {
+            if (neighbs[i]->isUpper() || neighbs[i]->isLower())
+            {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+void bodyPanel::tipVelocity()
+{
+    // Computes velocity for panels on flat wing tip by doing a 2D Taylor Series Least Squares in local coordinate frame.
+    
+}

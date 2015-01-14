@@ -14,15 +14,19 @@
 #include "bodyPanel.h"
 #include "panelOctree.h"
 #include "wakeLine.h"
+#include "wake.h"
+#include "horseshoeVortex.h"
+
+class wake;
 
 class wakePanel : public panel
 {
     bodyPanel* upperPan;
     bodyPanel* lowerPan;
-    std::vector<wakeLine*>* wakeLines;
+    bool TEpanel;
+    wake* parentWake;
     
     void neighborCases(const short &normalMax, short &absMax);
-    void addWakeLine();
     
     struct compareX
     {
@@ -47,19 +51,27 @@ class wakePanel : public panel
     };
     
 public:
-    wakePanel(const Eigen::VectorXi &panelVertices, Eigen::MatrixXd* nodes,int surfID,Eigen::Matrix<bool,Eigen::Dynamic,1> TEnodes,std::vector<wakeLine*>* wLines) : panel(panelVertices,nodes,surfID,TEnodes), wakeLines(wLines) {};
+    wakePanel(const Eigen::VectorXi &panelVertices, Eigen::MatrixXd* nodes, Eigen::Vector3d norm, int surfID, wake* parentWake) : panel(panelVertices,nodes,norm,surfID), TEpanel(false), parentWake(parentWake) {};
     
-    wakePanel(const wakePanel &copy) : panel(copy), wakeLines(copy.wakeLines), upperPan(copy.upperPan), lowerPan(copy.lowerPan) {}
+    wakePanel(const wakePanel &copy) : panel(copy),  upperPan(copy.upperPan), lowerPan(copy.lowerPan), TEpanel(copy.TEpanel), parentWake(copy.parentWake) {}
     
     void setNeighbors(panelOctree *oct, short normalMax);
+    void setTEpanel() {TEpanel = true;}
+    void setUpper(bodyPanel* up) {upperPan = up;}
+    void setLower(bodyPanel* lp) {lowerPan = lp;}
     void setParentPanels();
+    horseshoeVortex *makeHorseshoe();
+    wakePanel* makeVortexSheet();
     void interpPanels(std::vector<bodyPanel*> &interpP, double &interpC);
+    void addWakeLine(std::vector<wakeLine*> &wakeLines);
     double panelPhi(const Eigen::Vector3d &POI);
     Eigen::Vector3d panelV(const Eigen::Vector3d &POI);
 
     void setMu();
+    void setStrength();
     bodyPanel* getUpper() {return upperPan;}
     bodyPanel* getLower() {return lowerPan;}
+    bool isTEpanel() {return TEpanel;}
 };
 
 #endif /* defined(__CPanel__wakePanel__) */

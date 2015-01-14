@@ -11,52 +11,63 @@
 
 #include <stdio.h>
 #include <vector>
+#include <cmath>
 #include "wakePanel.h"
 #include "wakeLine.h"
+#include "horseshoeVortex.h"
+
+class wakePanel;
 
 class wake
 {
-    typedef Eigen::VectorXi vertices;
-    
     std::vector<wakePanel*> wpanels;
     std::vector<wakeLine*> wakeLines;
+    std::vector<horseshoeVortex*> horseShoes;
+    std::vector<wakePanel*> vortexSheets;
     Eigen::MatrixXd* nodes;
-    Eigen::Vector2d xlim;
-    Eigen::Vector2d ylim;
+    double yMin;
+    double yMax;
+    double x0,xf,z0,zf;
+    
     
     void setWakeDimensions();
-    short edgePanel(wakePanel* p);
+    short edgeVerts(wakePanel* p);
+    wakeLine* findWakeLine(double y);
+    double downwash(Eigen::Matrix<double,1,3> POI, Eigen::MatrixXd pntCloud, Eigen::Matrix<bool,Eigen::Dynamic,1> upperFlag, bool POIflag);
+    double sheetDownwash(int sheetNum);
+    double sheetVradial(int sheetNum);
+    double Vradial(Eigen::Vector3d pWake);
+    Eigen::Vector3d pntInWake(double x, double y);
+    Eigen::Vector3d pntVel(Eigen::Matrix<double,1,3> POI, Eigen::MatrixXd pntCloud,Eigen::Matrix<bool,Eigen::Dynamic,1> upperFlag, Eigen::Vector3d Vinf);
     
 public:
-    wake(Eigen::MatrixXd* nodes) : nodes(nodes) {}
+    wake(Eigen::MatrixXd* nodes) : nodes(nodes), yMin(0) {}
     
-    ~wake()
-    {
-        for (int i=0; i<wpanels.size(); i++)
-        {
-            delete wpanels[i];
-        }
-        for (int i=0; i<wakeLines.size(); i++)
-        {
-            delete wakeLines[i];
-        }
-    }
+    ~wake();
     
-    wake(const wake& copy)
-    {
-        for (int i=0; i<copy.wpanels.size(); i++)
-        {
-            wpanels[i] = new wakePanel(*copy.wpanels[i]);
-        }
-    }
+    wake(const wake& copy);
     
-    void addPanel(const Eigen::VectorXi &panelVertices,Eigen::MatrixXd* nodes,Eigen::Matrix<bool,Eigen::Dynamic,1> TEnodes,int surfID);
-    
+    void addPanel(wakePanel* wPan);
     
     std::vector<wakePanel*> getPanels() const {return wpanels;}
     
     void setNeighbors(panelOctree* oct);
     
+    void trefftzPlane(double Vinf,double Sref, double &CL, double &CD, Eigen::VectorXd &yLoc, Eigen::VectorXd &Cl, Eigen::VectorXd &Cd);
+    
+    void trailingEdge(Eigen::Vector3d Vinf,double Sref, Eigen::Vector3d &Fbody, Eigen::VectorXd &yLoc, Eigen::MatrixXd &Fsect, double rho);
+    
+    void horseshoeTrefftz(double Vinf,double Sref, double &CL, double &CD, Eigen::VectorXd &yLoc, Eigen::VectorXd &Cl, Eigen::VectorXd &Cd);
+    
+    void sheetTrefftz(double Vinf,double Sref, double &CL, double &CD, Eigen::VectorXd &yLoc, Eigen::VectorXd &Cl, Eigen::VectorXd &Cd);
+    
+    std::vector<wakeLine*> getWakeLines() {return wakeLines;}
+    
+    double wakeStrength(double y);
+    
+    std::vector<horseshoeVortex*> getHorseshoes() {return horseShoes;}
+    
+    std::vector<wakePanel*> getVortexSheets() {return vortexSheets;}
 };
 
 #endif /* defined(__CPanel__wake__) */

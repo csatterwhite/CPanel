@@ -28,7 +28,8 @@ public:
         delete wakeSurf;
     }
     
-    void addPanel(const Eigen::VectorXi &verts, Eigen::Matrix<bool,Eigen::Dynamic,1> TEnodes,int surfID);
+    void addPanel(bodyPanel* bPan);
+    void addPanel(wakePanel* wPan);
     wake* getWake() {return wakeSurf;}
     std::vector<panel*> getAllPanels();
     std::vector<wakePanel*> getWakePanels() {return wakeSurf->getPanels();}

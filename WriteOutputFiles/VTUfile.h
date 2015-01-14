@@ -21,6 +21,8 @@ struct cellDataArray
 {
     std::string name;
     Eigen::MatrixXd data;
+    
+    cellDataArray(std::string name) : name(name) {}
 };
 
 struct pntDataArray
@@ -39,16 +41,22 @@ struct piece
 
 class VTUfile
 {
-    std::vector<piece*> pieces;
+    piece* piece;
+    std::string name;
     
     void printDoubleArray(std::ofstream &f,std::string name,Eigen::MatrixXd array);
     
     void printIntArray(std::ofstream &f,std::string name,Eigen::MatrixXi array);
     
-public:
-    VTUfile(std::vector<piece*> pieces) : pieces(pieces) {}
+    void write();
     
-    void write(std::string filename);
+public:
+    VTUfile(std::string name, struct piece* piece) : name(name), piece(piece)
+    {
+        write();
+    }
+    
+    std::string getName() {return name;}
 };
 
 #endif /* defined(__CPanel__VTUfile__) */

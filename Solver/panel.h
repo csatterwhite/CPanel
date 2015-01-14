@@ -30,15 +30,15 @@ class panel
 protected:
     Eigen::Vector3d center;
     Eigen::Vector3d normal;
+    Eigen::Vector3d bezNormal; //Used in derivative calculation
     Eigen::VectorXi verts;
     double area;
     double longSide;
-    
-    bool TEpanel;
 
     double doubletStrength;
     double potential;
     Eigen::Vector3d velocity;
+    double Cp;
     Eigen::MatrixXd* nodes;
     int ID;
     std::vector<panel*> neighbors;
@@ -48,6 +48,8 @@ protected:
     void scanForNeighbors(node<panel>* current, node<panel>* exception);
     bool isOnPanel(const Eigen::Vector3d &POI);
     void checkNeighbor(panel* other);
+    Eigen::Vector3d global2local(const Eigen::Vector3d &globalVec,bool translate);
+    Eigen::Vector3d local2global(const Eigen::Vector3d &localVec,bool translate);
     
     Eigen::Vector3d vortexV(const Eigen::Vector3d &a, const Eigen::Vector3d &b, const Eigen::Vector3d &s);
     double vortexPhi(const double &PN,const double &Al, const Eigen::Vector3d &a,const Eigen::Vector3d &b, const Eigen::Vector3d &s, const Eigen::Vector3d &l,const Eigen::Vector3d &m,const Eigen::Vector3d &n);
@@ -65,7 +67,7 @@ protected:
     }
     
 public:
-    panel(const Eigen::VectorXi &panelVertices,Eigen::MatrixXd* nodes,int surfID,Eigen::Matrix<bool,Eigen::Dynamic,1> TEnodes) : ID(surfID), verts(panelVertices), nodes(nodes), TEpanel(false)
+    panel(const Eigen::VectorXi &panelVertices,Eigen::MatrixXd* nodes, Eigen::Vector3d bezNorm, int surfID) : ID(surfID), verts(panelVertices), nodes(nodes), bezNormal(bezNorm)
     {
         setGeom();
     };
@@ -78,16 +80,12 @@ public:
     }
     void setGeom();
     virtual void setNeighbors(panelOctree *oct, short normalMax) = 0;
-    void setTEpanel()
-    {
-        TEpanel = true;
-    }
+    
     void setPotential(Eigen::Vector3d Vinf)
     {
         potential = Vinf.dot(center)-doubletStrength;
     }
     void addNeighbor(panel* other);
-    void computeVelocity();
     
     double dubPhiInf(const Eigen::Vector3d &POI);
     Eigen::Vector3d dubVInf(const Eigen::Vector3d &POI);
@@ -97,13 +95,14 @@ public:
     int getID() {return ID;}
     Eigen::Vector3d getCenter() const {return center;}
     Eigen::Vector3d getNormal() const {return normal;}
+    Eigen::Vector3d getBezNormal() const {return bezNormal;}
     Eigen::VectorXi getVerts() const {return verts;}
+    Eigen::MatrixXd* getNodes() {return nodes;}
     double getArea() {return area;}
-    bool isTEpanel() {return TEpanel;}
     std::vector<panel*> getNeighbors() const {return neighbors;}
     double getMu() {return doubletStrength;}
     double getPotential() {return potential;}
-    Eigen::Vector3d getGlobalV() {return velocity;}
+    
 };
 
 #endif /* defined(__CPanel__panel__) */

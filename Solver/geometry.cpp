@@ -10,12 +10,12 @@
 #include <fstream>
 #include <array>
 
-geometry::geometry(std::string geom_file)
+geometry::geometry(std::string geom_file, bool normFlag)
 {
-    readTri(geom_file);
+    readTri(geom_file,normFlag);
 }
 
-void geometry::readTri(std::string tri_file)
+void geometry::readTri(std::string tri_file, bool normFlag)
 {
     std::ifstream fid;
     fid.open(tri_file);
@@ -65,12 +65,24 @@ void geometry::readTri(std::string tri_file)
                 wakeNodeStart = connectivity.row(i).minCoeff();
             }
         }
-        createSurfaces(connectivity,allID,surfIDs,wakeIDs);
-        createOctree();
+        
         if (wakeIDs.size() > 0)
         {
             correctWakeNodes(wakeNodeStart);
         }
+        
+        // Read in Normals if included in input file
+        Eigen::MatrixXd norms = Eigen::MatrixXd::Zero(nTris,3);
+        if (normFlag)
+        {
+            for (int i=0; i<nTris; i++)
+            {
+                fid >> norms(i,0) >> norms(i,1) >> norms(i,2);
+            }
+        }
+        
+        createSurfaces(connectivity,norms,allID,wakeIDs);
+        createOctree();
         
         // Set neighbors
         for (int i=0; i<liftingSurfs.size(); i++)
@@ -123,10 +135,12 @@ bool geometry::isLiftingSurf(int currentID, std::vector<int> wakeIDs)
 }
 
 
-void geometry::createSurfaces(Eigen::MatrixXi connectivity, Eigen::VectorXi allID, std::vector<int> surfIDs, std::vector<int> wakeIDs)
+void geometry::createSurfaces(const Eigen::MatrixXi &connectivity, const Eigen::MatrixXd &norms, const Eigen::VectorXi &allID, std::vector<int> wakeIDs)
 {
     surface* surf = nullptr;
     liftingSurf* surfL = nullptr;
+    bodyPanel* bPan;
+    wakePanel* wPan;
     bool LS = false;
     for (int i=0; i<nTris; i++)
     {
@@ -150,15 +164,18 @@ void geometry::createSurfaces(Eigen::MatrixXi connectivity, Eigen::VectorXi allI
         }
         if (LS)
         {
-            liftingSurfs.back()->addPanel(connectivity.row(i),TEnodes,allID(i));
+            bPan = new bodyPanel(connectivity.row(i),&nodes,norms.row(i),allID(i),true);
+            liftingSurfs.back()->addPanel(bPan);
         }
         else if (allID(i) <= 10000)
         {
-            nonLiftingSurfs.back()->addPanel(connectivity.row(i),TEnodes);
+            bPan = new bodyPanel(connectivity.row(i),&nodes,norms.row(i),allID(i),false);
+            nonLiftingSurfs.back()->addPanel(bPan);
         }
         else
         {
-            surfL->addPanel(connectivity.row(i),TEnodes,allID(i));
+            wPan = new wakePanel(connectivity.row(i),&nodes,norms.row(i),allID(i),surfL->getWake());
+            surfL->addPanel(wPan);
         }
     }
 }
@@ -206,6 +223,16 @@ std::vector<surface*> geometry::getSurfaces()
         surfs.push_back(liftingSurfs[i]);
     }
     return surfs;
+}
+
+std::vector<wake*> geometry::getWakes()
+{
+    std::vector<wake*> wakes;
+    for (int i=0; i<liftingSurfs.size(); i++)
+    {
+        wakes.push_back(liftingSurfs[i]->getWake());
+    }
+    return wakes;
 }
 
 std::vector<panel*> geometry::getPanels()

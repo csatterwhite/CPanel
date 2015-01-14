@@ -8,7 +8,7 @@
 
 #include "surface.h"
 
-
+//==== Destructor ====//
 surface::~surface()
 {
     for (int i=0; i<panels.size(); i++)
@@ -17,12 +17,9 @@ surface::~surface()
     }
 }
 
-void surface::addPanel(const vertices &verts,Eigen::Matrix<bool,Eigen::Dynamic,1> TEnodes)
+void surface::addPanel(bodyPanel* bPan)
 {
-    bodyPanel* b;
-    
-    b = new bodyPanel(verts,nodes,surfID,TEnodes);
-    panels.push_back(b);
+    panels.push_back(bPan);
 }
 
 void surface::setNeighbors(panelOctree* oct)

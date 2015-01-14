@@ -29,8 +29,8 @@ class geometry
     short nNodes;
     short nTris;
 
-    void readTri(std::string tri_file);
-    void createSurfaces(Eigen::MatrixXi connectivity, Eigen::VectorXi allID, std::vector<int> surfIDs, std::vector<int> wakeIDs);
+    void readTri(std::string tri_file, bool normFlag);
+    void createSurfaces(const Eigen::MatrixXi &connectivity, const Eigen::MatrixXd &norms, const Eigen::VectorXi &allID, std::vector<int> wakeIDs);
     void createOctree();
     void setTEPanels();
     void getLiftingSurfs(std::vector<surface*>& wakes, std::vector<surface*>& liftingSurfs);
@@ -41,7 +41,7 @@ class geometry
     liftingSurf* getParentSurf(int wakeID);
     
 public:
-    geometry(std::string tri_file);
+    geometry(std::string tri_file, bool normFlag);
     
     ~geometry()
     {
@@ -76,6 +76,7 @@ public:
     panelOctree* getOctree() {return &pOctree;}
     std::vector<panel*> getPanels();
     std::vector<wakePanel*> getWakePanels();
+    std::vector<wake*> getWakes();
     
 };
 

@@ -29,7 +29,7 @@ protected:
 public:
     surface(const int &surfaceID,Eigen::MatrixXd* nodes) : surfID(surfaceID), nodes(nodes) {}
     
-    ~surface();
+    virtual ~surface();
     
     surface(const surface& copy) : surfID(copy.surfID), nodes(copy.nodes)
     {
@@ -39,7 +39,7 @@ public:
         }
     }
     
-    void addPanel(const vertices &verts,Eigen::Matrix<bool,Eigen::Dynamic,1> TEnodes);
+    virtual void addPanel(bodyPanel* bPan);
     void setNeighbors(panelOctree* oct);
 
     std::vector<bodyPanel*> getPanels() const {return panels;}

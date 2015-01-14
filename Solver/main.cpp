@@ -7,50 +7,68 @@
 //
 
 #include <iostream>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
 #include "geometry.h"
 #include "runCase.h"
 
 int main(int argc, const char * argv[])
 {
-    std::string path = "/Users/Chris/Desktop/Thesis/Code/Geometry and Solution Files/";
-    std::string inFile = "genericAC.tri";
-    std::string outFile = "genericAC_neighborCheck_e3.vtu";
-
+    
+    // Start Timer
+    
     time_t ts;
     time(&ts);
+    
+    
+    // Set Input File Path and Name
+    
+    std::string path;
+    std::string geomName;
+    std::string inFile = "/Users/Chris/Desktop/Thesis/Code/Geometry and Solution Files (Horseshoe)/coarseNormCompare.tri";
+    
+    double Vinf = 100;
+    double alpha = 5;
+    double beta = 0;
+    
+    // Create Geometry Name for Subdirectory Creation
+    
+    std::size_t pathEnd = inFile.find_last_of("/")+1;
+    std::size_t nameEnd = inFile.find_last_of(".");
+    if (pathEnd != 0)
+    {
+        path = inFile.substr(0,pathEnd);
+        geomName = inFile.substr(pathEnd,nameEnd-pathEnd);
+    }
+    else
+    {
+        boost::filesystem::path p = boost::filesystem::current_path();
+        path = p.string();
+        geomName = inFile.substr(0,nameEnd);
+    }
+    
+    
+    // Check file type
+    bool normFlag; // Are panel normals included in file?
+    std::string ext = inFile.substr(nameEnd,inFile.size()-nameEnd);
+    if (ext == ".tri")
+    {
+        normFlag = false;
+    }
+    else if (ext == ".tricp")
+    {
+        normFlag = true;
+    }
+    else
+    {
+        std::cout << "ERROR : Unsupported File Type \nAccepted Filetypes : '.tri','.tricp'" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    
     time_t tf;
-    geometry temp(path+inFile);
-    
-    std::cout <<  temp.getOctree()->getMembers().size() << std::endl;
-    
-//    std::string neighborFile = "NeighborCheck_genericAC.txt";
-//    std::ofstream fid;
-//    fid.open(path+neighborFile);
-//    std::vector<panel*> pans = temp.getPanels();
-//    Eigen::MatrixXd nodes = temp.getNodes();
-//    Eigen::MatrixXi conn;
-//    Eigen::VectorXi nNeighbs;
-//    for (int i=0; i<pans.size(); i++)
-//    {
-//        conn.row(i) = pans[i]->getVerts();
-//        nNeighbs(i) = pans[i]->getNeighbors().size();
-//    }
-//    fid << nodes.rows() << "\t" << conn.rows() << "\n";
-//    for (int i=0; i<nodes.rows(); i++)
-//    {
-//        fid << nodes(i,0) << "\t" << nodes(i,1) << "\t" << nodes(i,2) << "\n";
-//    }
-//    for (int i=0; i<conn.rows(); i++)
-//    {
-//        fid << conn(i,0) << "\t" << conn(i,1) << "\t" << conn(i,2) << "\n";
-//    }
-//    for (int i=0; i<conn.rows(); i++)
-//    {
-//        fid << nNeighbs(i,0) << "\n";
-//    }
-//    fid.close();
-    
-    runCase case1(&temp,1,0,0,path+outFile);
+    geometry temp(inFile,normFlag);
+    runCase case1(&temp,Vinf,alpha,beta,path,geomName);
     
     time(&tf);
     std::cout << "Elapsed time for program execution : " << difftime(tf,ts) << " seconds" << std::endl;

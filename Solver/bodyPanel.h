@@ -15,19 +15,33 @@
 class bodyPanel : public panel
 {
     double sourceStrength;
+    bool upper; // Sheds wake panel from lower edge
+    bool lower; // Sheds wake panel from upper edge
+    bool lsFlag; // Lifting surface flag
+    Eigen::Vector3d velocity;
+    double Cp;
     
     double srcSidePhi(const double &PN,const double &Al, const double &phiV,const Eigen::Vector3d &a,const Eigen::Vector3d &b, const Eigen::Vector3d &s);
     Eigen::Vector3d srcSideV(const double &PN,const double &Al,const Eigen::Vector3d &a,const Eigen::Vector3d &b, const Eigen::Vector3d &s,const Eigen::Vector3d &l,const Eigen::Vector3d &m,const Eigen::Vector3d &n);
     inline double pntSrcPhi(const double &PJK);
     inline Eigen::Vector3d pntSrcV(const Eigen::Vector3d &pjk);
+    void tipVelocity();
+    bool clusterTest(bodyPanel* other, double angle, const std::vector<bodyPanel*> &cluster);
+    bool wingTipTest(bodyPanel* p);
+    bool nearTrailingEdge();
+//    bool neighborTests()
+    std::vector<bodyPanel*> getBodyNeighbors();
+    std::vector<bodyPanel*> gatherNeighbors(int nPanels);
     
 public:
-    bodyPanel(const Eigen::VectorXi &panelVertices,Eigen::MatrixXd* nodes,int surfID,Eigen::Matrix<bool,Eigen::Dynamic,1> TEnodes) : panel(panelVertices,nodes,surfID,TEnodes) {}
+    bodyPanel(const Eigen::VectorXi &panelVertices,Eigen::MatrixXd* nodes, Eigen::Vector3d norm, int surfID,bool lsflag) : panel(panelVertices,nodes,norm,surfID), upper(false), lower(false), lsFlag(lsflag) {}
     
     
     bodyPanel(const bodyPanel &copy) : panel(copy), sourceStrength(copy.sourceStrength) {}
     
     void setNeighbors(panelOctree *oct, short normalMax);
+    void setUpper() {upper = true;}
+    void setLower() {lower = true;}
     
     double panelPhi(const Eigen::Vector3d &POI);
     Eigen::Vector3d panelV(const Eigen::Vector3d &POI);
@@ -35,9 +49,12 @@ public:
     void panelPhiInf(const Eigen::Vector3d &POI, double &phiSrc,double &phiDub);
     void panelVInf(const Eigen::Vector3d &POI, Eigen::Vector3d &vSrc,Eigen::Vector3d &vDub);
     
+    void computeVelocity();
+    void computeCp(double Vinf);
+    
     void setSigma(Eigen::Vector3d Vinf, double Vnorm)
     {
-        sourceStrength = -Vinf.dot(normal)+Vnorm;
+        sourceStrength = (-Vinf.dot(normal)+Vnorm);
     }
     
     void setMu(double dubStrength)
@@ -47,6 +64,11 @@ public:
     
     double getSigma() {return sourceStrength;}
     double getMu() {return doubletStrength;}
+    bool isUpper() {return upper;}
+    bool isLower() {return lower;}
+    bool isLiftSurf() {return lsFlag;}
+    Eigen::Vector3d getGlobalV() {return velocity;}
+    double getCp() {return Cp;}
 };
 
 #endif /* defined(__CPanel__bodyPanel__) */

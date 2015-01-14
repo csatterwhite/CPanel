@@ -8,17 +8,13 @@
 
 #include "liftingSurf.h"
 
-
-void liftingSurf::addPanel(const Eigen::VectorXi &verts,Eigen::Matrix<bool,Eigen::Dynamic,1> TEnodes,int surfID)
+void liftingSurf::addPanel(bodyPanel* bPan)
 {
-    if (surfID <= 10000)
-    {
-        surface::addPanel(verts,TEnodes);
-    }
-    else
-    {
-        wakeSurf->addPanel(verts,nodes,TEnodes,surfID);
-    }
+    panels.push_back(bPan);
+}
+void liftingSurf::addPanel(wakePanel* wPan)
+{
+    wakeSurf->addPanel(wPan);
 }
 std::vector<panel*> liftingSurf::getAllPanels()
 {
