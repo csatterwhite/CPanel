@@ -111,7 +111,7 @@ void bodyPanel::panelVInf(const Eigen::Vector3d &POI, Eigen::Vector3d &vSrc,Eige
     double PN = pjk.dot(local.row(2));
     if (pjk.norm() < .00001)
     {
-        vSrc = 0.5*normal;
+        vSrc = 0.5*bezNormal;
         vDub << 0,0,0;
         return;
     }
@@ -326,9 +326,16 @@ void bodyPanel::computeVelocity()
     }
 }
 
-void bodyPanel::computeCp(double Vinf)
+void bodyPanel::computeCp(double Vinf,double PG)
 {
-    Cp = 1-pow(velocity.norm()/Vinf,2);
+    Cp = (1-pow(velocity.norm()/Vinf,2))/PG;
+}
+
+Eigen::Vector3d bodyPanel::computeMoments(const Eigen::Vector3d &cg)
+{
+    Eigen::Vector3d r = center-cg;
+    Eigen::Vector3d F = Cp*bezNormal*area;
+    return r.cross(F);
 }
 
 bool bodyPanel::clusterTest(bodyPanel* other,double angle, const std::vector<bodyPanel*> &cluster)

@@ -14,7 +14,6 @@
 #include <cmath>
 #include "wakePanel.h"
 #include "wakeLine.h"
-#include "horseshoeVortex.h"
 
 class wakePanel;
 
@@ -22,7 +21,6 @@ class wake
 {
     std::vector<wakePanel*> wpanels;
     std::vector<wakeLine*> wakeLines;
-    std::vector<horseshoeVortex*> horseShoes;
     std::vector<wakePanel*> vortexSheets;
     Eigen::MatrixXd* nodes;
     double yMin;
@@ -33,9 +31,6 @@ class wake
     void setWakeDimensions();
     short edgeVerts(wakePanel* p);
     wakeLine* findWakeLine(double y);
-    double downwash(Eigen::Matrix<double,1,3> POI, Eigen::MatrixXd pntCloud, Eigen::Matrix<bool,Eigen::Dynamic,1> upperFlag, bool POIflag);
-    double sheetDownwash(int sheetNum);
-    double sheetVradial(int sheetNum);
     double Vradial(Eigen::Vector3d pWake);
     Eigen::Vector3d pntInWake(double x, double y);
     Eigen::Vector3d pntVel(Eigen::Matrix<double,1,3> POI, Eigen::MatrixXd pntCloud,Eigen::Matrix<bool,Eigen::Dynamic,1> upperFlag, Eigen::Vector3d Vinf);
@@ -55,17 +50,9 @@ public:
     
     void trefftzPlane(double Vinf,double Sref, double &CL, double &CD, Eigen::VectorXd &yLoc, Eigen::VectorXd &Cl, Eigen::VectorXd &Cd);
     
-    void trailingEdge(Eigen::Vector3d Vinf,double Sref, Eigen::Vector3d &Fbody, Eigen::VectorXd &yLoc, Eigen::MatrixXd &Fsect, double rho);
-    
-    void horseshoeTrefftz(double Vinf,double Sref, double &CL, double &CD, Eigen::VectorXd &yLoc, Eigen::VectorXd &Cl, Eigen::VectorXd &Cd);
-    
-    void sheetTrefftz(double Vinf,double Sref, double &CL, double &CD, Eigen::VectorXd &yLoc, Eigen::VectorXd &Cl, Eigen::VectorXd &Cd);
-    
     std::vector<wakeLine*> getWakeLines() {return wakeLines;}
     
     double wakeStrength(double y);
-    
-    std::vector<horseshoeVortex*> getHorseshoes() {return horseShoes;}
     
     std::vector<wakePanel*> getVortexSheets() {return vortexSheets;}
 };

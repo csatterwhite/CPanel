@@ -15,7 +15,6 @@
 #include "panelOctree.h"
 #include "wakeLine.h"
 #include "wake.h"
-#include "horseshoeVortex.h"
 
 class wake;
 
@@ -60,7 +59,6 @@ public:
     void setUpper(bodyPanel* up) {upperPan = up;}
     void setLower(bodyPanel* lp) {lowerPan = lp;}
     void setParentPanels();
-    horseshoeVortex *makeHorseshoe();
     wakePanel* makeVortexSheet();
     void interpPanels(std::vector<bodyPanel*> &interpP, double &interpC);
     void addWakeLine(std::vector<wakeLine*> &wakeLines);

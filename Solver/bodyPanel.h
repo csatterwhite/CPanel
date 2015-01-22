@@ -21,6 +21,8 @@ class bodyPanel : public panel
     Eigen::Vector3d velocity;
     double Cp;
     
+    int index; // Index in panel vector contained in geometry class.  Used for interpolating strength for wake panel influences.
+    
     double srcSidePhi(const double &PN,const double &Al, const double &phiV,const Eigen::Vector3d &a,const Eigen::Vector3d &b, const Eigen::Vector3d &s);
     Eigen::Vector3d srcSideV(const double &PN,const double &Al,const Eigen::Vector3d &a,const Eigen::Vector3d &b, const Eigen::Vector3d &s,const Eigen::Vector3d &l,const Eigen::Vector3d &m,const Eigen::Vector3d &n);
     inline double pntSrcPhi(const double &PJK);
@@ -42,6 +44,7 @@ public:
     void setNeighbors(panelOctree *oct, short normalMax);
     void setUpper() {upper = true;}
     void setLower() {lower = true;}
+    void setIndex(int i) {index = i;}
     
     double panelPhi(const Eigen::Vector3d &POI);
     Eigen::Vector3d panelV(const Eigen::Vector3d &POI);
@@ -50,7 +53,8 @@ public:
     void panelVInf(const Eigen::Vector3d &POI, Eigen::Vector3d &vSrc,Eigen::Vector3d &vDub);
     
     void computeVelocity();
-    void computeCp(double Vinf);
+    void computeCp(double Vinf,double PG);
+    Eigen::Vector3d computeMoments(const Eigen::Vector3d &cg);
     
     void setSigma(Eigen::Vector3d Vinf, double Vnorm)
     {
@@ -67,6 +71,7 @@ public:
     bool isUpper() {return upper;}
     bool isLower() {return lower;}
     bool isLiftSurf() {return lsFlag;}
+    int getIndex() {return index;}
     Eigen::Vector3d getGlobalV() {return velocity;}
     double getCp() {return Cp;}
 };

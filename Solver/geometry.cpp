@@ -10,17 +10,13 @@
 #include <fstream>
 #include <array>
 
-geometry::geometry(std::string geom_file, bool normFlag)
-{
-    readTri(geom_file,normFlag);
-}
-
 void geometry::readTri(std::string tri_file, bool normFlag)
 {
     std::ifstream fid;
     fid.open(tri_file);
     if (fid.is_open())
     {
+        std::cout << "Reading Geometry..." << std::endl;
         fid >> nNodes >> nTris;
         Eigen::MatrixXi connectivity(nTris,3);
         Eigen::VectorXi allID(nTris);
@@ -81,6 +77,8 @@ void geometry::readTri(std::string tri_file, bool normFlag)
             }
         }
         
+        std::cout << "Building Octree..." << std::endl;
+        
         createSurfaces(connectivity,norms,allID,wakeIDs);
         createOctree();
         
@@ -91,11 +89,16 @@ void geometry::readTri(std::string tri_file, bool normFlag)
             liftingSurfs[i]->getWake()->setNeighbors(&pOctree);
         }
         
+        std::cout << "Finding Panel Neighbors..." << std::endl;
+        
         std::vector<surface*> surfs = getSurfaces();
         for (int i=0; i<surfs.size(); i++)
         {
             surfs[i]->setNeighbors(&pOctree);
         }
+        
+        std::cout << "Building Influence Coefficient Matrix..." << std::endl;
+        setInfCoeff();
     }
     else
     {
@@ -166,16 +169,19 @@ void geometry::createSurfaces(const Eigen::MatrixXi &connectivity, const Eigen::
         {
             bPan = new bodyPanel(connectivity.row(i),&nodes,norms.row(i),allID(i),true);
             liftingSurfs.back()->addPanel(bPan);
+            bPanels.push_back(bPan);
         }
         else if (allID(i) <= 10000)
         {
             bPan = new bodyPanel(connectivity.row(i),&nodes,norms.row(i),allID(i),false);
             nonLiftingSurfs.back()->addPanel(bPan);
+            bPanels.push_back(bPan);
         }
         else
         {
             wPan = new wakePanel(connectivity.row(i),&nodes,norms.row(i),allID(i),surfL->getWake());
             surfL->addPanel(wPan);
+            wPanels.push_back(wPan);
         }
     }
 }
@@ -208,6 +214,87 @@ void geometry::createOctree()
         panels.insert(panels.end(),tempB.begin(),tempB.end());
     }
     pOctree.addData(panels);
+}
+
+void geometry::setInfCoeff()
+{
+    // Construct doublet and source influence coefficient matrices for body panels
+    int nBodyPans = (int)bPanels.size();
+    int nWakePans = (int)wPanels.size();
+    int nPans = nBodyPans+nWakePans;
+    Eigen::VectorXd sigmas(nBodyPans);
+    
+    A.resize(nBodyPans,nBodyPans);
+    B.resize(nBodyPans,nBodyPans);
+    
+    Eigen::VectorXi percentage(9);
+    percentage << 10,20,30,40,50,60,70,80,90;
+    
+    for (int j=0; j<nBodyPans; j++)
+    {
+        for (int i=0; i<nBodyPans; i++)
+        {
+            bPanels[j]->panelPhiInf(bPanels[i]->getCenter(),B(i,j),A(i,j));
+            if (i==j)
+            {
+                A(i,j) = -0.5;
+            }
+            if (j==0)
+            {
+                sigmas(i) = bPanels[i]->getSigma();
+            }
+        }
+        for (int i=0; i<percentage.size(); i++)
+        {
+            if ((100*j/nPans) <= percentage(i) && 100*(j+1)/nPans > percentage(i))
+            {
+                std::cout << percentage(i) << "%" << std::endl;
+            }
+        }
+    }
+    
+    for (int i=0; i<nBodyPans; i++)
+    {
+        bPanels[i]->setIndex(i);
+    }
+    
+    std::vector<bodyPanel*> interpPans(4); // [Upper1 Lower1 Upper2 Lower2]  Panels that start the bounding wakelines of the wake panel.  Doublet strength is constant along wakelines (muUpper-muLower) and so the doublet strength used for influence of wake panel is interpolated between wakelines.
+    double interpCoeff;
+    double influence;
+    Eigen::Vector4i indices;
+    
+    for (int j=0; j<nWakePans; j++)
+    {
+        wPanels[j]->interpPanels(interpPans,interpCoeff);
+        indices = interpIndices(interpPans);
+        for (int i=0; i<nBodyPans; i++)
+        {
+            influence = wPanels[j]->dubPhiInf(bPanels[i]->getCenter());
+            A(i,indices(0)) += influence*(1-interpCoeff);
+            A(i,indices(1)) += influence*(interpCoeff-1);
+            A(i,indices(2)) += influence*interpCoeff;
+            A(i,indices(3)) -= influence*interpCoeff;
+        }
+        for (int i=0; i<percentage.size(); i++)
+        {
+            if ((100*(nBodyPans+j)/nPans) <= percentage(i) && 100*(nBodyPans+j+1)/nPans > percentage(i))
+            {
+                std::cout << percentage(i) << "%" << std::endl;
+            }
+        }
+        
+    }
+    std::cout << "Complete" << std::endl;
+}
+
+Eigen::Vector4i geometry::interpIndices(std::vector<bodyPanel*> interpPans)
+{
+    Eigen::Vector4i indices;
+    for (int i=0; i<interpPans.size(); i++)
+    {
+        indices(i) = interpPans[i]->getIndex();
+    }
+    return indices;
 }
 
 
@@ -249,14 +336,4 @@ std::vector<panel*> geometry::getPanels()
         panels.insert(panels.end(),temp.begin(),temp.end());
     }
     return panels;
-}
-
-std::vector<wakePanel*> geometry::getWakePanels()
-{
-    std::vector<wakePanel*> wps;
-    for (int i=0; i<liftingSurfs.size(); i++)
-    {
-        wps.insert(wps.end(),liftingSurfs[i]->getWakePanels().begin(),liftingSurfs[i]->getWakePanels().end());
-    }
-    return wps;
 }

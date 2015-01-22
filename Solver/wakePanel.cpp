@@ -191,46 +191,6 @@ void wakePanel::neighborCases(const short &normalMax, short &absMax)
 
 }
 
-horseshoeVortex* wakePanel::makeHorseshoe()
-{
-    Eigen::Vector3d p1,p2;
-
-    p1(1) = 1000000;
-    
-    // Find points on trailing edge;
-    Eigen::Vector3i neighbVerts = upperPan->getVerts();
-    bool breakFlag = false;
-    for (int i=0; i<verts.size(); i++)
-    {
-        for (int j=0; j<neighbVerts.size(); j++)
-        {
-            if (nodes->row(verts(i)) == nodes->row(neighbVerts(j)))
-            {
-                Eigen::Vector3d pnt = nodes->row(verts(i));
-                if (pnt(1) < p1(1))
-                {
-                    p2 = p1;
-                    p1 = pnt;
-                    
-                }
-                else
-                {
-                    p2 = pnt;
-                    breakFlag = true;
-                    break;
-                }
-            }
-        }
-        if (breakFlag)
-        {
-            break;
-        }
-    }
-    horseshoeVortex* h = new horseshoeVortex(p1,p2,upperPan,lowerPan);
-    return h;
-    
-}
-
 wakePanel* wakePanel::makeVortexSheet()
 {
     Eigen::Vector3d p1,p2,p3,p4,deltaVec;

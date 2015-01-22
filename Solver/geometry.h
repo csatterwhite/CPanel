@@ -21,13 +21,25 @@
 
 class geometry
 {
+    double Sref;
+    double bref;
+    double cref;
+    Eigen::Vector3d cg;
+    
     std::vector<liftingSurf*> liftingSurfs;
     std::vector<surface*> nonLiftingSurfs;
+    std::vector<bodyPanel*> bPanels;
+    std::vector<wakePanel*> wPanels;
+    
     panelOctree pOctree;
     Eigen::MatrixXd nodes;
     Eigen::Matrix<bool,Eigen::Dynamic,1> TEnodes;
     short nNodes;
     short nTris;
+    
+    
+    Eigen::MatrixXd B; // Source Influence Coefficient Matrix
+    Eigen::MatrixXd A; // Doublet Influence Coefficient Matrix
 
     void readTri(std::string tri_file, bool normFlag);
     void createSurfaces(const Eigen::MatrixXi &connectivity, const Eigen::MatrixXd &norms, const Eigen::VectorXi &allID, std::vector<int> wakeIDs);
@@ -40,8 +52,14 @@ class geometry
     void correctWakeNodes(int wakeNodeStart);
     liftingSurf* getParentSurf(int wakeID);
     
+    void setInfCoeff();
+    Eigen::Vector4i interpIndices(std::vector<bodyPanel*> interpPans);
+    
 public:
-    geometry(std::string tri_file, bool normFlag);
+    geometry(std::string geomFile, bool normFlag, double Sref, double bref, double cref, Eigen::Vector3d cg) : Sref(Sref), bref(bref), cref(cref),cg(cg)
+    {
+        readTri(geomFile,normFlag);
+    }
     
     ~geometry()
     {
@@ -67,6 +85,11 @@ public:
         }
     }
     
+    double getSref() {return Sref;}
+    double getbref() {return bref;}
+    double getcref() {return cref;}
+    
+    Eigen::Vector3d getCG() {return cg;}
     short getNumberOfNodes() {return nNodes;}
     short getNumberOfTris() {return nTris;}
     Eigen::MatrixXd getNodes() {return nodes;}
@@ -75,8 +98,11 @@ public:
     std::vector<surface*> getSurfaces();
     panelOctree* getOctree() {return &pOctree;}
     std::vector<panel*> getPanels();
-    std::vector<wakePanel*> getWakePanels();
+    std::vector<bodyPanel*>* getBodyPanels() {return &bPanels;}
+    std::vector<wakePanel*>* getWakePanels() {return &wPanels;}
     std::vector<wake*> getWakes();
+    Eigen::MatrixXd* getA() {return &A;}
+    Eigen::MatrixXd* getB() {return &B;}
     
 };
 
