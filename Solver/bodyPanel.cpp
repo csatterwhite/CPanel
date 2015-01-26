@@ -8,31 +8,26 @@
 
 #include "bodyPanel.h"
 
-void bodyPanel::setNeighbors(panelOctree *oct, short normalMax)
+bodyPanel::bodyPanel(const Eigen::VectorXi &panelVertices,Eigen::MatrixXd* nodes, std::vector<edge*> pEdges, Eigen::Vector3d bezNorm, int surfID,bool lsflag) : panel(panelVertices,nodes,bezNorm,surfID), pEdges(pEdges), upper(false), lower(false), lsFlag(lsflag)
 {
-    short absMax = normalMax;
-    if (upper || lower)
+    for (int i=0; i<pEdges.size(); i++)
     {
-        absMax = verts.size()+1;
+        pEdges[i]->addBodyPan(this);
     }
-    else
+}
+
+void bodyPanel::setNeighbors()
+{
+    std::vector<bodyPanel*> temp;
+    for (int i=0; i<pEdges.size(); i++)
     {
-        absMax = normalMax;
-    }
-    node<panel>* currentNode = oct->findNodeContainingMember(this);
-    node<panel>* exception = NULL;
-    
-    while (neighbors.size() < absMax)
-    {
-        scanForNeighbors(currentNode,exception);
-        if (currentNode == oct->getRootNode())
+        temp = pEdges[i]->getBodyPans();
+        for (int j=0; j<temp.size(); j++)
         {
-            break;
-        }
-        else
-        {
-            exception = currentNode;
-            currentNode = currentNode->getParent();
+            if (temp[j] != this)
+            {
+                neighbors.push_back(temp[j]);
+            }
         }
     }
 }
@@ -192,20 +187,6 @@ inline Eigen::Vector3d bodyPanel::pntSrcV(const Eigen::Vector3d &pjk)
     return area*pjk/(4*M_PI*pow(pjk.norm(),3));
 }
 
-std::vector<bodyPanel*> bodyPanel::getBodyNeighbors()
-{
-    std::vector<bodyPanel*> bodyNeighbors;
-    for (int i=0; i<neighbors.size(); i++)
-    {
-        if (neighbors[i]->getID() < 10000)
-        {
-            bodyPanel* p = dynamic_cast<bodyPanel*>(neighbors[i]);
-            bodyNeighbors.push_back(p);
-        }
-    }
-    return bodyNeighbors;
-}
-
 std::vector<bodyPanel*> bodyPanel::gatherNeighbors(int nPanels)
 {
     std::vector<bodyPanel*> cluster;
@@ -217,7 +198,7 @@ std::vector<bodyPanel*> bodyPanel::gatherNeighbors(int nPanels)
         std::vector<bodyPanel*> toAdd;
         for (unsigned long i=oldSize; i<cluster.size(); i++)
         {
-            std::vector<bodyPanel*> temp = cluster[i]->getBodyNeighbors();
+            std::vector<bodyPanel*> temp = cluster[i]->getNeighbors();
             for (int j=0; j<temp.size(); j++)
             {
                 if (tipFlag)
@@ -376,7 +357,7 @@ bool bodyPanel::nearTrailingEdge()
     }
     else if (lsFlag)
     {
-        std::vector<bodyPanel*> neighbs = getBodyNeighbors();
+        std::vector<bodyPanel*> neighbs = getNeighbors();
         for (int i=0; i<neighbs.size(); i++)
         {
             if (neighbs[i]->isUpper() || neighbs[i]->isLower())
