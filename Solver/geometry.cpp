@@ -42,6 +42,7 @@ void geometry::readTri(std::string tri_file, bool normFlag)
         
         // Scan Surface IDs and collect Unique IDs
         int wakeNodeStart = nNodes;
+        int wakeTriStart = nTris;
         for (int i=0; i<nTris; i++)
         {
             fid >> allID(i);
@@ -59,42 +60,47 @@ void geometry::readTri(std::string tri_file, bool normFlag)
             if (allID(i) > 10000 && allID(i-1) < 10000)
             {
                 wakeNodeStart = connectivity.row(i).minCoeff();
+                wakeTriStart = i;
             }
         }
         
         if (wakeIDs.size() > 0)
         {
-            correctWakeNodes(wakeNodeStart);
+            correctWakeConnectivity(wakeNodeStart, wakeTriStart, connectivity);
         }
         
         // Read in Normals if included in input file
         Eigen::MatrixXd norms = Eigen::MatrixXd::Zero(nTris,3);
         if (normFlag)
         {
+            std::cout << "Reading Bezier Normals from Geometry File" << std::endl;
             for (int i=0; i<nTris; i++)
             {
                 fid >> norms(i,0) >> norms(i,1) >> norms(i,2);
             }
         }
         
-        std::cout << "Building Octree..." << std::endl;
+        std::cout << "Generating Panel Geometry..." << std::endl;
         
         createSurfaces(connectivity,norms,allID,wakeIDs);
+        
+        std::cout << "Building Octree..." << std::endl;
+
         createOctree();
         
         // Set neighbors
-        for (int i=0; i<liftingSurfs.size(); i++)
-        {
-            // Set wake neighbors first to deal with special cases
-            liftingSurfs[i]->getWake()->setNeighbors(&pOctree);
-        }
-        
         std::cout << "Finding Panel Neighbors..." << std::endl;
         
-        std::vector<surface*> surfs = getSurfaces();
-        for (int i=0; i<surfs.size(); i++)
+        for (int i=0; i<bPanels.size(); i++)
         {
-            surfs[i]->setNeighbors(&pOctree);
+            bPanels[i]->setNeighbors();
+        }
+        for (int i=0; i<wPanels.size(); i++)
+        {
+            if (wPanels[i]->isTEpanel())
+            {
+                wPanels[i]->setParentPanels();
+            }
         }
         
         std::cout << "Building Influence Coefficient Matrix..." << std::endl;
@@ -107,11 +113,12 @@ void geometry::readTri(std::string tri_file, bool normFlag)
     }
 }
 
-void geometry::correctWakeNodes(int wakeNodeStart)
+void geometry::correctWakeConnectivity(int wakeNodeStart,int wakeTriStart,Eigen::MatrixXi &connectivity)
 {
-    // Duplicate nodes are on TE because they are generated once for surface and once for wake. In some cases, there is error that makes the points not exactly the same.  In these scenarios, the points are forced to be the exact same. The highest error scene has been on the order of 10^-5.  This error comes from VSPs node generation and is not part of CPanel
     Eigen::Vector3d vec;
+    Eigen::Matrix<double,Eigen::Dynamic,2> indReps; // [toReplace, replaceWith]
     double diff = pow(10,-3);
+    int count = 0;
     for (int i=0; i<wakeNodeStart; i++)
     {
         for (int j=wakeNodeStart; j<nNodes; j++)
@@ -120,6 +127,24 @@ void geometry::correctWakeNodes(int wakeNodeStart)
             if (vec.lpNorm<Eigen::Infinity>() < diff)
             {
                 nodes.row(j) = nodes.row(i);
+                count++;
+                indReps.conservativeResize(count,2);
+                indReps(count-1,0) = j;
+                indReps(count-1,1) = i;
+            }
+        }
+    }
+    
+    for (int i=wakeTriStart; i<nTris; i++)
+    {
+        for (int j=0; j<connectivity.cols(); j++)
+        {
+            for (int k=0; k<indReps.rows(); k++)
+            {
+                if (connectivity(i,j) == indReps(k,0))
+                {
+                    connectivity(i,j) = indReps(k,1);
+                }
             }
         }
     }
@@ -137,16 +162,17 @@ bool geometry::isLiftingSurf(int currentID, std::vector<int> wakeIDs)
     return false;
 }
 
-
 void geometry::createSurfaces(const Eigen::MatrixXi &connectivity, const Eigen::MatrixXd &norms, const Eigen::VectorXi &allID, std::vector<int> wakeIDs)
 {
     surface* surf = nullptr;
     liftingSurf* surfL = nullptr;
     bodyPanel* bPan;
     wakePanel* wPan;
+    std::vector<edge*> pEdges;
     bool LS = false;
     for (int i=0; i<nTris; i++)
     {
+        pEdges = triEdges(connectivity.row(i));
         if (i==0 || allID(i)!=allID(i-1))
         {
             LS = isLiftingSurf(allID(i),wakeIDs);
@@ -167,25 +193,63 @@ void geometry::createSurfaces(const Eigen::MatrixXi &connectivity, const Eigen::
         }
         if (LS)
         {
-            bPan = new bodyPanel(connectivity.row(i),&nodes,norms.row(i),allID(i),true);
+            bPan = new bodyPanel(connectivity.row(i),&nodes,pEdges,norms.row(i),allID(i),true);
             liftingSurfs.back()->addPanel(bPan);
             bPanels.push_back(bPan);
         }
         else if (allID(i) <= 10000)
         {
-            bPan = new bodyPanel(connectivity.row(i),&nodes,norms.row(i),allID(i),false);
+            bPan = new bodyPanel(connectivity.row(i),&nodes,pEdges,norms.row(i),allID(i),false);
             nonLiftingSurfs.back()->addPanel(bPan);
             bPanels.push_back(bPan);
         }
         else
         {
-            wPan = new wakePanel(connectivity.row(i),&nodes,norms.row(i),allID(i),surfL->getWake());
+            wPan = new wakePanel(connectivity.row(i),&nodes,pEdges,norms.row(i),allID(i),surfL->getWake());
             surfL->addPanel(wPan);
             wPanels.push_back(wPan);
         }
     }
 }
-         
+
+std::vector<edge*> geometry::triEdges(const Eigen::VectorXi &indices)
+{
+    int i1,i2;
+    std::vector<edge*> triEdges;
+    edge* e;
+    for (int i=0; i<indices.size(); i++)
+    {
+        i1 = indices(i);
+        if (i == indices.size()-1)
+        {
+            i2 = indices(0);
+        }
+        else
+        {
+            i2 = indices(i+1);
+        }
+        e = findEdge(i1,i2);
+        triEdges.push_back(e);
+    }
+    return triEdges;
+}
+
+edge* geometry::findEdge(int i1, int i2)
+{
+    for (int i=0; i<edges.size(); i++)
+    {
+        if (edges[i]->sameEdge(i1, i2))
+        {
+            return edges[i];
+        }
+    }
+    
+    // If edge doesn't exist, create one
+    edge* e = new edge(i1,i2);
+    edges.push_back(e);
+    return e;
+}
+
 liftingSurf* geometry::getParentSurf(int wakeID)
 {
     for (int i=0; i<liftingSurfs.size(); i++)
@@ -248,7 +312,7 @@ void geometry::setInfCoeff()
         {
             if ((100*j/nPans) <= percentage(i) && 100*(j+1)/nPans > percentage(i))
             {
-                std::cout << percentage(i) << "%" << std::endl;
+                std::cout << percentage(i) << "%\t" << std::flush;
             }
         }
     }
@@ -279,7 +343,7 @@ void geometry::setInfCoeff()
         {
             if ((100*(nBodyPans+j)/nPans) <= percentage(i) && 100*(nBodyPans+j+1)/nPans > percentage(i))
             {
-                std::cout << percentage(i) << "%" << std::endl;
+                std::cout << percentage(i) << "%\t" << std::flush;
             }
         }
         

@@ -16,6 +16,7 @@
 #include "wakeLine.h"
 
 class wakePanel;
+class wakeLine;
 
 class wake
 {
@@ -29,7 +30,6 @@ class wake
     
     
     void setWakeDimensions();
-    short edgeVerts(wakePanel* p);
     wakeLine* findWakeLine(double y);
     double Vradial(Eigen::Vector3d pWake);
     Eigen::Vector3d pntInWake(double x, double y);
@@ -43,10 +43,9 @@ public:
     wake(const wake& copy);
     
     void addPanel(wakePanel* wPan);
+    void addWakeLine(wakeLine* wl);
     
     std::vector<wakePanel*> getPanels() const {return wpanels;}
-    
-    void setNeighbors(panelOctree* oct);
     
     void trefftzPlane(double Vinf,double Sref, double &CL, double &CD, Eigen::VectorXd &yLoc, Eigen::VectorXd &Cl, Eigen::VectorXd &Cd);
     
@@ -54,7 +53,7 @@ public:
     
     double wakeStrength(double y);
     
-    std::vector<wakePanel*> getVortexSheets() {return vortexSheets;}
+//    std::vector<wakePanel*> getVortexSheets() {return vortexSheets;}
 };
 
 #endif /* defined(__CPanel__wake__) */

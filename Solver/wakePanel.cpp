@@ -8,46 +8,12 @@
 
 #include "wakePanel.h"
 
-void wakePanel::setParentPanels()
+wakePanel::wakePanel(const Eigen::VectorXi &panelVertices, Eigen::MatrixXd* nodes, std::vector<edge*> pEdges, Eigen::Vector3d bezNorm, int surfID, wake* parentWake) : panel(panelVertices,nodes,bezNorm,surfID), pEdges(pEdges), TEpanel(false), parentWake(parentWake)
 {
-    std::vector<bodyPanel*> parentPanels;
-    bodyPanel* ptr;
-    for (int i=0; i<neighbors.size(); i++)
+    for (int i=0; i<pEdges.size(); i++)
     {
-        if (neighbors[i]->getID() != ID)
-        {
-            ptr = dynamic_cast<bodyPanel*>(neighbors[i]);
-            parentPanels.push_back(ptr);
-        }
+        pEdges[i]->addWakePan(this);
     }
-    
-    if (parentPanels.size() == 4)
-    {
-        std::sort(parentPanels.begin(),parentPanels.end(),[](const panel* p1,const panel* p2) {return p1->getCenter()(0) < p2->getCenter()(0);}); // Ensures lifting surface panels are parent panels if the wake panel is at the wing body joint
-        std::vector<bodyPanel*> npp; //In case where wake panel is at wing body joint, the parent panels will be selected as the two neighbors on the lifting surface, but the other two neighbors on the body need to be set as upper and lower to avoid taking the derivative of the potential across the discontinuous wake later on.
-        npp.push_back(parentPanels[2]);
-        npp.push_back(parentPanels[3]);
-        std::sort(npp.begin(),npp.end(),[](const panel* p1,const panel* p2) {return p1->getCenter()(2) < p2->getCenter()(2);});
-        npp[0]->setLower();
-        npp[1]->setUpper();
-    }
-    
-    std::vector<bodyPanel*> pp;
-    pp.push_back(parentPanels[0]);
-    pp.push_back(parentPanels[1]);
-    std::sort(pp.begin(),pp.end(),[](const panel* p1,const panel* p2) {return p1->getCenter()(2) < p2->getCenter()(2);});
-   
-    lowerPan = pp[0];
-    upperPan = pp[1];
-    lowerPan->setLower();
-    upperPan->setUpper();
-}
-
-void wakePanel::addWakeLine(std::vector<wakeLine*> &wakeLines)
-{
-    wakeLine* wLine = new wakeLine(upperPan,lowerPan,normal);
-    wakeLines.push_back(wLine);
-    std::sort(wakeLines.begin(),wakeLines.end(),compareLines());
 }
 
 void wakePanel::interpPanels(std::vector<bodyPanel*> &interpPans, double &interpCoeff)
@@ -109,145 +75,122 @@ void wakePanel::setStrength()
     doubletStrength = upperPan->getMu()-lowerPan->getMu();
 }
 
-void wakePanel::setNeighbors(panelOctree *oct, short normalMax)
+void wakePanel::setParentPanels()
 {
-    short absMax = normalMax;
-    neighborCases(normalMax, absMax);
-    node<panel>* currentNode = oct->findNodeContainingMember(this);
-    node<panel>* exception = NULL;
-    while (neighbors.size() < absMax)
+    std::vector<edge*> TEedges;
+    for (int i=0; i<pEdges.size(); i++)
     {
-        scanForNeighbors(currentNode,exception);
-        if (neighbors.size() >= absMax && normalMax > 1)
+        if (pEdges[i]->isTE())
         {
-            neighborCases(normalMax, absMax);
-        }
-        if (currentNode == oct->getRootNode())
-        {
-            break;
-        }
-        else
-        {
-            exception = currentNode;
-            currentNode = currentNode->getParent();
+            TEedges.push_back(pEdges[i]);
         }
     }
-}
-
-void wakePanel::neighborCases(const short &normalMax, short &absMax)
-{
-    if (neighbors.size() < 2)
-    {
-        return;
-    }
-    short w = 0;
-    short ls = 0;
-    short nls = 0;
-    for (int i=0; i<neighbors.size(); i++)
-    {
-        if (neighbors[i]->getID() == ID)
-        {
-            w++;
-        }
-        else if (neighbors[i]->getID() == ID-10000)
-        {
-            ls++;
-        }
-        else
-        {
-            nls++;
-        }
-    }
-    if (ls > 0 || nls > 0)
-    {
-        TEpanel = true;
-    }
-    if (normalMax == verts.size()-1 && ls != 0)
-    {
-        // Wake panel is on outer edge of wake at the wing tip and will have three neighbors (2 body, 1 wake) for tris and four neighbors (2 body, 2 wake) for quads.
-        absMax = verts.size();
-    }
-    if (normalMax == verts.size())
-    {
-        // Check special cases for wake panels shed off body
-        if (w == verts.size())
-        {
-            // Only panels in the middle of the wake will have as many neighbors as vertices all in the wake
-            return;
-        }
-        else if (ls > 0 && nls > 0)
-        {
-            // Corresponds to wake panel in the wing body joint
-            absMax = verts.size()+2;
-            TEpanel = true;
-        }
-        else if (w < verts.size())
-        {
-            // Only two neighbors in wake means panel is shed from trailing edge and there will be one additional neighbor
-            absMax = verts.size()+1;
-            TEpanel = true;
-        }
-    }
-
-}
-
-wakePanel* wakePanel::makeVortexSheet()
-{
-    Eigen::Vector3d p1,p2,p3,p4,deltaVec;
-    Eigen::VectorXi sheetVerts = Eigen::VectorXi::Zero(4);
-    double length = 100;
+    std::vector<bodyPanel*> parentPans;
     
-    p1(1) = -1000000;
-    
-    // Find points on trailing edge;
-    Eigen::Vector3i neighbVerts = upperPan->getVerts();
-    bool breakFlag = false;
-    for (int i=0; i<verts.size(); i++)
+    // If TEedges.size() > 2, panel is at wing body joint
+    for (int i=0; i<TEedges.size(); i++)
     {
-        for (int j=0; j<neighbVerts.size(); j++)
+        parentPans = TEedges[i]->getBodyPans();
+        if (parentPans[0]->getID() == ID-10000)
         {
-            if (nodes->row(verts(i)) == nodes->row(neighbVerts(j)))
-            {
-                Eigen::Vector3d pnt = nodes->row(verts(i));
-                if (pnt(1) > p1(1))
-                {
-                    sheetVerts(1) = sheetVerts(0);
-                    p2 = p1;
-                    
-                    sheetVerts(0) = verts(i);
-                    p1 = pnt;
-                    
-                }
-                else
-                {
-                    sheetVerts(1) = verts(i);
-                    p2 = pnt;
-                    breakFlag = true;
-                    break;
-                }
-            }
-        }
-        if (breakFlag)
-        {
+            // Test for edge on parent lifting surface if panel is at wing body joint
             break;
         }
     }
-    sheetVerts(2) = (int)nodes->rows();
-    sheetVerts(3) = sheetVerts(2) + 1;
+    if (parentPans[0]->getCenter()(2) > parentPans[1]->getCenter()(2))
+    {
+        upperPan = parentPans[0];
+        lowerPan = parentPans[1];
+        upperPan->setUpper();
+        lowerPan->setLower();
+    }
+    else if (parentPans[0]->getCenter()(2) < parentPans[1]->getCenter()(2))
+    {
+        upperPan = parentPans[1];
+        lowerPan = parentPans[0];
+        upperPan->setUpper();
+        lowerPan->setLower();
+    }
+    else
+    {
+        // Panels somehow are coplanar. Sort by normal direction
+        if (parentPans[0]->getNormal()(2) > parentPans[1]->getNormal()(2))
+        {
+            upperPan = parentPans[0];
+            lowerPan = parentPans[1];
+            upperPan->setUpper();
+            lowerPan->setLower();
+        }
+        else if (parentPans[0]->getNormal()(2) < parentPans[1]->getNormal()(2))
+        {
+            upperPan = parentPans[1];
+            lowerPan = parentPans[0];
+            upperPan->setUpper();
+            lowerPan->setLower();
+        }
+    }
     
-    deltaVec = length*normal.cross((p2-p1).normalized());
-    p3 = p2+deltaVec;
-    p4 = p1+deltaVec;
-    
-    nodes->conservativeResize(nodes->rows()+2, 3);
-    nodes->row(sheetVerts(2)) = p3;
-    nodes->row(sheetVerts(3)) = p4;
-    
-    wakePanel* sheet = new wakePanel(sheetVerts,nodes,normal,ID,parentWake);
-    sheet->setTEpanel();
-    sheet->setUpper(upperPan);
-    sheet->setLower(lowerPan);
-    return sheet;
-    
-    
+    wakeLine* wLine = new wakeLine(upperPan,lowerPan,normal);
+    parentWake->addWakeLine(wLine);
 }
+
+//wakePanel* wakePanel::makeVortexSheet()
+//{
+//    Eigen::Vector3d p1,p2,p3,p4,deltaVec;
+//    Eigen::VectorXi sheetVerts = Eigen::VectorXi::Zero(4);
+//    double length = 100;
+//    
+//    p1(1) = -1000000;
+//    
+//    // Find points on trailing edge;
+//    Eigen::Vector3i neighbVerts = upperPan->getVerts();
+//    bool breakFlag = false;
+//    for (int i=0; i<verts.size(); i++)
+//    {
+//        for (int j=0; j<neighbVerts.size(); j++)
+//        {
+//            if (nodes->row(verts(i)) == nodes->row(neighbVerts(j)))
+//            {
+//                Eigen::Vector3d pnt = nodes->row(verts(i));
+//                if (pnt(1) > p1(1))
+//                {
+//                    sheetVerts(1) = sheetVerts(0);
+//                    p2 = p1;
+//                    
+//                    sheetVerts(0) = verts(i);
+//                    p1 = pnt;
+//                    
+//                }
+//                else
+//                {
+//                    sheetVerts(1) = verts(i);
+//                    p2 = pnt;
+//                    breakFlag = true;
+//                    break;
+//                }
+//            }
+//        }
+//        if (breakFlag)
+//        {
+//            break;
+//        }
+//    }
+//    sheetVerts(2) = (int)nodes->rows();
+//    sheetVerts(3) = sheetVerts(2) + 1;
+//    
+//    deltaVec = length*normal.cross((p2-p1).normalized());
+//    p3 = p2+deltaVec;
+//    p4 = p1+deltaVec;
+//    
+//    nodes->conservativeResize(nodes->rows()+2, 3);
+//    nodes->row(sheetVerts(2)) = p3;
+//    nodes->row(sheetVerts(3)) = p4;
+//    
+//    wakePanel* sheet = new wakePanel(sheetVerts,nodes,normal,ID,parentWake);
+//    sheet->setTEpanel();
+//    sheet->setUpper(upperPan);
+//    sheet->setLower(lowerPan);
+//    return sheet;
+//    
+//    
+//}

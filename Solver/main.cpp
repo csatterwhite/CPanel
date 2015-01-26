@@ -26,7 +26,7 @@ void usage()
     printf("\t.tricp (Modified .tri file including normal vectors from underlying bezier surfaces)\n\n");
     printf("This example below may be used as a template for the input file.\n");
     printf("\n");
-    printf("--CPanel Input File--\n");
+    printf("~CPanel Input File~\n");
     printf("GeomFile = wing.tri\n");
     printf("S_ref =  6.0\n");
     printf("b_ref =  6.0\n");
@@ -95,7 +95,7 @@ int main(int argc, const char * argv[])
     std::string line1;
     std::getline(fid,line1);
     
-    if (line1 != "%%% CPanel Input File %%%")
+    if (line1 != "~CPanel Input File~")
     {
         std::cout << "ERROR : Incorrect Format - Use Template Below" << std::endl;
         usage();

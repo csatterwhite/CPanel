@@ -8,10 +8,10 @@
 
 #include "panel.h"
 
-typedef Eigen::Vector3d         vector;
-typedef Eigen::Vector3i         vertices;
-typedef Eigen::Matrix3d         coordSys;
-
+panel::panel(const Eigen::VectorXi &panelVertices,Eigen::MatrixXd* nodes, Eigen::Vector3d bezNorm, int surfID) : ID(surfID), verts(panelVertices), nodes(nodes), bezNormal(bezNorm)
+{
+    setGeom();
+}
 
 void panel::setGeom()
 {
@@ -86,75 +86,6 @@ void panel::setGeom()
         }
     }
 }
-    
-void panel::scanForNeighbors(node<panel>* current, node<panel>* exception)
-{
-    std::vector<panel*> nodeMembers = current->getMembers(exception);
-    for (int i=0; i<nodeMembers.size(); i++)
-    {
-        checkNeighbor(nodeMembers[i]);
-    }
-}
-
-bool panel::isNeighbor(panel* other)
-{
-    Eigen::VectorXi otherVerts = other->getVerts();
-    short count = 0;
-    Eigen::Vector3d p1,p2;
-    for (int i=0; i<verts.size(); i++)
-    {
-        for (int j=0; j<otherVerts.size(); j++)
-        {
-            p1 = nodes->row(verts(i));
-            p2 = nodes->row(otherVerts(j));
-            if (p1(0) == p2(0) && p1(1) == p2(1) && p1(2) == p2(2))
-            {
-                count++;
-            }
-            if (count == 2)
-            {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-bool panel::neighborExists(panel* other)
-{
-    if (neighbors.size()>0)
-    {
-        for (int i=0; i<neighbors.size(); i++)
-        {
-            if (neighbors[i]==other)
-            {
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-
-void panel::checkNeighbor(panel* other)
-{
-    if (!neighborExists(other) && other != this) //Do not check and add panel if it is already a neighbor
-    {
-        if (isNeighbor(other))
-        {
-            addNeighbor(other);
-            if (!other->isNeighbor(this))
-            {
-                other->addNeighbor(this);
-            }
-        }
-    }
-}
-
-void panel::addNeighbor(panel* other)
-{
-    neighbors.push_back(other);
-}
 
 bool panel::isOnPanel(const Eigen::Vector3d &POI)
 {
@@ -169,13 +100,13 @@ bool panel::isOnPanel(const Eigen::Vector3d &POI)
     return (hull.getHull().size() == verts.size());
 }
 
-coordSys panel::getLocalSys()
+Eigen::Matrix3d panel::getLocalSys()
 {
     // Local Coordinate System
     // X : Points from center of panel to first vertex
     // Y : Normal crossed with X to obtain right hand coordinate system
     // Z : Normal to the panel
-    coordSys local = Eigen::Matrix3d::Zero();
+    Eigen::Matrix3d local = Eigen::Matrix3d::Zero();
     local.row(0) = getUnitVector(center,nodes->row((verts(0))));
     local.row(1) = normal.cross(local.row(0));
     local.row(2) = normal;

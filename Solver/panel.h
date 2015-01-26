@@ -24,9 +24,7 @@
 class panelOctree;
 
 class panel
-{
-    std::vector<panel*> gatherNeighbors(int nPanels);
-    
+{    
 protected:
     Eigen::Vector3d center;
     Eigen::Vector3d normal;
@@ -41,13 +39,8 @@ protected:
     double Cp;
     Eigen::MatrixXd* nodes;
     int ID;
-    std::vector<panel*> neighbors;
     
-    bool neighborExists(panel* other);
-    bool isNeighbor(panel* other);
-    void scanForNeighbors(node<panel>* current, node<panel>* exception);
     bool isOnPanel(const Eigen::Vector3d &POI);
-    void checkNeighbor(panel* other);
     Eigen::Vector3d global2local(const Eigen::Vector3d &globalVec,bool translate);
     Eigen::Vector3d local2global(const Eigen::Vector3d &localVec,bool translate);
     
@@ -67,10 +60,7 @@ protected:
     }
     
 public:
-    panel(const Eigen::VectorXi &panelVertices,Eigen::MatrixXd* nodes, Eigen::Vector3d bezNorm, int surfID) : ID(surfID), verts(panelVertices), nodes(nodes), bezNormal(bezNorm)
-    {
-        setGeom();
-    };
+    panel(const Eigen::VectorXi &panelVertices,Eigen::MatrixXd* nodes, Eigen::Vector3d bezNorm, int surfID);
     
     virtual ~panel() {}
     
@@ -79,13 +69,11 @@ public:
         setGeom();
     }
     void setGeom();
-    virtual void setNeighbors(panelOctree *oct, short normalMax) = 0;
     
     void setPotential(Eigen::Vector3d Vinf)
     {
         potential = Vinf.dot(center)-doubletStrength;
     }
-    void addNeighbor(panel* other);
     
     double dubPhiInf(const Eigen::Vector3d &POI);
     Eigen::Vector3d dubVInf(const Eigen::Vector3d &POI);
@@ -99,7 +87,6 @@ public:
     Eigen::VectorXi getVerts() const {return verts;}
     Eigen::MatrixXd* getNodes() {return nodes;}
     double getArea() {return area;}
-    std::vector<panel*> getNeighbors() const {return neighbors;}
     double getMu() {return doubletStrength;}
     double getPotential() {return potential;}
     

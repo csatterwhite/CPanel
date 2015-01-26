@@ -24,14 +24,6 @@ wake::~wake()
     }
 }
 
-wake::wake(const wake& copy)
-{
-    for (int i=0; i<copy.wpanels.size(); i++)
-    {
-        wpanels[i] = new wakePanel(*copy.wpanels[i]);
-    }
-}
-
 void wake::addPanel(wakePanel* wPan)
 {
     Eigen::Vector3i verts = wPan->getVerts();
@@ -70,51 +62,10 @@ void wake::addPanel(wakePanel* wPan)
     wpanels.push_back(wPan);
 }
 
-void wake::setNeighbors(panelOctree* oct)
+void wake::addWakeLine(wakeLine* wl)
 {
-    for (int i=0; i<wpanels.size(); i++)
-    {
-        short nVerts = wpanels[i]->getVerts().size();
-        if (edgeVerts(wpanels[i]) == 2)
-        {
-            // Panel is on edge of wake and will have two neighbors for tris and three for quads
-            wpanels[i]->setNeighbors(oct,nVerts-1);
-        }
-        else if (edgeVerts(wpanels[i]) == 3)
-        {
-            // Panel is in downstream corner and will have 1 neighbor for tris and 2 for quads
-            wpanels[i]->setNeighbors(oct,nVerts-2);
-        }
-        else
-        {
-            wpanels[i]->setNeighbors(oct,nVerts);
-        }
-        if (wpanels[i]->isTEpanel())
-        {
-            wpanels[i]->setParentPanels();
-            wpanels[i]->addWakeLine(wakeLines);
-            wakePanel* w = wpanels[i]->makeVortexSheet();
-            vortexSheets.push_back(w);
-        }
-    }
-}
-
-short wake::edgeVerts(wakePanel* p)
-{
-    // Returns number of verts on edge of wake. 2 indicates panel edge of wake. 3 indicates panel in corner at downstream side of wake;
-    short count = 0;
-    Eigen::VectorXi verts = p->getVerts();
-    Eigen::Vector3d pnt;
-    for (int i=0; i<verts.size(); i++)
-    {
-        pnt = nodes->row(verts(i));
-        if (pnt(0) == xf || pnt(1) == yMin || pnt(1) == yMax)
-        {
-            count++;
-        }
-    }
-    
-    return count;
+    wakeLines.push_back(wl);
+    std::sort(wakeLines.begin(),wakeLines.end(),[](wakeLine* w1, wakeLine* w2) {return w1->getY() < w2->getY();});
 }
 
 void wake::trefftzPlane(double Vinf,double Sref, double &CL, double &CD, Eigen::VectorXd &yLoc, Eigen::VectorXd &Cl, Eigen::VectorXd &Cd)
@@ -253,7 +204,7 @@ double wake::Vradial(Eigen::Vector3d pWake)
     {
         phiPOI += wpanels[i]->panelPhi(POI);
     }
-//    std::cout << "phiPOI = " << phiPOI << std::endl;
+
     int i=0;
     while (i < nPnts)
     {

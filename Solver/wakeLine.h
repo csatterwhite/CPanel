@@ -13,6 +13,8 @@
 #include <cmath>
 #include "bodyPanel.h"
 
+class bodyPanel;
+
 class wakeLine
 {
     bodyPanel* upper;
@@ -25,10 +27,7 @@ class wakeLine
     void setDimensions();
     
 public:
-    wakeLine(bodyPanel* upper, bodyPanel* lower,Eigen::Vector3d normal) : upper(upper), lower(lower), normal(normal)
-    {
-        setDimensions();
-    }
+    wakeLine(bodyPanel* upper, bodyPanel* lower,Eigen::Vector3d normal);
     
     void surveyPnts(double y,double distDownStream, double x0Wake, double z0Wake, Eigen::Vector3d &trefftzPnt, Eigen::MatrixXd &survPnts, Eigen::Matrix<bool,Eigen::Dynamic,1> &upperFlag);
     Eigen::Matrix3d randSurveyPnts(Eigen::MatrixXd &survPnts, Eigen::Matrix<bool,Eigen::Dynamic,1> &upperFlag, Eigen::Vector3d &circDir);
@@ -40,7 +39,7 @@ public:
     Eigen::Vector3d getPMid() {return pMid;}
     Eigen::Vector3d getP2() {return p2;}
     Eigen::Vector3d getNormal() {return normal;}
-    double getStrength() {return upper->getMu()-lower->getMu();}
+    double getStrength();
     void horseshoeW(const Eigen::Vector3d &POI, double &Vy, double &Vz);
 };
 

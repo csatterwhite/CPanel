@@ -11,9 +11,14 @@
 
 #include <iostream>
 #include "panel.h"
+#include "edge.h"
+
+class edge;
 
 class bodyPanel : public panel
 {
+    std::vector<edge*> pEdges;
+    std::vector<bodyPanel*> neighbors;
     double sourceStrength;
     bool upper; // Sheds wake panel from lower edge
     bool lower; // Sheds wake panel from upper edge
@@ -31,17 +36,15 @@ class bodyPanel : public panel
     bool clusterTest(bodyPanel* other, double angle, const std::vector<bodyPanel*> &cluster);
     bool wingTipTest(bodyPanel* p);
     bool nearTrailingEdge();
-//    bool neighborTests()
-    std::vector<bodyPanel*> getBodyNeighbors();
     std::vector<bodyPanel*> gatherNeighbors(int nPanels);
     
 public:
-    bodyPanel(const Eigen::VectorXi &panelVertices,Eigen::MatrixXd* nodes, Eigen::Vector3d norm, int surfID,bool lsflag) : panel(panelVertices,nodes,norm,surfID), upper(false), lower(false), lsFlag(lsflag) {}
+    bodyPanel(const Eigen::VectorXi &panelVertices,Eigen::MatrixXd* nodes, std::vector<edge*> pEdges, Eigen::Vector3d bezNorm, int surfID,bool lsflag);
     
     
     bodyPanel(const bodyPanel &copy) : panel(copy), sourceStrength(copy.sourceStrength) {}
     
-    void setNeighbors(panelOctree *oct, short normalMax);
+    void setNeighbors();
     void setUpper() {upper = true;}
     void setLower() {lower = true;}
     void setIndex(int i) {index = i;}
@@ -65,6 +68,8 @@ public:
     {
         doubletStrength = dubStrength;
     }
+    
+    std::vector<bodyPanel*> getNeighbors() {return neighbors;}
     
     double getSigma() {return sourceStrength;}
     double getMu() {return doubletStrength;}

@@ -40,7 +40,6 @@ public:
     }
     
     virtual void addPanel(bodyPanel* bPan);
-    void setNeighbors(panelOctree* oct);
 
     std::vector<bodyPanel*> getPanels() const {return panels;}
     int getID() const {return surfID;}

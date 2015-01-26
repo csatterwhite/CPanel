@@ -16,8 +16,9 @@
 #include "surface.h"
 #include "liftingSurf.h"
 #include "wake.h"
-#include "wakePanel.h"
 #include "bodyPanel.h"
+#include "wakePanel.h"
+#include "edge.h"
 
 class geometry
 {
@@ -33,6 +34,7 @@ class geometry
     
     panelOctree pOctree;
     Eigen::MatrixXd nodes;
+    std::vector<edge*> edges;
     Eigen::Matrix<bool,Eigen::Dynamic,1> TEnodes;
     short nNodes;
     short nTris;
@@ -42,6 +44,8 @@ class geometry
     Eigen::MatrixXd A; // Doublet Influence Coefficient Matrix
 
     void readTri(std::string tri_file, bool normFlag);
+    std::vector<edge*> triEdges(const Eigen::VectorXi &indices);
+    edge* findEdge(int i1,int i2);
     void createSurfaces(const Eigen::MatrixXi &connectivity, const Eigen::MatrixXd &norms, const Eigen::VectorXi &allID, std::vector<int> wakeIDs);
     void createOctree();
     void setTEPanels();
@@ -50,6 +54,7 @@ class geometry
     void scanNode(panel* p, node<panel>* current, node<panel>* exception);
     bool isLiftingSurf(int currentID, std::vector<int> wakeIDs);
     void correctWakeNodes(int wakeNodeStart);
+    void correctWakeConnectivity(int wakeNodeStart,int wakeTriStart,Eigen::MatrixXi &connectivity);
     liftingSurf* getParentSurf(int wakeID);
     
     void setInfCoeff();
@@ -70,6 +75,10 @@ public:
         for (int i=0; i<liftingSurfs.size(); i++)
         {
             delete liftingSurfs[i];
+        }
+        for (int i=0; i<edges.size(); i++)
+        {
+            delete edges[i];
         }
     }
     

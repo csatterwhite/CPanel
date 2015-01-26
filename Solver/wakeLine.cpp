@@ -8,6 +8,16 @@
 
 #include "wakeLine.h"
 
+wakeLine::wakeLine(bodyPanel* upper, bodyPanel* lower,Eigen::Vector3d normal) : upper(upper), lower(lower), normal(normal)
+{
+    setDimensions();
+}
+
+double wakeLine::getStrength()
+{
+    return upper->getMu()-lower->getMu();
+}
+
 void wakeLine::setDimensions()
 {
     std::vector<Eigen::Vector3d> TEverts;
