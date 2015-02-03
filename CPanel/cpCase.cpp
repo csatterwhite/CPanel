@@ -19,6 +19,7 @@ void cpCase::run()
     std::cout << std::setw(16) << std::left << check << std::flush;
     trefftzPlaneAnalysis();
     std::cout << std::setw(20) << std::left << check << std::endl;
+//    createStreamlines();
     if (!converged)
     {
         std::cout << "*** Warning : Solution did not converge ***" << std::endl;;
@@ -102,10 +103,10 @@ void cpCase::compVelocity()
     {
         (*bPanels)[i]->computeVelocity();
         (*bPanels)[i]->computeCp(Vmag,PG);
-        moment = (*bPanels)[i]->computeMoments(cg);
-        CM(0) += moment(0)/(Sref*bref);
-        CM(1) += moment(1)/(Sref*cref);
-        CM(2) += moment(2)/(Sref*bref);
+        moment = (*bPanels)[i]->computeMoments(params->cg);
+        CM(0) += moment(0)/(params->Sref*params->bref);
+        CM(1) += moment(1)/(params->Sref*params->cref);
+        CM(2) += moment(2)/(params->Sref*params->bref);
     }
 }
 
@@ -114,33 +115,71 @@ void cpCase::trefftzPlaneAnalysis()
     std::vector<wake*> wakes = geom->getWakes();
     for (int i=0; i<wakes.size(); i++)
     {
-        wakes[i]->trefftzPlane(Vmag,Sref,CL,CD,spanLoc,Cl,Cd);
+        wakes[i]->trefftzPlane(Vmag,params->Sref,CL,CD,spanLoc,Cl,Cd);
         CL /= PG;
         CD /= pow(PG,2);
         Cl /= PG;
         Cd /= pow(PG,2);
-        spanLoc *= 2/bref;
+        spanLoc *= 2/params->bref;
     }
+}
+
+void cpCase::createStreamlines()
+{
+    // Gather TE Panels
+    std::vector<bodyPanel*> startPans;
+    for (int i=0; i<bPanels->size(); i++)
+    {
+        if ((*bPanels)[i]->isLower() || (*bPanels)[i]->isUpper())
+        {
+            startPans.push_back((*bPanels)[i]);
+        }
+    }
+    
+    std::sort(startPans.begin(),startPans.end(), [](bodyPanel* p1, bodyPanel* p2){return p1->getCenter()(1) > p2->getCenter()(1);});
+    
+    std::string streamFile = "streamlines.xyz";
+    std::ofstream fid;
+    fid.open(streamFile);
+    
+    std::vector<Eigen::Vector3d> pnts;
+    
+    for (int i=0; i<bPanels->size(); i++)
+    {
+        if (!(*bPanels)[i]->getStreamFlag())
+        {
+            bodyStreamline bStream((*bPanels)[i],bPanels,wPanels,Vinf,4);
+            
+            pnts = bStream.getPnts();
+            fid << pnts.size() << std::endl;
+            for (int i=0; i<pnts.size(); i++)
+            {
+                fid << pnts[i](0) << "\t" << pnts[i](1) << "\t" << pnts[i](2) << std::endl;
+            }
+        }
+    }
+    fid.close();
 }
 
 void cpCase::writeFiles()
 {
     std::stringstream caseLabel;
     caseLabel << "/V" << Vmag << "_Mach" << mach << "_alpha" << alpha << "_beta" << beta;
-    boost::filesystem::path subdir = path+name+caseLabel.str();
+    boost::filesystem::path subdir = boost::filesystem::current_path().string()+caseLabel.str();
     if (!boost::filesystem::exists(subdir))
     {
         boost::filesystem::create_directories(subdir);
     }
-    writeBodyData(subdir);
+    Eigen::MatrixXd nodeMat = geom->getNodePnts();
+    writeBodyData(subdir,nodeMat);
     if (geom->getWakes().size() > 0)
     {
-        writeWakeData(subdir);
+        writeWakeData(subdir,nodeMat);
         writeSpanwiseData(subdir);
     }
 }
 
-void cpCase::writeBodyData(boost::filesystem::path path)
+void cpCase::writeBodyData(boost::filesystem::path path,const Eigen::MatrixXd &nodeMat)
 {
     std::vector<cellDataArray*> data;
     cellDataArray mu("Doublet Strengths"),pot("Velocity Potential"),V("Velocity"),Cp("Cp"),bN("bezNormals");
@@ -167,7 +206,7 @@ void cpCase::writeBodyData(boost::filesystem::path path)
     data.push_back(&bN);
     
     piece body;
-    body.pnts = geom->getNodes();
+    body.pnts = nodeMat;
     body.connectivity = con;
     body.cellData = data;
     
@@ -175,7 +214,7 @@ void cpCase::writeBodyData(boost::filesystem::path path)
     VTUfile bodyFile(fname,&body);
 }
 
-void cpCase::writeWakeData(boost::filesystem::path path)
+void cpCase::writeWakeData(boost::filesystem::path path, const Eigen::MatrixXd &nodeMat)
 {
     std::vector<cellDataArray*> data;
     cellDataArray mu("Doublet Strengths"),pot("Velocity Potential");
@@ -193,7 +232,7 @@ void cpCase::writeWakeData(boost::filesystem::path path)
     data.push_back(&pot);
     
     piece wake;
-    wake.pnts = geom->getNodes();
+    wake.pnts = nodeMat;
     wake.connectivity = con;
     wake.cellData = data;
     
@@ -215,3 +254,5 @@ void cpCase::writeSpanwiseData(boost::filesystem::path path)
         }
     }
 }
+
+

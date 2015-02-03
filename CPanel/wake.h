@@ -12,8 +12,9 @@
 #include <stdio.h>
 #include <vector>
 #include <cmath>
-#include "wakePanel.h"
-#include "wakeLine.h"
+#include <Eigen/Dense>
+//#include "wakePanel.h"
+//#include "wakeLine.h"
 
 class wakePanel;
 class wakeLine;
@@ -23,7 +24,6 @@ class wake
     std::vector<wakePanel*> wpanels;
     std::vector<wakeLine*> wakeLines;
     std::vector<wakePanel*> vortexSheets;
-    Eigen::MatrixXd* nodes;
     double yMin;
     double yMax;
     double x0,xf,z0,zf;
@@ -36,7 +36,7 @@ class wake
     Eigen::Vector3d pntVel(Eigen::Matrix<double,1,3> POI, Eigen::MatrixXd pntCloud,Eigen::Matrix<bool,Eigen::Dynamic,1> upperFlag, Eigen::Vector3d Vinf);
     
 public:
-    wake(Eigen::MatrixXd* nodes) : nodes(nodes), yMin(0) {}
+    wake() : yMin(0) {}
     
     ~wake();
     

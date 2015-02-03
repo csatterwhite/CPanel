@@ -191,26 +191,36 @@ public:
         }
     }
     
-    node<type>* findNodeContainingMember(type* obj)
+    node<type>* findNodeContainingPnt(const Eigen::Vector3d pnt)
     {
-        member<type> temp = createMember(obj);
-        assert(isInsideOctree(temp));
         node<type>* current_node = root_node;
         while (!current_node->isLeafNode())
         {
-            current_node = current_node->getChild(current_node->getChildContainingMember(temp));
+            current_node = current_node->getChild(current_node->getChildContainingPnt(pnt));
         }
         
         return current_node;
     }
+    
+    node<type>* findNodeContainingMember(type* obj)
+    {
+        member<type> temp = createMember(obj);
+        Eigen::Vector3d pnt = temp.getRefPoint();
+        return findNodeContainingPnt(pnt);
+    }
                                                                                           
     bool isInsideOctree(const member<type> &member)
+    {
+        return isInsideOctree(member.getRefPoint());
+    }
+    
+    bool isInsideOctree(const Eigen::Vector3d &pnt)
     {
         Eigen::Vector3d center = root_node->getOrigin();
         Eigen::Vector3d halfDimension = root_node->getHalfDimension();
         for (int i=0; i<3; i++)
         {
-            if (member.getRefPoint()[i] < (center[i]-halfDimension[i]) || member.getRefPoint()[i] > (center[i]+halfDimension[i]))
+            if (pnt(i) < (center[i]-halfDimension[i]) || pnt(i) > (center[i]+halfDimension[i]))
             {
                 return false;
             }

@@ -16,7 +16,7 @@
 
 class caseMgr
 {
-    inputParams p;
+    inputParams* p;
     geometry* geom;
  
     std::vector<cpCase*> cases;
@@ -25,7 +25,7 @@ class caseMgr
     void runCases();
     void writeSummary();
 public:
-    caseMgr(inputParams p,geometry* geom) : p(p), geom(geom)
+    caseMgr(inputParams* p,geometry* geom) : p(p), geom(geom)
     {
         setCases();
         runCases();

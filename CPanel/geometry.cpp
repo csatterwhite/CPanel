@@ -7,8 +7,6 @@
 //
 
 #include "geometry.h"
-#include <fstream>
-#include <array>
 
 void geometry::readTri(std::string tri_file, bool normFlag)
 {
@@ -23,13 +21,16 @@ void geometry::readTri(std::string tri_file, bool normFlag)
         std::vector<int> surfIDs;
         std::vector<int> wakeIDs;
         std::vector<int> surfTypes;
-        nodes.resize(nNodes,3);
         TEnodes.resize(nNodes,1);
         
         // Read XYZ Locations of Nodes
+        Eigen::Vector3d pnt;
+        cpNode* n;
         for (int i=0; i<nNodes; i++)
         {
-            fid >> nodes(i,0) >> nodes(i,1) >> nodes(i,2);
+            fid >> pnt(0) >> pnt(1) >> pnt(2);
+            n = new cpNode(pnt,i);
+            nodes.push_back(n);
         }
         
         // Temporarily Store Connectivity
@@ -103,8 +104,29 @@ void geometry::readTri(std::string tri_file, bool normFlag)
             }
         }
         
-        std::cout << "Building Influence Coefficient Matrix..." << std::endl;
-        setInfCoeff();
+        bool read = false;
+        
+        if (infCoeffFileExists())
+        {
+            std::string in;
+            std::cout << "\nInfluence Coefficients have already been calculated for a geometry with this name, would you like to use these coefficients?" << std::endl;
+            std::cout << "\t< Y > - Yes, use coefficients." << std::endl;
+            std::cout << "\t< N > - No, recalculate them." << std::endl;
+            std::cin >> in;
+            std::cout << std::endl;
+            if (in == "Y")
+            {
+                readInfCoeff();
+                read = true;
+                std::cout << "Influence Coefficients read from " << infCoeffFile << "\n" <<std::endl;
+            }
+        }
+        
+        if (!read)
+        {
+            std::cout << "Building Influence Coefficient Matrix..." << std::endl;
+            setInfCoeff();
+        }
     }
     else
     {
@@ -123,10 +145,10 @@ void geometry::correctWakeConnectivity(int wakeNodeStart,int wakeTriStart,Eigen:
     {
         for (int j=wakeNodeStart; j<nNodes; j++)
         {
-            vec = nodes.row(i)-nodes.row(j);
+            vec = nodes[i]->getPnt()-nodes[j]->getPnt();
             if (vec.lpNorm<Eigen::Infinity>() < diff)
             {
-                nodes.row(j) = nodes.row(i);
+                nodes[j] = nodes[i];
                 count++;
                 indReps.conservativeResize(count,2);
                 indReps(count-1,0) = j;
@@ -172,18 +194,22 @@ void geometry::createSurfaces(const Eigen::MatrixXi &connectivity, const Eigen::
     bool LS = false;
     for (int i=0; i<nTris; i++)
     {
-        pEdges = triEdges(connectivity.row(i));
+        std::vector<cpNode*> pNodes;
+        pNodes.push_back(nodes[connectivity(i,0)]);
+        pNodes.push_back(nodes[connectivity(i,1)]);
+        pNodes.push_back(nodes[connectivity(i,2)]);
+        pEdges = panEdges(pNodes);
         if (i==0 || allID(i)!=allID(i-1))
         {
             LS = isLiftingSurf(allID(i),wakeIDs);
             if (LS)
             {
-                surfL = new liftingSurf(allID(i),&nodes);
+                surfL = new liftingSurf(allID(i));
                 liftingSurfs.push_back(surfL);
             }
             else if (allID(i) <= 10000)
             {
-                surf = new surface(allID(i),&nodes);
+                surf = new surface(allID(i));
                 nonLiftingSurfs.push_back(surf);
             }
             else
@@ -193,59 +219,59 @@ void geometry::createSurfaces(const Eigen::MatrixXi &connectivity, const Eigen::
         }
         if (LS)
         {
-            bPan = new bodyPanel(connectivity.row(i),&nodes,pEdges,norms.row(i),allID(i),true);
+            bPan = new bodyPanel(pNodes,pEdges,norms.row(i),allID(i),true);
             liftingSurfs.back()->addPanel(bPan);
             bPanels.push_back(bPan);
         }
         else if (allID(i) <= 10000)
         {
-            bPan = new bodyPanel(connectivity.row(i),&nodes,pEdges,norms.row(i),allID(i),false);
+            bPan = new bodyPanel(pNodes,pEdges,norms.row(i),allID(i),false);
             nonLiftingSurfs.back()->addPanel(bPan);
             bPanels.push_back(bPan);
         }
         else
         {
-            wPan = new wakePanel(connectivity.row(i),&nodes,pEdges,norms.row(i),allID(i),surfL->getWake());
+            wPan = new wakePanel(pNodes,pEdges,norms.row(i),allID(i),surfL->getWake());
             surfL->addPanel(wPan);
             wPanels.push_back(wPan);
         }
     }
 }
 
-std::vector<edge*> geometry::triEdges(const Eigen::VectorXi &indices)
+std::vector<edge*> geometry::panEdges(const std::vector<cpNode*>  &pNodes)
 {
     int i1,i2;
     std::vector<edge*> triEdges;
     edge* e;
-    for (int i=0; i<indices.size(); i++)
+    for (int i=0; i<pNodes.size(); i++)
     {
-        i1 = indices(i);
-        if (i == indices.size()-1)
+        i1 = i;
+        if (i == pNodes.size()-1)
         {
-            i2 = indices(0);
+            i2 = 0;
         }
         else
         {
-            i2 = indices(i+1);
+            i2 = i+1;
         }
-        e = findEdge(i1,i2);
+        e = findEdge(pNodes[i1],pNodes[i2]);
         triEdges.push_back(e);
     }
     return triEdges;
 }
 
-edge* geometry::findEdge(int i1, int i2)
+edge* geometry::findEdge(cpNode* n1,cpNode* n2)
 {
     for (int i=0; i<edges.size(); i++)
     {
-        if (edges[i]->sameEdge(i1, i2))
+        if (edges[i]->sameEdge(n1, n2))
         {
             return edges[i];
         }
     }
     
     // If edge doesn't exist, create one
-    edge* e = new edge(i1,i2);
+    edge* e = new edge(n1,n2);
     edges.push_back(e);
     return e;
 }
@@ -286,7 +312,6 @@ void geometry::setInfCoeff()
     int nBodyPans = (int)bPanels.size();
     int nWakePans = (int)wPanels.size();
     int nPans = nBodyPans+nWakePans;
-    Eigen::VectorXd sigmas(nBodyPans);
     
     A.resize(nBodyPans,nBodyPans);
     B.resize(nBodyPans,nBodyPans);
@@ -302,10 +327,6 @@ void geometry::setInfCoeff()
             if (i==j)
             {
                 A(i,j) = -0.5;
-            }
-            if (j==0)
-            {
-                sigmas(i) = bPanels[i]->getSigma();
             }
         }
         for (int i=0; i<percentage.size(); i++)
@@ -349,6 +370,7 @@ void geometry::setInfCoeff()
         
     }
     std::cout << "Complete" << std::endl;
+    writeInfCoeff();
 }
 
 Eigen::Vector4i geometry::interpIndices(std::vector<bodyPanel*> interpPans)
@@ -400,4 +422,83 @@ std::vector<panel*> geometry::getPanels()
         panels.insert(panels.end(),temp.begin(),temp.end());
     }
     return panels;
+}
+
+bool geometry::infCoeffFileExists()
+{
+    boost::filesystem::path p = boost::filesystem::current_path().string()+"/" + infCoeffFile;
+    if (boost::filesystem::exists(p))
+    {
+        std::ifstream fid;
+        fid.open(p.string());
+        int nPans;
+        fid >> nPans;
+        fid.close();
+        if (nPans != bPanels.size())
+        {
+            return false;
+        }
+        return true;
+    }
+    
+    return false;
+}
+
+void geometry::readInfCoeff()
+{
+    std::ifstream fid;
+    fid.open(infCoeffFile);
+    int nPans;
+    fid >> nPans;
+    A.resize(nPans,nPans);
+    B.resize(nPans,nPans);
+    for (int i=0; i<bPanels.size(); i++)
+    {
+        for (int j=0; j<bPanels.size(); j++)
+        {
+            fid >> A(i,j);
+        }
+    }
+    for (int i=0; i<bPanels.size(); i++)
+    {
+        for (int j=0; j<bPanels.size(); j++)
+        {
+            fid >> B(i,j);
+        }
+    }
+    fid.close();
+}
+
+void geometry::writeInfCoeff()
+{
+    std::ofstream fid;
+    fid.open(infCoeffFile);
+    fid << bPanels.size() << "\n";
+    for (int i=0; i<bPanels.size(); i++)
+    {
+        for (int j=0; j<bPanels.size(); j++)
+        {
+            fid << A(i,j) << "\t";
+        }
+        fid << "\n";
+    }
+    for (int i=0; i<bPanels.size(); i++)
+    {
+        for (int j=0; j<bPanels.size(); j++)
+        {
+            fid << B(i,j) << "\t";
+        }
+        fid << "\n";
+    }
+    fid.close();
+}
+
+Eigen::MatrixXd geometry::getNodePnts()
+{
+    Eigen::MatrixXd nodePnts(nodes.size(),3);
+    for (int i=0; i<nodes.size(); i++)
+    {
+        nodePnts.row(i) = nodes[i]->getPnt();
+    }
+    return nodePnts;
 }

@@ -18,21 +18,27 @@
 #include <boost/filesystem/operations.hpp>
 #include "geometry.h"
 #include "VTUfile.h"
+#include "bodyStreamline.h"
+#include "cpFile.h"
+#include "inputParams.h"
 
 class cpCase
 {
     geometry *geom;
-    std::string path;
-    std::string name;
+//    std::string path;
+//    std::string name;
+//    cpFile* inFile;
+//    cpFile* gFile;
+    inputParams* params;
     double Vmag;
     double mach;
     double PG; // Prandtl-Glauert Correction
     double alpha;
     double beta;
-    double Sref;
-    double bref;
-    double cref;
-    Eigen::Vector3d cg;
+//    double Sref;
+//    double bref;
+//    double cref;
+//    Eigen::Vector3d cg;
     Eigen::Vector3d Vinf;
     std::vector<bodyPanel*>* bPanels;
     std::vector<wakePanel*>* wPanels;
@@ -50,22 +56,30 @@ class cpCase
     bool solveMatrixEq();
     void compVelocity();
     void trefftzPlaneAnalysis();
+    void createStreamlines();
     void writeVTU(std::string filename);
     void writeFiles();
-    void writeBodyData(boost::filesystem::path path);
-    void writeWakeData(boost::filesystem::path path);
+    void writeBodyData(boost::filesystem::path path, const Eigen::MatrixXd &nodeMat);
+    void writeWakeData(boost::filesystem::path path, const Eigen::MatrixXd &nodeMat);
     void writeSpanwiseData(boost::filesystem::path path);
     
 public:
-    cpCase(geometry *geom,double V,double alpha,double beta, double mach, std::string path,std::string name) : geom(geom), Vmag(V), alpha(alpha), beta(beta), mach(mach), path(path), name(name)
+//    cpCase(geometry *geom,double V,double alpha,double beta, double mach, cpFile* inputFile, cpFile* geometryFile, std::string path,std::string name) : geom(geom), Vmag(V), alpha(alpha), beta(beta), mach(mach), path(path), name(name),inFile(inputFile),gFile(geometryFile)
+//    {
+//        Vinf = windToBody(V,alpha,beta);
+//        bPanels = geom->getBodyPanels();
+//        wPanels = geom->getWakePanels();
+//        Sref = geom->getSref();
+//        bref = geom->getbref();
+//        cref = geom->getcref();
+//        cg = geom->getCG();
+//        PG = sqrt(1-pow(mach,2));
+//    }
+    cpCase(geometry *geom,double V, double alpha, double beta, double mach, inputParams* inParams) : geom(geom), Vmag(V), alpha(alpha), beta(beta), mach(mach), params(inParams)
     {
         Vinf = windToBody(V,alpha,beta);
         bPanels = geom->getBodyPanels();
         wPanels = geom->getWakePanels();
-        Sref = geom->getSref();
-        bref = geom->getbref();
-        cref = geom->getcref();
-        cg = geom->getCG();
         PG = sqrt(1-pow(mach,2));
     }
     

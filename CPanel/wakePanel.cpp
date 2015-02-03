@@ -7,14 +7,23 @@
 //
 
 #include "wakePanel.h"
+#include "wake.h"
+#include "bodyPanel.h"
+#include "edge.h"
 
-wakePanel::wakePanel(const Eigen::VectorXi &panelVertices, Eigen::MatrixXd* nodes, std::vector<edge*> pEdges, Eigen::Vector3d bezNorm, int surfID, wake* parentWake) : panel(panelVertices,nodes,bezNorm,surfID), pEdges(pEdges), TEpanel(false), parentWake(parentWake)
+
+wakePanel::wakePanel(std::vector<cpNode*> nodes, std::vector<edge*> pEdges, Eigen::Vector3d bezNorm, int surfID, wake* parentWake) : panel(nodes,pEdges,bezNorm,surfID), TEpanel(false), parentWake(parentWake)
 {
     for (int i=0; i<pEdges.size(); i++)
     {
         pEdges[i]->addWakePan(this);
     }
 }
+
+wakePanel::wakePanel(const wakePanel &copy) : panel(copy), upperPan(copy.upperPan), lowerPan(copy.lowerPan), TEpanel(copy.TEpanel), parentWake(copy.parentWake) {}
+
+void wakePanel::setUpper(bodyPanel* up) {upperPan = up;}
+void wakePanel::setLower(bodyPanel* lp) {lowerPan = lp;}
 
 void wakePanel::interpPanels(std::vector<bodyPanel*> &interpPans, double &interpCoeff)
 {
@@ -54,7 +63,7 @@ void wakePanel::interpPanels(std::vector<bodyPanel*> &interpPans, double &interp
 
 double wakePanel::panelPhi(const Eigen::Vector3d &POI)
 {
-    return doubletStrength*dubPhiInf(POI);
+    return -doubletStrength*dubPhiInf(POI);
 }
 
 Eigen::Vector3d wakePanel::panelV(const Eigen::Vector3d &POI)

@@ -7,11 +7,14 @@
 //
 
 #include "edge.h"
+#include "bodyPanel.h"
+#include "wakePanel.h"
+#include "cpNode.h"
 
-edge::edge(int i1,int i2) : TE(false)
+edge::edge(cpNode* n1,cpNode* n2) : n1(n1), n2(n2), TE(false)
 {
-    nodeIndices.push_back(i1);
-    nodeIndices.push_back(i2);
+    n1->addEdge(this);
+    n2->addEdge(this);
 }
 
 void edge::addBodyPan(bodyPanel* b)
@@ -36,11 +39,35 @@ void edge::checkTE()
     }
 }
 
-bool edge::sameEdge(int i1, int i2)
+bool edge::isTE()  {return TE;}
+
+bool edge::sameEdge(cpNode* node1, cpNode* node2)
 {
-    if (std::find(nodeIndices.begin(),nodeIndices.end(),i1) != nodeIndices.end() && std::find(nodeIndices.begin(),nodeIndices.end(),i2) != nodeIndices.end())
+    if ((node1 == n1 && node2 == n2) || (node1 == n2 && node2 == n1))
     {
         return true;
     }
     return false;
+}
+
+bodyPanel* edge::getOtherBodyPan(bodyPanel* currentPan)
+{
+    for (int i=0; i<2; i++)
+    {
+        if (bodyPans[i] != currentPan)
+        {
+            return bodyPans[i];
+        }
+    }
+    return nullptr;
+}
+
+double edge::length() {return (n2->getPnt()-n1->getPnt()).norm();}
+
+std::vector<cpNode*> edge::getNodes()
+{
+    std::vector<cpNode*> ns;
+    ns.push_back(n1);
+    ns.push_back(n2);
+    return ns;
 }

@@ -18,9 +18,9 @@ class liftingSurf : public surface
     wake* wakeSurf;
     
 public:
-    liftingSurf(int surfID,Eigen::MatrixXd* nodes) : surface(surfID,nodes)
+    liftingSurf(int surfID) : surface(surfID)
     {
-        wakeSurf = new wake(nodes);
+        wakeSurf = new wake;
     }
     
     ~liftingSurf()

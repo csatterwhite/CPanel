@@ -18,15 +18,12 @@
 #include <boost/filesystem/path.hpp>
 #include <iomanip>
 #include <limits>
+#include "cpFile.h"
 
 struct inputParams
 {
-    std::string inputFile;
-    std::string inputPath;
-    std::string inputName;
-    std::string geomFile;
-    std::string geomPath;
-    std::string geomName;
+    cpFile* inputFile;
+    cpFile* geomFile;
     bool normFlag; //Normals included in input file
     double Sref;
     double bref;
@@ -34,17 +31,20 @@ struct inputParams
     Eigen::Vector3d cg;
     Eigen::VectorXd velocities,alphas,betas,machs;
     
-    inputParams(const char* inFile)
+    inputParams(cpFile* inFile) : inputFile(inFile) {}
+    
+    ~inputParams()
     {
-        inputFile = inFile;
+        delete geomFile;
     }
     
-    void set(std::ifstream &fid);
-    
-    void checkGeomFile();
-    
+    bool set();
     void print(std::ostream &stream);
-    
+
+private:
+    bool checkGeomFile();
+    void makeWorkingDir();
+    void writeInputFile();
     void printVec(Eigen::VectorXd &vec,std::ostream &stream);
 };
 

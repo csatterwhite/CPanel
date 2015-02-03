@@ -8,109 +8,105 @@
 
 #include "inputParams.h"
 
-void inputParams::set(std::ifstream &fid)
+bool inputParams::set()
 {
-    // Read in parameters from input file
-    std::string str1,str2;
-    int n;
-    fid >> str1 >> str2 >> geomFile;
-    checkGeomFile();
-    fid >> str1 >> str2 >> Sref;
-    fid >> str1 >> str2 >> bref;
-    fid >> str1 >> str2 >> cref;
-    for (int i=0; i<3; i++)
+    std::ifstream fid;
+    fid.open(inputFile->file);
+    if (fid)
     {
-        fid >> str1 >> str2 >> cg(i);
+        // Read in parameters from input file
+        std::string str1,str2;
+        std::string geomF;
+        int n;
+        fid >> str1;
+        while (str1 != "GeomFile")
+        {
+            fid.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+            fid >> str1;
+            if (fid.eof())
+            {
+                std::cout << "ERROR : Input file could not be read" << std::endl;
+                return false;
+            }
+        }
+        
+        fid >> str2 >> geomF;
+        geomFile = new cpFile(geomF);
+        if (!checkGeomFile())
+        {
+            return false;
+        }
+        fid >> str1 >> str2 >> Sref;
+        fid >> str1 >> str2 >> bref;
+        fid >> str1 >> str2 >> cref;
+        for (int i=0; i<3; i++)
+        {
+            fid >> str1 >> str2 >> cg(i);
+        }
+        fid.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+        fid.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+        fid >> n;
+        velocities.resize(n);
+        for (int i=0; i<n; i++)
+        {
+            fid >> velocities(i);
+        }
+        fid.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+        fid.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+        fid >> n;
+        alphas.resize(n);
+        for (int i=0; i<n; i++)
+        {
+            fid >> alphas(i);
+        }
+        fid.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+        fid.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+        fid >> n;
+        betas.resize(n);
+        for (int i=0; i<n; i++)
+        {
+            fid >> betas(i);
+        }
+        fid.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+        fid.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+        fid >> n;
+        machs.resize(n);
+        for (int i=0; i<n; i++)
+        {
+            fid >> machs(i);
+        }
+        makeWorkingDir();
+        return true;
     }
-    fid.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
-    fid.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
-    fid >> n;
-    velocities.resize(n);
-    for (int i=0; i<n; i++)
+    else
     {
-        fid >> velocities(i);
-    }
-    fid.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
-    fid.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
-    fid >> n;
-    alphas.resize(n);
-    for (int i=0; i<n; i++)
-    {
-        fid >> alphas(i);
-    }
-    fid.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
-    fid.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
-    fid >> n;
-    betas.resize(n);
-    for (int i=0; i<n; i++)
-    {
-        fid >> betas(i);
-    }
-    fid.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
-    fid.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
-    fid >> n;
-    machs.resize(n);
-    for (int i=0; i<n; i++)
-    {
-        fid >> machs(i);
+        std::cout << "ERROR : Input file could not be opened" << std::endl;
+        return false;
     }
 }
 
-void inputParams::checkGeomFile()
+bool inputParams::checkGeomFile()
 {
-    
-    std::size_t pathEnd = geomFile.find_last_of("/")+1;
-    std::size_t nameEnd = geomFile.find_last_of(".");
-    // Check file type
-    std::string ext = geomFile.substr(nameEnd,geomFile.size()-nameEnd);
-    if (ext == ".tri")
+    if (geomFile->ext == ".tri")
     {
         normFlag = false;
     }
-    else if (ext == ".tricp")
+    else if (geomFile->ext == ".tricp")
     {
         normFlag = true;
     }
     else
     {
         std::cout << "ERROR : Unsupported File Type \nAccepted Filetypes : '.tri','.tricp'" << std::endl;
-        exit(EXIT_FAILURE);
+        return false;
     }
-    
-    // Set geometry path and geometry name
-    if (pathEnd != 0)
-    {
-        geomPath = geomFile.substr(0,pathEnd);
-        geomName = geomFile.substr(pathEnd,nameEnd-pathEnd);
-    }
-    else
-    {
-        boost::filesystem::path p = boost::filesystem::current_path();
-        geomPath = p.string()+"/";
-        geomName = geomFile.substr(0,nameEnd);
-    }
-    
-    pathEnd = inputFile.find_last_of("/")+1;
-    nameEnd = inputFile.find_last_of(".");
-    
-    // Set input path and input name
-    if (pathEnd != 0)
-    {
-        inputPath = geomFile.substr(0,pathEnd);
-        inputName = inputFile.substr(pathEnd,nameEnd-pathEnd);
-    }
-    else
-    {
-        boost::filesystem::path p = boost::filesystem::current_path();
-        inputPath = p.string()+"/";
-        inputName = inputFile.substr(0,nameEnd);
-    }
+    return true;
 }
 
 void inputParams::print(std::ostream &stream)
 {
     int nChars = 18;
-    stream << std::setw(nChars) << "Geometry File " << "-> " << geomFile << std::endl;
+    stream << std::setw(nChars) << "Geometry File " << "-> " << geomFile->file << std::endl;
     stream << std::setw(nChars) << "Reference Area " << "-> " << Sref << " ft^2" << std::endl;
     stream << std::setw(nChars) << "Reference Span " << "-> " << bref << " ft" << std::endl;
     stream << std::setw(nChars) << "Reference Chord " << "-> " << cref << " ft" << std::endl;
@@ -157,4 +153,77 @@ void inputParams::printVec(Eigen::VectorXd &vec,std::ostream &stream)
     {
         stream << vec(0) << " ";
     }
+}
+
+void inputParams::makeWorkingDir()
+{
+    std::string inPath = inputFile->path;
+    inPath = inPath.substr(0,inPath.size()-1); // Remove trailing slash;
+    
+    std::size_t folderStart = inPath.find_last_of("/")+1;
+    std::string inFolder = inPath.substr(folderStart,inPath.size()-folderStart);
+    
+    if (inFolder != inputFile->name)
+    {
+        std::stringstream subdir;
+        subdir << inputFile->path << inputFile->name;
+        boost::filesystem::path p = subdir.str();
+        if (!boost::filesystem::exists(p))
+        {
+            boost::filesystem::create_directories(p);
+        }
+        chdir(subdir.str().c_str());
+        boost::filesystem::path oldPath = geomFile->file;
+        geomFile->changePath(boost::filesystem::current_path().string());
+        boost::filesystem::path newPath = geomFile->file;
+        boost::filesystem::rename(oldPath,newPath);
+        writeInputFile();
+        boost::filesystem::remove(inputFile->file);
+    }
+    else if (boost::filesystem::current_path() != inPath)
+    {
+        chdir(inPath.c_str());
+    }
+}
+
+void inputParams::writeInputFile()
+{
+    std::ofstream fid;
+    std::stringstream newInFile;
+    newInFile << inputFile->name << inputFile->ext;
+    fid.open(newInFile.str());
+    
+    fid << "%% CPanel Input File %%" << std::endl;
+    fid << "GeomFile =\t" << geomFile->file << std::endl;
+    fid << "Sref =\t" << Sref << std::endl;
+    fid << "bref =\t" << bref << std::endl;
+    fid << "cref =\t" << cref << std::endl;
+    fid << "X_cg =\t" << cg(0) << std::endl;
+    fid << "Y_cg =\t" << cg(1) << std::endl;
+    fid << "Z_cg =\t" << cg(2) << std::endl;
+    fid << "Velocity (ft/s)" << std::endl;
+    fid << velocities.size() << std::endl;
+    for (int i=0; i<velocities.size(); i++)
+    {
+        fid << velocities(i) << std::endl;
+    }
+    fid << "Angle of Attack (degrees)" << std::endl;
+    fid << alphas.size() << std::endl;
+    for (int i=0; i<alphas.size(); i++)
+    {
+        fid << alphas(i) << std::endl;
+    }
+    fid << "Angle of Sideslip (degrees)" << std::endl;
+    fid << betas.size() << std::endl;
+    for (int i=0; i<betas.size(); i++)
+    {
+        fid << betas(i) << std::endl;
+    }
+    fid << "Mach Number" << std::endl;
+    fid << machs.size() << std::endl;
+    for (int i=0; i<machs.size(); i++)
+    {
+        fid << machs(i) << std::endl;
+    }
+    fid.close();
 }

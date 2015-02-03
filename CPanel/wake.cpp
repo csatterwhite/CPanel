@@ -7,6 +7,11 @@
 //
 
 #include "wake.h"
+#include "wakePanel.h"
+#include "wakeLine.h"
+#include "edge.h"
+#include "cpNode.h"
+
 
 wake::~wake()
 {
@@ -26,20 +31,21 @@ wake::~wake()
 
 void wake::addPanel(wakePanel* wPan)
 {
-    Eigen::Vector3i verts = wPan->getVerts();
     Eigen::Vector3d pnt;
+    std::vector<cpNode*> nodes = wPan->getNodes();
     if (wpanels.size() == 0)
     {
         // Initialize wake dimensions with first panel
-        yMax = nodes->row(verts(0))(1);
+        pnt = nodes[0]->getPnt();
+        yMax = pnt(1);
         yMin = yMax;
-        x0 = nodes->row(verts(0))(0);
+        x0 = pnt(0);
         xf = x0;
     }
     
-    for (int i=0; i<verts.size(); i++)
+    for (int i=0; i<nodes.size(); i++)
     {
-        pnt = nodes->row(verts(i));
+        pnt = nodes[i]->getPnt();
         if (pnt(1) > yMax)
         {
             yMax = pnt(1);
@@ -224,11 +230,11 @@ double wake::Vradial(Eigen::Vector3d pWake)
         if (pnt1(2) > 0)
         {
             // Correct for jump in discontinuity;
-            phiPnt1 -= wakeStrength(pWake(1));
+            phiPnt1 += wakeStrength(pWake(1));
         }
         if (pnt2(2) > 0)
         {
-            phiPnt2 -= wakeStrength(pWake(1));
+            phiPnt2 += wakeStrength(pWake(1));
         }
         dPhiy(i) = phiPnt1-phiPOI;
         dPhiz(i) = phiPnt2-phiPOI;
@@ -253,23 +259,36 @@ Eigen::Vector3d wake::pntInWake(double x, double y)
 {
     Eigen::Vector3d p1,p2,tvec,pnt,out,pntInWake;
     double t,scale;
+    std::vector<edge*> edges;
     pntInWake.setZero();
-    for (int i=0; i<vortexSheets.size(); i++)
+    for (int i=0; i<wpanels.size(); i++)
     {
-        Eigen::VectorXi verts = vortexSheets[i]->getVerts();
-        p1 = nodes->row(verts(0));
-        p2 = nodes->row(verts(1));
-        if (p1(1) >= y && p2(1) < y)
+        if (wpanels[i]->isTEpanel())
         {
-            t = (y-p1(1))/(p2(1)-p1(1));
-            tvec = (p2-p1);
-            pnt = p1+t*tvec;
-            out = vortexSheets[i]->getNormal().cross(tvec);
-            scale = (x-pnt(0))/out(0);
-            pntInWake = pnt+scale*out;
-            break;
+            std::vector<edge*> edges = wpanels[i]->getUpper()->getEdges();
+            for (int j=0; j<edges.size(); j++)
+            {
+                if (edges[j]->isTE())
+                {
+                    p1 = edges[j]->getNodes()[0]->getPnt();
+                    p2 = edges[j]->getNodes()[1]->getPnt();
+                    if ((p1(1) <= y && p2(1) >= y) || (p1(1) >= y && p2(1) <= y))
+                    {
+                        t = (y-p1(1))/(p2(1)-p1(1));
+                        tvec = (p2-p1);
+                        pnt = p1+t*tvec;
+                        out = wpanels[i]->getNormal().cross(tvec);
+                        if (out(0) < 0)
+                        {
+                            out *= -1; // Flip sign if p1 and p2 were out of order
+                        }
+                        scale = (x-pnt(0))/out(0);
+                        pntInWake = pnt+scale*out;
+                        return pntInWake;
+                    }
+                }
+            }
         }
     }
     return pntInWake;
-    
 }

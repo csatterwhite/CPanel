@@ -20,22 +20,17 @@ double wakeLine::getStrength()
 
 void wakeLine::setDimensions()
 {
-    std::vector<Eigen::Vector3d> TEverts;
-    Eigen::MatrixXd* nodes = upper->getNodes();
-    Eigen::VectorXi uVerts = upper->getVerts();
-    Eigen::VectorXi lVerts = lower->getVerts();
-    for (int i=0; i<upper->getVerts().size(); i++)
+    std::vector<edge*> es = upper->getEdges();
+    std::vector<cpNode*> TEnodes;
+    for (int i=0; i<es.size(); i++)
     {
-        for (int j=0; j<lower->getVerts().size(); j++)
+        if (es[i]->isTE())
         {
-            if (nodes->row(uVerts(i)) == nodes->row(lVerts(j)))
-            {
-                TEverts.push_back(nodes->row(uVerts(i)));
-            }
+            TEnodes = es[i]->getNodes();
         }
     }
-    std::sort(TEverts.begin(), TEverts.end(), [](Eigen::Vector3d p1, Eigen::Vector3d p2) {return p1(1)<p2(1);});
-    p1 = TEverts[0];
-    p2 = TEverts[1];
+
+    p1 = TEnodes[0]->getPnt();
+    p2 = TEnodes[1]->getPnt();
     pMid = (p1+p2)/2;
 }

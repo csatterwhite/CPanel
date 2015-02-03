@@ -7,8 +7,15 @@
 //
 
 #include "panel.h"
+#include "cpNode.h"
+#include "edge.h"
 
-panel::panel(const Eigen::VectorXi &panelVertices,Eigen::MatrixXd* nodes, Eigen::Vector3d bezNorm, int surfID) : ID(surfID), verts(panelVertices), nodes(nodes), bezNormal(bezNorm)
+panel::panel(std::vector<cpNode*> nodes, std::vector<edge*> pEdges, Eigen::Vector3d bezNorm, int surfID) : ID(surfID), nodes(nodes), pEdges(pEdges), bezNormal(bezNorm)
+{
+    setGeom();
+}
+
+panel::panel(const panel &copy) : ID(copy.ID), nodes(copy.nodes)
 {
     setGeom();
 }
@@ -17,32 +24,22 @@ void panel::setGeom()
 {
     longSide = 0;
     
-    for (int i=0; i<verts.rows(); i++)
+    for (int i=0; i<pEdges.size(); i++)
     {
-        Eigen::Vector3d vec;
-        double l;
-        if (i != verts.rows()-1)
-        {
-            vec = nodes->row(verts(i+1))-nodes->row(verts(i));
-        }
-        else
-        {
-            vec = nodes->row(verts(0))-nodes->row(verts(i));
-        }
-        l = vec.norm();
-        if (l>longSide)
+        double l = pEdges[i]->length();
+        if (l > longSide)
         {
             longSide = l;
         }
     }
     
-    if (verts.size() == 3)
+    if (pEdges.size() == 3)
     {
         Eigen::Vector3d p0,p1,p2;
         Eigen::Vector3d a,b;
-        p0 = nodes->row(verts(0));
-        p1 = nodes->row(verts(1));
-        p2 = nodes->row(verts(2));
+        p0 = nodes[0]->getPnt();
+        p1 = nodes[1]->getPnt();
+        p2 = nodes[2]->getPnt();
         a = p1-p0;
         b = p2-p0;
         center = (p0+p1+p2)/3;
@@ -57,15 +54,19 @@ void panel::setGeom()
         {
             bezNormal = normal;
         }
+        else
+        {
+            bezNormal.normalize();
+        }
     }
-    else if (verts.size() == 4)
+    else if (pEdges.size() == 4)
     {
         Eigen::Vector3d p0,p1,p2,p3,m1,m2;
         Eigen::Vector3d a,b,c,d,p,q;
-        p0 = nodes->row(verts(0));
-        p1 = nodes->row(verts(1));
-        p2 = nodes->row(verts(2));
-        p3 = nodes->row(verts(3));
+        p0 = nodes[0]->getPnt();
+        p1 = nodes[1]->getPnt();
+        p2 = nodes[2]->getPnt();
+        p3 = nodes[3]->getPnt();
         a = p1-p0;
         b = p2-p1;
         c = p3-p2;
@@ -84,20 +85,34 @@ void panel::setGeom()
         {
             bezNormal = normal;
         }
+        else
+        {
+            bezNormal.normalize();
+        }
     }
 }
 
-bool panel::isOnPanel(const Eigen::Vector3d &POI)
+void panel::setPotential(Eigen::Vector3d Vinf)
 {
-    Eigen::MatrixXd points(verts.rows()+1,3);
-    for (int i=0; i<verts.rows(); i++)
+    potential = Vinf.dot(center)-doubletStrength;
+}
+
+bool panel::inPanelProjection(const Eigen::Vector3d &POI)
+{
+    // Returns true if point is contained in extrusion of panel infinitely in normal direction
+    Eigen::MatrixXd points(nodes.size()+1,3);
+    for (int i=0; i<nodes.size(); i++)
     {
-        points.row(i) = nodes->row(verts(i));
+        points.row(i) = nodes[i]->getPnt();
     }
-    points.row(verts.rows()) = POI;
-        
-    convexHull hull(points,false);
-    return (hull.getHull().size() == verts.size());
+    points.row(nodes.size()) = POI;
+    for (int i=0; i<points.rows(); i++)
+    {
+        points.row(i) = global2local(points.row(i), true);
+    }
+    
+    convexHull hull(points,true);
+    return (hull.getHull().size() == nodes.size());
 }
 
 Eigen::Matrix3d panel::getLocalSys()
@@ -107,7 +122,7 @@ Eigen::Matrix3d panel::getLocalSys()
     // Y : Normal crossed with X to obtain right hand coordinate system
     // Z : Normal to the panel
     Eigen::Matrix3d local = Eigen::Matrix3d::Zero();
-    local.row(0) = getUnitVector(center,nodes->row((verts(0))));
+    local.row(0) = getUnitVector(center,nodes[0]->getPnt());
     local.row(1) = normal.cross(local.row(0));
     local.row(2) = normal;
     
@@ -161,11 +176,11 @@ double panel::dubPhiInf(const Eigen::Vector3d &POI)
     {
         return -0.5;
     }
-    else if (std::abs(PN) < pow(10,-8))
-    {
-        return 0;
-    }
-    else if (pjk.norm()/longSide > 5)
+//    else if (std::abs(PN) < pow(10,-8))
+//    {
+//        return 0;
+//    }
+    if (pjk.norm()/longSide > 100)
     {
         return pntDubPhi(PN,pjk.norm());
     }
@@ -174,19 +189,19 @@ double panel::dubPhiInf(const Eigen::Vector3d &POI)
         double phi = 0;
         double Al;
         Eigen::Vector3d a,b,s;
-        for (int i=0; i<verts.size(); i++)
+        for (int i=0; i<nodes.size(); i++)
         {
             Eigen::Vector3d p1;
             Eigen::Vector3d p2;
-            if (i!=verts.size()-1)
+            if (i!=nodes.size()-1)
             {
-                p1 = nodes->row(verts(i));
-                p2 = nodes->row(verts(i+1));
+                p1 = nodes[i]->getPnt();
+                p2 = nodes[i+1]->getPnt();
             }
             else
             {
-                p1 = nodes->row(verts(i));
-                p2 = nodes->row(verts(0));
+                p1 = nodes[i]->getPnt();
+                p2 = nodes[0]->getPnt();
             }
             a = POI-p1;
             b = POI-p2;
@@ -205,12 +220,12 @@ Eigen::Vector3d panel::dubVInf(const Eigen::Vector3d &POI)
     Eigen::Vector3d vel = Eigen::Vector3d::Zero(3);
     Eigen::Vector3d pjk = POI-center;
     Eigen::Matrix3d local = getLocalSys();
-    if (pjk.norm() < 0.0000001)
-    {
-        vel << 0,0,0;
-        return vel;
-    }
-    else if (pjk.norm()/longSide > 5)
+//    if (pjk.norm() < 0.0000001)
+//    {
+//        vel << 0,0,0;
+//        return vel;
+//    }
+    if (pjk.norm()/longSide > 5)
     {
         return pntDubV(local.row(2),pjk);
     }
@@ -218,9 +233,9 @@ Eigen::Vector3d panel::dubVInf(const Eigen::Vector3d &POI)
     {
         Eigen::Vector3d p1,p2,a,b,s;
         int i1,i2;
-        for (int i=0; i<verts.size(); i++)
+        for (int i=0; i<nodes.size(); i++)
         {
-            if (i!=verts.size()-1)
+            if (i!=nodes.size()-1)
             {
                 i1 = i;
                 i2 = i+1;
@@ -230,8 +245,8 @@ Eigen::Vector3d panel::dubVInf(const Eigen::Vector3d &POI)
                 i1 = i;
                 i2 = 0;
             }
-            p1 = nodes->row(verts(i1));
-            p2 = nodes->row(verts(i2));
+            p1 = nodes[i1]->getPnt();
+            p2 = nodes[i2]->getPnt();
             a = POI-p1;
             b = POI-p2;
             s = p2-p1;
@@ -250,19 +265,45 @@ Eigen::Vector3d panel::vortexV(const Eigen::Vector3d &a, const Eigen::Vector3d &
 
 double panel::vortexPhi(const double &PN,const double &Al, const Eigen::Vector3d &a,const Eigen::Vector3d &b, const Eigen::Vector3d &s, const Eigen::Vector3d &l,const Eigen::Vector3d &m,const Eigen::Vector3d &n)
 {
-    if (std::abs(PN) < pow(10,-10))
+    double eps = pow(10, -10);
+    double PA,PB,num,denom;
+    
+    PA = a.dot(l.cross(a.cross(s)));
+    PB = PA-Al*s.dot(m);
+    num = s.dot(m)*PN*(b.norm()*PA-a.norm()*PB);
+    denom = PA*PB+pow(PN,2)*a.norm()*b.norm()*pow(s.dot(m),2);
+    if (std::abs(denom) < eps && std::abs(PN) < eps)
     {
-        return 0;
+        // Point is on edge.
+        if (PN >= 0)
+        {
+            return 0.5*M_PI;
+        }
+        else
+        {
+            return -0.5*M_PI;
+        }
     }
-    else
-    {
-        double PA,PB,num,denom;
-        
-        PA = a.dot(l.cross(a.cross(s)));
-        PB = PA-Al*s.dot(m);
-        num = s.dot(m)*PN*(b.norm()*PA-a.norm()*PB);
-        denom = PA*PB+pow(PN,2)*a.norm()*b.norm()*pow(s.dot(m),2);
-        
-        return atan2(num,denom);
-    }
+    return atan2(num,denom);
 }
+
+double panel::pntDubPhi(const double &PN, const double &PJK)
+{
+    return PN*area/(4*M_PI*pow(PJK,3));
+}
+
+Eigen::Vector3d panel::pntDubV(const Eigen::Vector3d n,const Eigen::Vector3d &pjk)
+{
+    return -area*(3*pjk.dot(n)*pjk-pow(pjk.norm(),2)*n)/(4*M_PI*pow(pjk.norm(),5));
+}
+
+Eigen::VectorXi panel::getVerts()
+{
+    Eigen::VectorXi verts(nodes.size());
+    for (int i=0; i<nodes.size(); i++)
+    {
+        verts(i) = nodes[i]->getIndex();
+    }
+    return verts;
+}
+

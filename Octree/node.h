@@ -206,16 +206,21 @@ public:
     
     int getChildContainingMember(const member<type> &member)
     {
+        return getChildContainingPnt(member.getRefPoint());
+    }
+    
+    int getChildContainingPnt(const Eigen::Vector3d &pnt)
+    {
         int child = 0;
-        if (member.getRefPoint()[0] > origin[0])
+        if (pnt(0) > origin[0])
         {
             child |= 4;
         }
-        if (member.getRefPoint()[1] > origin[1])
+        if (pnt(1) > origin[1])
         {
             child |= 2;
         }
-        if (member.getRefPoint()[2] > origin[2])
+        if (pnt(2) > origin[2])
         {
             child |= 1;
         }

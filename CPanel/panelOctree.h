@@ -22,6 +22,8 @@ public:
     panelOctree() : octree() {}
     
     Eigen::Vector3d findRefPoint(const panel &obj);
+    
+//    panel* getClosestPanel(const Eigen::Vector3d &pnt);
 };
 
 #endif /* defined(__CPanel__panelOctree__) */

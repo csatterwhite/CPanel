@@ -11,32 +11,30 @@
 
 #include <iostream>
 #include "panel.h"
-#include "bodyPanel.h"
+//#include "bodyPanel.h"
 #include "panelOctree.h"
 #include "wakeLine.h"
-#include "wake.h"
-#include "edge.h"
+//#include "wake.h"
 
 class wake;
-class edge;
 class bodyPanel;
+class edge;
 
 class wakePanel : public panel
 {
-    std::vector<edge*> pEdges;
     bodyPanel* upperPan;
     bodyPanel* lowerPan;
     bool TEpanel;
     wake* parentWake;
     
 public:
-    wakePanel(const Eigen::VectorXi &panelVertices, Eigen::MatrixXd* nodes, std::vector<edge*> pEdges, Eigen::Vector3d bezNorm, int surfID, wake* parentWake);
+    wakePanel(std::vector<cpNode*> nodes, std::vector<edge*> pEdges, Eigen::Vector3d bezNorm, int surfID, wake* parentWake);
     
-    wakePanel(const wakePanel &copy) : panel(copy),  upperPan(copy.upperPan), lowerPan(copy.lowerPan), TEpanel(copy.TEpanel), parentWake(copy.parentWake) {}
+    wakePanel(const wakePanel &copy);
     
     void setTEpanel() {TEpanel = true;}
-    void setUpper(bodyPanel* up) {upperPan = up;}
-    void setLower(bodyPanel* lp) {lowerPan = lp;}
+    void setUpper(bodyPanel* up);
+    void setLower(bodyPanel* lp);
     void setParentPanels();
 //    wakePanel* makeVortexSheet();
     void interpPanels(std::vector<bodyPanel*> &interpP, double &interpC);

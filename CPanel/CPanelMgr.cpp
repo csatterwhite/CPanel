@@ -11,15 +11,15 @@
 void caseMgr::setCases()
 {
     cpCase* c;
-    for (int v=0; v<p.velocities.rows(); v++)
+    for (int v=0; v<p->velocities.rows(); v++)
     {
-        for (int a=0; a<p.alphas.rows(); a++)
+        for (int a=0; a<p->alphas.rows(); a++)
         {
-            for (int b=0; b<p.betas.rows(); b++)
+            for (int b=0; b<p->betas.rows(); b++)
             {
-                for (int m=0; m<p.machs.rows(); m++)
+                for (int m=0; m<p->machs.rows(); m++)
                 {
-                            c = new cpCase(geom,p.velocities(v),p.alphas(a),p.betas(b),p.machs(m),p.inputPath,p.inputName);
+                            c = new cpCase(geom,p->velocities(v),p->alphas(a),p->betas(b),p->machs(m),p);
                             cases.push_back(c);
                 }
             }
@@ -46,12 +46,12 @@ void caseMgr::runCases()
 void caseMgr::writeSummary()
 {
     std::ofstream out;
-    std::string outFile = p.inputPath+p.inputName+".CPout";
+    std::string outFile = p->inputFile->name+".CPout";
     out.open(outFile);
     if (out)
     {
         out << "-----------INPUTS-----------\n\n";
-        p.print(out);
+        p->print(out);
         out << "\n\n";
         out << "-----------RESULTS-----------\n\n";
         out << std::left; // Left justify results

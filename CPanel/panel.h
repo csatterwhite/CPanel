@@ -20,16 +20,21 @@
 #include "convexHull.h"
 #include "panelOctree.h"
 #include "chtlsnd.h"
+//#include "cpNode.h"
+//#include "edge.h"
 
 class panelOctree;
+class edge;
+class cpNode;
 
 class panel
 {    
 protected:
+    std::vector<cpNode*> nodes;
+    std::vector<edge*> pEdges;
     Eigen::Vector3d center;
     Eigen::Vector3d normal;
     Eigen::Vector3d bezNormal; //Used in derivative calculation
-    Eigen::VectorXi verts;
     double area;
     double longSide;
 
@@ -37,10 +42,8 @@ protected:
     double potential;
     Eigen::Vector3d velocity;
     double Cp;
-    Eigen::MatrixXd* nodes;
     int ID;
     
-    bool isOnPanel(const Eigen::Vector3d &POI);
     Eigen::Vector3d global2local(const Eigen::Vector3d &globalVec,bool translate);
     Eigen::Vector3d local2global(const Eigen::Vector3d &localVec,bool translate);
     
@@ -49,31 +52,22 @@ protected:
     Eigen::Vector3d getUnitVector(const Eigen::Vector3d &p1, const Eigen::Vector3d &p2);
     Eigen::Matrix3d getLocalSys();
     
-    inline double pntDubPhi(const double &PN, const double &PJK)
-    {
-        return PN*area/(4*M_PI*pow(PJK,3));
-    }
+    double pntDubPhi(const double &PN, const double &PJK);
     
-    inline Eigen::Vector3d pntDubV(const Eigen::Vector3d n,const Eigen::Vector3d &pjk)
-    {
-        return -area*(3*pjk.dot(n)*pjk-pow(pjk.norm(),2)*n)/(4*M_PI*pow(pjk.norm(),5));
-    }
+    Eigen::Vector3d pntDubV(const Eigen::Vector3d n,const Eigen::Vector3d &pjk);
     
 public:
-    panel(const Eigen::VectorXi &panelVertices,Eigen::MatrixXd* nodes, Eigen::Vector3d bezNorm, int surfID);
+    panel(std::vector<cpNode*> nodes, std::vector<edge*> pEdges, Eigen::Vector3d bezNorm, int surfID);
     
     virtual ~panel() {}
     
-    panel(const panel &copy) : ID(copy.ID), verts(copy.verts), nodes(copy.nodes)
-    {
-        setGeom();
-    }
+    panel(const panel &copy);
+    
     void setGeom();
     
-    void setPotential(Eigen::Vector3d Vinf)
-    {
-        potential = Vinf.dot(center)-doubletStrength;
-    }
+    void setPotential(Eigen::Vector3d Vinf);
+    
+    bool inPanelProjection(const Eigen::Vector3d &POI);
     
     double dubPhiInf(const Eigen::Vector3d &POI);
     Eigen::Vector3d dubVInf(const Eigen::Vector3d &POI);
@@ -84,8 +78,9 @@ public:
     Eigen::Vector3d getCenter() const {return center;}
     Eigen::Vector3d getNormal() const {return normal;}
     Eigen::Vector3d getBezNormal() const {return bezNormal;}
-    Eigen::VectorXi getVerts() const {return verts;}
-    Eigen::MatrixXd* getNodes() {return nodes;}
+    std::vector<cpNode*> getNodes() {return nodes;}
+    Eigen::VectorXi getVerts();
+    std::vector<edge*> getEdges() {return pEdges;}
     double getArea() {return area;}
     double getMu() {return doubletStrength;}
     double getPotential() {return potential;}

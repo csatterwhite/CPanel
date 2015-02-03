@@ -12,6 +12,8 @@
 #include <stdio.h>
 #include <cmath>
 #include "bodyPanel.h"
+#include "edge.h"
+#include "cpNode.h"
 
 class bodyPanel;
 

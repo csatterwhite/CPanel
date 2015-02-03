@@ -24,14 +24,13 @@ class surface
 protected:
     std::vector<bodyPanel*> panels;
     short surfID;
-    Eigen::MatrixXd* nodes;
     
 public:
-    surface(const int &surfaceID,Eigen::MatrixXd* nodes) : surfID(surfaceID), nodes(nodes) {}
+    surface(const int &surfaceID) : surfID(surfaceID) {}
     
     virtual ~surface();
     
-    surface(const surface& copy) : surfID(copy.surfID), nodes(copy.nodes)
+    surface(const surface& copy) : surfID(copy.surfID)
     {
         for (int i=0; i<copy.panels.size(); i++)
         {

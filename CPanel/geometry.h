@@ -12,6 +12,10 @@
 #include <iostream>
 #include <vector>
 #include <Eigen/Dense>
+#include <fstream>
+#include <array>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
 #include "panelOctree.h"
 #include "surface.h"
 #include "liftingSurf.h"
@@ -19,21 +23,18 @@
 #include "bodyPanel.h"
 #include "wakePanel.h"
 #include "edge.h"
+#include "inputParams.h"
+#include "cpNode.h"
 
 class geometry
 {
-    double Sref;
-    double bref;
-    double cref;
-    Eigen::Vector3d cg;
-    
     std::vector<liftingSurf*> liftingSurfs;
     std::vector<surface*> nonLiftingSurfs;
     std::vector<bodyPanel*> bPanels;
     std::vector<wakePanel*> wPanels;
     
     panelOctree pOctree;
-    Eigen::MatrixXd nodes;
+    std::vector<cpNode*> nodes;
     std::vector<edge*> edges;
     Eigen::Matrix<bool,Eigen::Dynamic,1> TEnodes;
     short nNodes;
@@ -42,10 +43,11 @@ class geometry
     
     Eigen::MatrixXd B; // Source Influence Coefficient Matrix
     Eigen::MatrixXd A; // Doublet Influence Coefficient Matrix
+    std::string infCoeffFile;
 
     void readTri(std::string tri_file, bool normFlag);
-    std::vector<edge*> triEdges(const Eigen::VectorXi &indices);
-    edge* findEdge(int i1,int i2);
+    std::vector<edge*> panEdges(const std::vector<cpNode*> &pNodes);
+    edge* findEdge(cpNode* n1,cpNode* n2);
     void createSurfaces(const Eigen::MatrixXi &connectivity, const Eigen::MatrixXd &norms, const Eigen::VectorXi &allID, std::vector<int> wakeIDs);
     void createOctree();
     void setTEPanels();
@@ -60,10 +62,17 @@ class geometry
     void setInfCoeff();
     Eigen::Vector4i interpIndices(std::vector<bodyPanel*> interpPans);
     
+    bool infCoeffFileExists();
+    void readInfCoeff();
+    void writeInfCoeff();
+    
 public:
-    geometry(std::string geomFile, bool normFlag, double Sref, double bref, double cref, Eigen::Vector3d cg) : Sref(Sref), bref(bref), cref(cref),cg(cg)
+    geometry(inputParams* p)
     {
-        readTri(geomFile,normFlag);
+        std::stringstream temp;
+        temp << p->geomFile->name << ".infCoeff";
+        infCoeffFile = temp.str();
+        readTri(p->geomFile->file, p->normFlag);
     }
     
     ~geometry()
@@ -94,14 +103,10 @@ public:
         }
     }
     
-    double getSref() {return Sref;}
-    double getbref() {return bref;}
-    double getcref() {return cref;}
-    
-    Eigen::Vector3d getCG() {return cg;}
     short getNumberOfNodes() {return nNodes;}
     short getNumberOfTris() {return nTris;}
-    Eigen::MatrixXd getNodes() {return nodes;}
+    std::vector<cpNode*> getNodes() {return nodes;}
+    Eigen::MatrixXd getNodePnts();
     std::vector<liftingSurf*> getLiftingSurfs() {return liftingSurfs;}
     std::vector<surface*> getNonLiftingSurfs() {return nonLiftingSurfs;}
     std::vector<surface*> getSurfaces();
