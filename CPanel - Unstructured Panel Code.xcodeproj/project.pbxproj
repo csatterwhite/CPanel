@@ -16,6 +16,8 @@
 		8334B036192AD35D008241DB /* libcpptest.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 83B4B8F418F0AAC900EEBC34 /* libcpptest.a */; };
 		833CAB381A755EF2003F65FE /* edge.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 833CAB361A755EF2003F65FE /* edge.cpp */; };
 		833CAB391A755EF2003F65FE /* edge.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 833CAB361A755EF2003F65FE /* edge.cpp */; };
+		834098721A7991E8005B71C5 /* cpFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 834098701A7991E8005B71C5 /* cpFile.cpp */; };
+		834098731A7991E8005B71C5 /* cpFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 834098701A7991E8005B71C5 /* cpFile.cpp */; };
 		8346AFD81A69A396007745C4 /* CPanelMgr.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8346AFD61A69A395007745C4 /* CPanelMgr.cpp */; };
 		8346AFDB1A69B861007745C4 /* inputParams.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8346AFD91A69B861007745C4 /* inputParams.cpp */; };
 		834845E41A74642700975384 /* libcpptest.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 83B4B8F418F0AAC900EEBC34 /* libcpptest.a */; };
@@ -38,6 +40,12 @@
 		836085121A741A9400ED03F3 /* influenceTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 836085101A741A9400ED03F3 /* influenceTests.cpp */; };
 		837CADCF1A719FDE009828CF /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 837CADCE1A719FDE009828CF /* main.cpp */; };
 		837CADD61A71A23E009828CF /* geometryTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 837CADD41A71A23E009828CF /* geometryTests.cpp */; };
+		839E4E8F1A76C56E00E24949 /* streamline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 839E4E8D1A76C56E00E24949 /* streamline.cpp */; };
+		839E4E901A76C56E00E24949 /* streamline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 839E4E8D1A76C56E00E24949 /* streamline.cpp */; };
+		839E4E931A77F01800E24949 /* bodyStreamline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 839E4E911A77F01700E24949 /* bodyStreamline.cpp */; };
+		839E4E941A77F01800E24949 /* bodyStreamline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 839E4E911A77F01700E24949 /* bodyStreamline.cpp */; };
+		83A4EA7E1A804ECA001F8739 /* cpNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83A4EA7C1A804ECA001F8739 /* cpNode.cpp */; };
+		83A4EA7F1A804ECA001F8739 /* cpNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83A4EA7C1A804ECA001F8739 /* cpNode.cpp */; };
 		83A7DF1A18FDF5CA002DDEB6 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83A7DF1918FDF5CA002DDEB6 /* main.cpp */; };
 		83A7DF1C18FDF5CA002DDEB6 /* OctreeUnitTests.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 83A7DF1B18FDF5CA002DDEB6 /* OctreeUnitTests.1 */; };
 		83A7DF2218FDF629002DDEB6 /* OctreeTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83A7DF2018FDF629002DDEB6 /* OctreeTests.cpp */; };
@@ -151,6 +159,8 @@
 		8334B02C192AD2CE008241DB /* InfluenceCoefficientTests */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = InfluenceCoefficientTests; sourceTree = BUILT_PRODUCTS_DIR; };
 		833CAB361A755EF2003F65FE /* edge.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = edge.cpp; path = CPanel/edge.cpp; sourceTree = SOURCE_ROOT; };
 		833CAB371A755EF2003F65FE /* edge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = edge.h; path = CPanel/edge.h; sourceTree = SOURCE_ROOT; };
+		834098701A7991E8005B71C5 /* cpFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = cpFile.cpp; path = CPanel/cpFile.cpp; sourceTree = SOURCE_ROOT; };
+		834098711A7991E8005B71C5 /* cpFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = cpFile.h; path = CPanel/cpFile.h; sourceTree = SOURCE_ROOT; };
 		8346AFD61A69A395007745C4 /* CPanelMgr.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CPanelMgr.cpp; path = CPanel/CPanelMgr.cpp; sourceTree = SOURCE_ROOT; };
 		8346AFD71A69A395007745C4 /* CPanelMgr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CPanelMgr.h; path = CPanel/CPanelMgr.h; sourceTree = SOURCE_ROOT; };
 		8346AFD91A69B861007745C4 /* inputParams.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = inputParams.cpp; path = CPanel/inputParams.cpp; sourceTree = SOURCE_ROOT; };
@@ -169,6 +179,12 @@
 		837CADCE1A719FDE009828CF /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		837CADD41A71A23E009828CF /* geometryTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = geometryTests.cpp; sourceTree = "<group>"; };
 		837CADD51A71A23E009828CF /* geometryTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = geometryTests.h; sourceTree = "<group>"; };
+		839E4E8D1A76C56E00E24949 /* streamline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = streamline.cpp; path = CPanel/streamline.cpp; sourceTree = SOURCE_ROOT; };
+		839E4E8E1A76C56E00E24949 /* streamline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = streamline.h; path = CPanel/streamline.h; sourceTree = SOURCE_ROOT; };
+		839E4E911A77F01700E24949 /* bodyStreamline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = bodyStreamline.cpp; path = CPanel/bodyStreamline.cpp; sourceTree = SOURCE_ROOT; };
+		839E4E921A77F01700E24949 /* bodyStreamline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = bodyStreamline.h; path = CPanel/bodyStreamline.h; sourceTree = SOURCE_ROOT; };
+		83A4EA7C1A804ECA001F8739 /* cpNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = cpNode.cpp; path = CPanel/cpNode.cpp; sourceTree = SOURCE_ROOT; };
+		83A4EA7D1A804ECA001F8739 /* cpNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = cpNode.h; path = CPanel/cpNode.h; sourceTree = SOURCE_ROOT; };
 		83A7DF1718FDF5CA002DDEB6 /* OctreeUnitTests */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = OctreeUnitTests; sourceTree = BUILT_PRODUCTS_DIR; };
 		83A7DF1918FDF5CA002DDEB6 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		83A7DF1B18FDF5CA002DDEB6 /* OctreeUnitTests.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = OctreeUnitTests.1; sourceTree = "<group>"; };
@@ -267,8 +283,12 @@
 				8346AFD71A69A395007745C4 /* CPanelMgr.h */,
 				8346AFD91A69B861007745C4 /* inputParams.cpp */,
 				8346AFDA1A69B861007745C4 /* inputParams.h */,
+				834098701A7991E8005B71C5 /* cpFile.cpp */,
+				834098711A7991E8005B71C5 /* cpFile.h */,
 				8358C3E31A0C2767004E94E0 /* cpCase.cpp */,
 				8358C3E41A0C2767004E94E0 /* cpCase.h */,
+				83A4EA7C1A804ECA001F8739 /* cpNode.cpp */,
+				83A4EA7D1A804ECA001F8739 /* cpNode.h */,
 				83039E05191152C300271526 /* geometry.cpp */,
 				83039E06191152C300271526 /* geometry.h */,
 				833CAB361A755EF2003F65FE /* edge.cpp */,
@@ -289,6 +309,10 @@
 				83039E0F19129C7F00271526 /* bodyPanel.h */,
 				83039E1119129C9100271526 /* wakePanel.cpp */,
 				83039E1219129C9100271526 /* wakePanel.h */,
+				839E4E8D1A76C56E00E24949 /* streamline.cpp */,
+				839E4E8E1A76C56E00E24949 /* streamline.h */,
+				839E4E911A77F01700E24949 /* bodyStreamline.cpp */,
+				839E4E921A77F01700E24949 /* bodyStreamline.h */,
 				83539BD51A23B443002C6865 /* chtlsnd.cpp */,
 				83539BD61A23B443002C6865 /* chtlsnd.h */,
 				83B5BDAC19D310B100506A12 /* convexHull.cpp */,
@@ -539,14 +563,18 @@
 			files = (
 				83039E1619129DA600271526 /* panel.cpp in Sources */,
 				83039DFE191152A300271526 /* main.cpp in Sources */,
+				834098721A7991E8005B71C5 /* cpFile.cpp in Sources */,
 				8358C3E81A0C2767004E94E0 /* wake.cpp in Sources */,
 				83AEFF741918068000A697F5 /* panelOctree.cpp in Sources */,
 				83039E1319129C9100271526 /* wakePanel.cpp in Sources */,
+				839E4E931A77F01800E24949 /* bodyStreamline.cpp in Sources */,
+				839E4E8F1A76C56E00E24949 /* streamline.cpp in Sources */,
 				83BB320D19FD508C005EE19C /* wakeLine.cpp in Sources */,
 				8358C3E71A0C2767004E94E0 /* cpCase.cpp in Sources */,
 				83AE7F511918637200CEC299 /* surface.cpp in Sources */,
 				83039E07191152C300271526 /* geometry.cpp in Sources */,
 				83039E1019129C7F00271526 /* bodyPanel.cpp in Sources */,
+				83A4EA7E1A804ECA001F8739 /* cpNode.cpp in Sources */,
 				83539BD71A23B443002C6865 /* chtlsnd.cpp in Sources */,
 				83EF7A2719EF004700E54C6E /* liftingSurf.cpp in Sources */,
 				8346AFD81A69A396007745C4 /* CPanelMgr.cpp in Sources */,
@@ -572,13 +600,17 @@
 				836085121A741A9400ED03F3 /* influenceTests.cpp in Sources */,
 				834845F01A74649000975384 /* convexHull.cpp in Sources */,
 				834845E61A74645B00975384 /* geometry.cpp in Sources */,
+				839E4E901A76C56E00E24949 /* streamline.cpp in Sources */,
 				834845EE1A74648700975384 /* wakePanel.cpp in Sources */,
 				834845EB1A74647500975384 /* panelOctree.cpp in Sources */,
 				834845E71A74646200975384 /* surface.cpp in Sources */,
 				834845ED1A74648000975384 /* bodyPanel.cpp in Sources */,
 				834845E91A74646E00975384 /* wake.cpp in Sources */,
+				839E4E941A77F01800E24949 /* bodyStreamline.cpp in Sources */,
 				833CAB391A755EF2003F65FE /* edge.cpp in Sources */,
+				834098731A7991E8005B71C5 /* cpFile.cpp in Sources */,
 				834845E81A74646800975384 /* liftingSurf.cpp in Sources */,
+				83A4EA7F1A804ECA001F8739 /* cpNode.cpp in Sources */,
 				834845EC1A74647900975384 /* panel.cpp in Sources */,
 				834845EF1A74648A00975384 /* chtlsnd.cpp in Sources */,
 				834845EA1A74647200975384 /* wakeLine.cpp in Sources */,

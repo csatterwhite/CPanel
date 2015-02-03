@@ -44,7 +44,7 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
       useCustomWorkingDirectory = "YES"
-      customWorkingDirectory = "/Users/Chris/Desktop/Thesis/Code/NACA4412"
+      customWorkingDirectory = "/Users/Chris/Desktop/Thesis/Code"
       buildConfiguration = "Debug"
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
@@ -60,7 +60,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "coarse.CPin"
+            argument = "sphere/coarse/coarse.CPin"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
