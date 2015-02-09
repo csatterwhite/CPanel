@@ -8,6 +8,7 @@
 
 #include "cpCase.h"
 
+
 void cpCase::run()
 {
     bool converged;
@@ -19,7 +20,7 @@ void cpCase::run()
     std::cout << std::setw(16) << std::left << check << std::flush;
     trefftzPlaneAnalysis();
     std::cout << std::setw(20) << std::left << check << std::endl;
-//    createStreamlines();
+    createStreamlines();
     if (!converged)
     {
         std::cout << "*** Warning : Solution did not converge ***" << std::endl;;
@@ -127,38 +128,38 @@ void cpCase::trefftzPlaneAnalysis()
 void cpCase::createStreamlines()
 {
     // Gather TE Panels
-    std::vector<bodyPanel*> startPans;
-    for (int i=0; i<bPanels->size(); i++)
-    {
-        if ((*bPanels)[i]->isLower() || (*bPanels)[i]->isUpper())
-        {
-            startPans.push_back((*bPanels)[i]);
-        }
-    }
-    
-    std::sort(startPans.begin(),startPans.end(), [](bodyPanel* p1, bodyPanel* p2){return p1->getCenter()(1) > p2->getCenter()(1);});
-    
-    std::string streamFile = "streamlines.xyz";
-    std::ofstream fid;
-    fid.open(streamFile);
-    
+    std::vector<surface*> surfs = geom->getSurfaces();
+    std::vector<std::pair<Eigen::Vector3d,bodyPanel*>> streamPnts;
+    bodyStreamline* s;
+    std::vector<bodyStreamline*> streamlines;
     std::vector<Eigen::Vector3d> pnts;
     
-    for (int i=0; i<bPanels->size(); i++)
+    std::ofstream fid;
+    fid.open("streamlines.xyz");
+    
+    for (int i=0; i<surfs.size(); i++)
     {
-        if (!(*bPanels)[i]->getStreamFlag())
+        streamPnts = surfs[i]->getStreamlineStartPnts(Vinf);
+        for (int j=0; j<streamPnts.size(); j++)
         {
-            bodyStreamline bStream((*bPanels)[i],bPanels,wPanels,Vinf,4);
+            s = new bodyStreamline(std::get<0>(streamPnts[j]),std::get<1>(streamPnts[j]),Vinf,geom,2,false);
+            streamlines.push_back(s);
             
-            pnts = bStream.getPnts();
+            pnts = s->getPnts();
             fid << pnts.size() << std::endl;
-            for (int i=0; i<pnts.size(); i++)
+//            std::cout << pnts.size() << std::endl;
+            for (int k=0; k<pnts.size(); k++)
             {
-                fid << pnts[i](0) << "\t" << pnts[i](1) << "\t" << pnts[i](2) << std::endl;
+                fid << pnts[k](0) << "\t" << pnts[k](1) << "\t" << pnts[k](2) << std::endl;
             }
         }
     }
     fid.close();
+    
+    for (int i=0; i<streamlines.size(); i++)
+    {
+        delete streamlines[i];
+    }
 }
 
 void cpCase::writeFiles()
