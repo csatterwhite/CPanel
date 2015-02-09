@@ -20,7 +20,7 @@ wakePanel::wakePanel(std::vector<cpNode*> nodes, std::vector<edge*> pEdges, Eige
     }
 }
 
-wakePanel::wakePanel(const wakePanel &copy) : panel(copy), upperPan(copy.upperPan), lowerPan(copy.lowerPan), TEpanel(copy.TEpanel), parentWake(copy.parentWake) {}
+//wakePanel::wakePanel(const wakePanel &copy) : panel(copy), upperPan(copy.upperPan), lowerPan(copy.lowerPan), TEpanel(copy.TEpanel), parentWake(copy.parentWake) {}
 
 void wakePanel::setUpper(bodyPanel* up) {upperPan = up;}
 void wakePanel::setLower(bodyPanel* lp) {lowerPan = lp;}

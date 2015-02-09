@@ -16,32 +16,42 @@
 #include "wakePanel.h"
 #include "bodyPanel.h"
 
+class geometry;
+class bodyStreamline;
+
 class surface
 {
-    typedef Eigen::Vector3i vertices;
-    typedef Eigen::MatrixXd coordinates;
-    
 protected:
+    geometry* geom;
     std::vector<bodyPanel*> panels;
     short surfID;
+    bool TEflag; //Surface has sharp trailing edges
+    std::vector<edge*> trailingEdges;
+    Eigen::Vector3d rearStagnationPnt(const Eigen::Vector3d &Vinf,bodyPanel* &p);
+    std::vector<edge*> getTrailingEdges();
     
 public:
-    surface(const int &surfaceID) : surfID(surfaceID) {}
+    surface(const int &surfaceID,geometry* geom);
     
-    virtual ~surface();
+//    virtual ~surface();
     
-    surface(const surface& copy) : surfID(copy.surfID)
-    {
-        for (int i=0; i<copy.panels.size(); i++)
-        {
-            panels[i] = new bodyPanel(*copy.panels[i]);
-        }
-    }
+//    surface(const surface& copy) : surfID(copy.surfID)
+//    {
+//        for (int i=0; i<copy.panels.size(); i++)
+//        {
+//            panels[i] = new bodyPanel(*copy.panels[i]);
+//        }
+//    }
     
     virtual void addPanel(bodyPanel* bPan);
+    
+    void setTEflag() {TEflag = true;}
 
     std::vector<bodyPanel*> getPanels() const {return panels;}
     int getID() const {return surfID;}
+    std::vector<std::pair<Eigen::Vector3d,bodyPanel*>> getStreamlineStartPnts(const Eigen::Vector3d &Vinf);
+    
+
     
 };
 

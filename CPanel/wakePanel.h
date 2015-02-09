@@ -11,10 +11,8 @@
 
 #include <iostream>
 #include "panel.h"
-//#include "bodyPanel.h"
 #include "panelOctree.h"
 #include "wakeLine.h"
-//#include "wake.h"
 
 class wake;
 class bodyPanel;
@@ -30,7 +28,7 @@ class wakePanel : public panel
 public:
     wakePanel(std::vector<cpNode*> nodes, std::vector<edge*> pEdges, Eigen::Vector3d bezNorm, int surfID, wake* parentWake);
     
-    wakePanel(const wakePanel &copy);
+//    wakePanel(const wakePanel &copy);
     
     void setTEpanel() {TEpanel = true;}
     void setUpper(bodyPanel* up);

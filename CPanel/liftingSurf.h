@@ -18,10 +18,7 @@ class liftingSurf : public surface
     wake* wakeSurf;
     
 public:
-    liftingSurf(int surfID) : surface(surfID)
-    {
-        wakeSurf = new wake;
-    }
+    liftingSurf(int surfID,geometry* geom);
     
     ~liftingSurf()
     {

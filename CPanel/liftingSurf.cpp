@@ -8,6 +8,11 @@
 
 #include "liftingSurf.h"
 
+liftingSurf::liftingSurf(int surfID,geometry* geom) : surface(surfID,geom)
+{
+    wakeSurf = new wake;
+}
+
 void liftingSurf::addPanel(bodyPanel* bPan)
 {
     panels.push_back(bPan);

@@ -40,7 +40,7 @@ public:
     
     ~wake();
     
-    wake(const wake& copy);
+//    wake(const wake& copy);
     
     void addPanel(wakePanel* wPan);
     void addWakeLine(wakeLine* wl);
