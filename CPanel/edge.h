@@ -12,9 +12,6 @@
 #include <stdio.h>
 #include <Eigen/Dense>
 #include <vector>
-//#include "bodyPanel.h"
-//#include "wakePanel.h"
-//#include "cpNode.h"
 
 class bodyPanel;
 class wakePanel;
@@ -35,15 +32,20 @@ public:
     
     void addBodyPan(bodyPanel* b);
     void addWakePan(wakePanel* w);
+    void setNeighbors();
     bool sameEdge(cpNode* node1, cpNode* node2);
     
     bool isTE();
     double length();
+    double distToEdge(const Eigen::Vector3d &pnt);
     std::vector<cpNode*> getNodes();
-        
+    cpNode* getOtherNode(cpNode* current);
+    
     std::vector<bodyPanel*> getBodyPans() {return bodyPans;}
     std::vector<wakePanel*> getWakePans() {return wakePans;}
     bodyPanel* getOtherBodyPan(bodyPanel* currentPan);
+    Eigen::Vector3d getVector();
+    Eigen::Vector3d getMidPoint();
 };
 
 #endif /* defined(__CPanel__edge__) */

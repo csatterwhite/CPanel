@@ -36,7 +36,23 @@ void edge::checkTE()
     {
         TE = true;
         wakePans[0]->setTEpanel();
+        n1->setTE();
+        n2->setTE();
     }
+    
+    else if (bodyPans.size() == 2)
+    {
+        // Check for sharp edge without wake shed (i.e. vertical tail).  Used to start streamline tracing
+        double angle = acos(bodyPans[0]->getNormal().dot(bodyPans[1]->getNormal()));
+        if (angle > 5*M_PI/6 && bodyPans[0]->getID() == bodyPans[1]->getID())
+        {
+            TE = true;
+            n1->setTE();
+            n2->setTE();
+            bodyPans[0]->setTEpanel(this);
+        }
+    }
+    
 }
 
 bool edge::isTE()  {return TE;}
@@ -62,6 +78,22 @@ bodyPanel* edge::getOtherBodyPan(bodyPanel* currentPan)
     return nullptr;
 }
 
+cpNode* edge::getOtherNode(cpNode* current)
+{
+    if (current == n1)
+    {
+        return n2;
+    }
+    else if (current == n2)
+    {
+        return n1;
+    }
+    else
+    {
+        return nullptr;
+    }
+}
+
 double edge::length() {return (n2->getPnt()-n1->getPnt()).norm();}
 
 std::vector<cpNode*> edge::getNodes()
@@ -70,4 +102,31 @@ std::vector<cpNode*> edge::getNodes()
     ns.push_back(n1);
     ns.push_back(n2);
     return ns;
+}
+
+Eigen::Vector3d edge::getVector()
+{
+    return (n2->getPnt()-n1->getPnt());
+}
+
+Eigen::Vector3d edge::getMidPoint()
+{
+    return (n1->getPnt()+0.5*getVector());
+}
+
+void edge::setNeighbors()
+{
+    if (bodyPans.size() == 2)
+    {
+        bodyPans[0]->addNeighbor(bodyPans[1]);
+        bodyPans[1]->addNeighbor(bodyPans[0]);
+    }
+}
+
+double edge::distToEdge(const Eigen::Vector3d &pnt)
+{
+    Eigen::Vector3d edgeVec = n2->getPnt()-n1->getPnt();
+    Eigen::Vector3d pntVec = pnt-n1->getPnt();
+    double dist = (pntVec.cross(edgeVec)).norm()/edgeVec.norm();
+    return dist;
 }
