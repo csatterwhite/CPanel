@@ -8,6 +8,118 @@
 
 #include "geometry.h"
 
+// Destructor //
+
+geometry::~geometry()
+{
+    
+    for (int i=0; i<nonLiftingSurfs.size(); i++)
+    {
+        delete nonLiftingSurfs[i];
+    }
+    nonLiftingSurfs.clear();
+    for (int i=0; i<liftingSurfs.size(); i++)
+    {
+        delete liftingSurfs[i];
+    }
+    liftingSurfs.clear();
+    for (int i=0; i<edges.size(); i++)
+    {
+        delete edges[i];
+    }
+    edges.clear();
+    for (int i=0; i<nodes.size(); i++)
+    {
+        delete nodes[i];
+    }
+    nodes.clear();
+//    for (int i=0; i<TEnodes.size(); i++)
+//    {
+//        delete TEnodes[i];
+//    }
+//    TEnodes.clear();
+    
+}
+
+// Copy Constructor //
+
+geometry::geometry(const geometry& copy) : pOctree(copy.pOctree), nNodes(copy.nNodes), nTris(copy.nTris), A(copy.A), B(copy.B), infCoeffFile(copy.infCoeffFile)
+{
+    for (int i=0; i<copy.nonLiftingSurfs.size(); i++)
+    {
+        nonLiftingSurfs[i] = new surface(*copy.nonLiftingSurfs[i]);
+    }
+    for (int i=0; i<copy.liftingSurfs.size(); i++)
+    {
+        liftingSurfs[i] = new liftingSurf(*copy.liftingSurfs[i]);
+    }
+    for (int i=0; i<copy.bPanels.size(); i++)
+    {
+        bPanels[i] = new bodyPanel(*copy.bPanels[i]);
+    }
+    for (int i=0; i<copy.wPanels.size(); i++)
+    {
+        wPanels[i] = new wakePanel(*copy.wPanels[i]);
+    }
+    for (int i=0; i<copy.nodes.size(); i++)
+    {
+        nodes[i] = new cpNode(*copy.nodes[i]);
+    }
+    for (int i=0; i<copy.edges.size(); i++)
+    {
+        edges[i] = new edge(*copy.edges[i]);
+    }
+//    for (int i=0; i<copy.TEnodes.size(); i++)
+//    {
+//        TEnodes[i] = new cpNode(*copy.TEnodes[i]);
+//    }
+}
+
+// Assignment Operator //
+
+geometry& geometry::operator=(const geometry &rhs)
+{
+    if (this == &rhs)
+    {
+        return (*this);
+    }
+    
+    pOctree = rhs.pOctree;
+    nNodes = rhs.nNodes;
+    nTris = rhs.nTris;
+    A = rhs.A;
+    B = rhs.B;
+    infCoeffFile = rhs.infCoeffFile;
+    
+    // Deep Copy of pointers
+    for (int i=0; i<rhs.nonLiftingSurfs.size(); i++)
+    {
+        nonLiftingSurfs[i] = new surface(*rhs.nonLiftingSurfs[i]);
+    }
+    for (int i=0; i<rhs.liftingSurfs.size(); i++)
+    {
+        liftingSurfs[i] = new liftingSurf(*rhs.liftingSurfs[i]);
+    }
+    for (int i=0; i<rhs.bPanels.size(); i++)
+    {
+        bPanels[i] = new bodyPanel(*rhs.bPanels[i]);
+    }
+    for (int i=0; i<rhs.wPanels.size(); i++)
+    {
+        wPanels[i] = new wakePanel(*rhs.wPanels[i]);
+    }
+    for (int i=0; i<rhs.nodes.size(); i++)
+    {
+        nodes[i] = new cpNode(*rhs.nodes[i]);
+    }
+    for (int i=0; i<rhs.edges.size(); i++)
+    {
+        edges[i] = new edge(*rhs.edges[i]);
+    }
+    
+    return *this;
+}
+
 void geometry::readTri(std::string tri_file, bool normFlag)
 {
     std::ifstream fid;
@@ -21,7 +133,6 @@ void geometry::readTri(std::string tri_file, bool normFlag)
         std::vector<int> surfIDs;
         std::vector<int> wakeIDs;
         std::vector<int> surfTypes;
-        TEnodes.resize(nNodes,1);
         
         // Read XYZ Locations of Nodes
         Eigen::Vector3d pnt;
@@ -85,6 +196,23 @@ void geometry::readTri(std::string tri_file, bool normFlag)
         
         createSurfaces(connectivity,norms,allID,wakeIDs);
         
+        for (int i=0; i<edges.size(); i++)
+        {
+            if (edges[i]->getBodyPans().size() == 0 && edges[i]->isTE())
+            {
+                assert(edges[i]->isTE() != true);
+            }
+        }
+        
+        // Erase duplicate node pointers
+        std::sort( nodes.begin(), nodes.end() );
+        nodes.erase( std::unique( nodes.begin(), nodes.end() ), nodes.end() );
+        
+        for (int i=0; i<nodes.size(); i++)
+        {
+            nodes[i]->setIndex(i);
+        }
+        
         std::cout << "Building Octree..." << std::endl;
 
         createOctree();
@@ -92,9 +220,9 @@ void geometry::readTri(std::string tri_file, bool normFlag)
         // Set neighbors
         std::cout << "Finding Panel Neighbors..." << std::endl;
         
-        for (int i=0; i<bPanels.size(); i++)
+        for (int i=0; i<edges.size(); i++)
         {
-            bPanels[i]->setNeighbors();
+            edges[i]->setNeighbors();
         }
         for (int i=0; i<wPanels.size(); i++)
         {
@@ -103,6 +231,8 @@ void geometry::readTri(std::string tri_file, bool normFlag)
                 wPanels[i]->setParentPanels();
             }
         }
+        
+//        setTEnodes();
         
         bool read = false;
         
@@ -204,12 +334,12 @@ void geometry::createSurfaces(const Eigen::MatrixXi &connectivity, const Eigen::
             LS = isLiftingSurf(allID(i),wakeIDs);
             if (LS)
             {
-                surfL = new liftingSurf(allID(i));
+                surfL = new liftingSurf(allID(i),this);
                 liftingSurfs.push_back(surfL);
             }
             else if (allID(i) <= 10000)
             {
-                surf = new surface(allID(i));
+                surf = new surface(allID(i),this);
                 nonLiftingSurfs.push_back(surf);
             }
             else
@@ -219,13 +349,13 @@ void geometry::createSurfaces(const Eigen::MatrixXi &connectivity, const Eigen::
         }
         if (LS)
         {
-            bPan = new bodyPanel(pNodes,pEdges,norms.row(i),allID(i),true);
+            bPan = new bodyPanel(pNodes,pEdges,norms.row(i),liftingSurfs.back(),allID(i),true);
             liftingSurfs.back()->addPanel(bPan);
             bPanels.push_back(bPan);
         }
         else if (allID(i) <= 10000)
         {
-            bPan = new bodyPanel(pNodes,pEdges,norms.row(i),allID(i),false);
+            bPan = new bodyPanel(pNodes,pEdges,norms.row(i),nonLiftingSurfs.back(),allID(i),false);
             nonLiftingSurfs.back()->addPanel(bPan);
             bPanels.push_back(bPan);
         }
@@ -502,3 +632,30 @@ Eigen::MatrixXd geometry::getNodePnts()
     }
     return nodePnts;
 }
+
+double geometry::pntPotential(const Eigen::Vector3d &pnt, const Eigen::Vector3d Vinf)
+{
+    double pot = 0;
+    for (int i=0; i<bPanels.size(); i++)
+    {
+        pot += bPanels[i]->panelPhi(pnt);
+    }
+    for (int i=0; i<wPanels.size(); i++)
+    {
+        pot += wPanels[i]->panelPhi(pnt);
+    }
+    pot += Vinf.dot(pnt);
+    return pot;
+}
+
+
+//void geometry::setTEnodes()
+//{
+//    for (int i=0; i<nodes.size(); i++)
+//    {
+//        if (nodes[i]->isTE())
+//        {
+//            TEnodes.push_back(nodes[i]);
+//        }
+//    }
+//}

@@ -36,7 +36,7 @@ class geometry
     panelOctree pOctree;
     std::vector<cpNode*> nodes;
     std::vector<edge*> edges;
-    Eigen::Matrix<bool,Eigen::Dynamic,1> TEnodes;
+//    std::vector<cpNode*> TEnodes;
     short nNodes;
     short nTris;
     
@@ -50,12 +50,13 @@ class geometry
     edge* findEdge(cpNode* n1,cpNode* n2);
     void createSurfaces(const Eigen::MatrixXi &connectivity, const Eigen::MatrixXd &norms, const Eigen::VectorXi &allID, std::vector<int> wakeIDs);
     void createOctree();
-    void setTEPanels();
+//    void setTEPanels();
+//    void setTEnodes();
     void getLiftingSurfs(std::vector<surface*>& wakes, std::vector<surface*>& liftingSurfs);
     void setNeighbors(panel* p,int targetID);
-    void scanNode(panel* p, node<panel>* current, node<panel>* exception);
+//    void scanNode(panel* p, node<panel>* current, node<panel>* exception);
     bool isLiftingSurf(int currentID, std::vector<int> wakeIDs);
-    void correctWakeNodes(int wakeNodeStart);
+//    void correctWakeNodes(int wakeNodeStart);
     void correctWakeConnectivity(int wakeNodeStart,int wakeTriStart,Eigen::MatrixXi &connectivity);
     liftingSurf* getParentSurf(int wakeID);
     
@@ -75,33 +76,13 @@ public:
         readTri(p->geomFile->file, p->normFlag);
     }
     
-    ~geometry()
-    {
-        for (int i=0; i<nonLiftingSurfs.size(); i++)
-        {
-            delete nonLiftingSurfs[i];
-        }
-        for (int i=0; i<liftingSurfs.size(); i++)
-        {
-            delete liftingSurfs[i];
-        }
-        for (int i=0; i<edges.size(); i++)
-        {
-            delete edges[i];
-        }
-    }
+    virtual ~geometry();
     
-    geometry(const geometry& copy) : pOctree(copy.pOctree), nodes(copy.nodes), nNodes(copy.nNodes), nTris(copy.nTris)
-    {
-        for (int i=0; i<copy.nonLiftingSurfs.size(); i++)
-        {
-            nonLiftingSurfs[i] = new surface(*copy.nonLiftingSurfs[i]);
-        }
-        for (int i=0; i<copy.liftingSurfs.size(); i++)
-        {
-            liftingSurfs[i] = new liftingSurf(*copy.liftingSurfs[i]);
-        }
-    }
+    geometry(const geometry& copy);
+    
+    geometry& operator=(const geometry &rhs);
+    
+    double pntPotential(const Eigen::Vector3d &pnt, const Eigen::Vector3d Vinf);
     
     short getNumberOfNodes() {return nNodes;}
     short getNumberOfTris() {return nTris;}
