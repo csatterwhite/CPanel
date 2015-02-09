@@ -9,8 +9,9 @@
 #include "bodyPanel.h"
 #include "edge.h"
 #include "cpNode.h"
+#include "surface.h"
 
-bodyPanel::bodyPanel(std::vector<cpNode*> nodes, std::vector<edge*> pEdges, Eigen::Vector3d bezNorm, int surfID,bool lsflag) : panel(nodes,pEdges,bezNorm,surfID), upper(false), lower(false), lsFlag(lsflag), streamFlag(false)
+bodyPanel::bodyPanel(std::vector<cpNode*> nodes, std::vector<edge*> pEdges, Eigen::Vector3d bezNorm,surface* parentSurf, int surfID,bool lsflag) : panel(nodes,pEdges,bezNorm,surfID), upper(false), lower(false), lsFlag(lsflag), streamFlag(false), parentSurf(parentSurf), TEpanel(false)
 {
     for (int i=0; i<pEdges.size(); i++)
     {
@@ -27,26 +28,21 @@ bodyPanel::bodyPanel(std::vector<cpNode*> nodes, std::vector<edge*> pEdges, Eige
     }
 }
 
-bodyPanel::bodyPanel(const bodyPanel &copy) : panel(copy), sourceStrength(copy.sourceStrength), tipFlag(copy.tipFlag) {}
+//bodyPanel::bodyPanel(const bodyPanel &copy) : panel(copy), sourceStrength(copy.sourceStrength), tipFlag(copy.tipFlag) {}
 
-void bodyPanel::setNeighbors()
+void bodyPanel::addNeighbor(bodyPanel* p)
 {
-    std::vector<bodyPanel*> temp;
-    for (int i=0; i<pEdges.size(); i++)
-    {
-        temp = pEdges[i]->getBodyPans();
-        for (int j=0; j<temp.size(); j++)
-        {
-            if (temp[j] != this)
-            {
-                neighbors.push_back(temp[j]);
-            }
-        }
-    }
+    neighbors.push_back(p);
 }
 
 void bodyPanel::setUpper() {upper = true;}
 void bodyPanel::setLower() {lower = true;}
+void bodyPanel::setTEpanel(edge* trailingEdge)
+{
+    TEpanel = true;
+    parentSurf->setTEflag();
+    TE = trailingEdge;
+}
 void bodyPanel::setIndex(int i) {index = i;}
 
 void bodyPanel::setSigma(Eigen::Vector3d Vinf, double Vnorm)
