@@ -9,16 +9,17 @@
 #include "panel.h"
 #include "cpNode.h"
 #include "edge.h"
+#include "surface.h"
 
 panel::panel(std::vector<cpNode*> nodes, std::vector<edge*> pEdges, Eigen::Vector3d bezNorm, int surfID) : ID(surfID), nodes(nodes), pEdges(pEdges), bezNormal(bezNorm)
 {
     setGeom();
 }
 
-panel::panel(const panel &copy) : ID(copy.ID), nodes(copy.nodes)
-{
-    setGeom();
-}
+//panel::panel(const panel &copy) : ID(copy.ID), nodes(copy.nodes), pEdges(copy.pEdges)
+//{
+//    setGeom();
+//}
 
 void panel::setGeom()
 {
@@ -172,15 +173,13 @@ double panel::dubPhiInf(const Eigen::Vector3d &POI)
     Eigen::Vector3d pjk = POI-center;
     Eigen::Matrix3d local = getLocalSys();
     double PN = pjk.dot(local.row(2));
-    if (pjk.norm() < 0.00001)
+    
+    if (pjk.norm() < 0.0000001)
     {
         return -0.5;
     }
-//    else if (std::abs(PN) < pow(10,-8))
-//    {
-//        return 0;
-//    }
-    if (pjk.norm()/longSide > 100)
+    
+    if (pjk.norm()/longSide > 5)
     {
         return pntDubPhi(PN,pjk.norm());
     }
@@ -305,5 +304,41 @@ Eigen::VectorXi panel::getVerts()
         verts(i) = nodes[i]->getIndex();
     }
     return verts;
+}
+
+std::vector<Eigen::Vector3d> panel::pntsAroundPnt(int nPnts,const Eigen::Vector3d &POI)
+{
+    double r = 100000;
+    double d;
+    for (int i=0; i<pEdges.size(); i++)
+    {
+        d = pEdges[i]->distToEdge(POI);
+        if (d < r)
+        {
+            r = d;
+        }
+    }
+    r *= 0.9;
+    
+    std::vector<Eigen::Vector3d> pnts;
+    double theta;
+    Eigen::Vector3d pnt;
+    for (int i=0; i<nPnts; i++)
+    {
+        theta = (double)i/nPnts*(2*M_PI);
+        pnt(0) = r*cos(theta);
+        pnt(1) = r*sin(theta);
+        pnt(2) = 0;
+        pnt = local2global(pnt,true)+(POI-center);
+        pnts.push_back(pnt);
+    }
+    
+    return pnts;
+}
+
+Eigen::Vector3d panel::pntNearEdge(edge* e)
+{
+    Eigen::Vector3d pnt = center+0.95*(e->getMidPoint()-center);
+    return pnt;
 }
 

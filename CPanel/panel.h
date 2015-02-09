@@ -26,6 +26,7 @@
 class panelOctree;
 class edge;
 class cpNode;
+class surface;
 
 class panel
 {    
@@ -57,14 +58,14 @@ protected:
     Eigen::Vector3d pntDubV(const Eigen::Vector3d n,const Eigen::Vector3d &pjk);
     
 public:
-    panel(std::vector<cpNode*> nodes, std::vector<edge*> pEdges, Eigen::Vector3d bezNorm, int surfID);
+    panel(std::vector<cpNode*> nodes, std::vector<edge*> pEdges, Eigen::Vector3d bezNorm,int surfID);
     
     virtual ~panel() {}
     
-    panel(const panel &copy);
+//    panel(const panel &copy);
     
     void setGeom();
-    
+        
     void setPotential(Eigen::Vector3d Vinf);
     
     bool inPanelProjection(const Eigen::Vector3d &POI);
@@ -74,6 +75,9 @@ public:
     virtual double panelPhi(const Eigen::Vector3d &POI) = 0;
     virtual Eigen::Vector3d panelV(const Eigen::Vector3d &POI) = 0;
     
+    std::vector<Eigen::Vector3d> pntsAroundPnt(int nPnts,const Eigen::Vector3d &POI);
+    Eigen::Vector3d pntNearEdge(edge* e);
+    
     int getID() {return ID;}
     Eigen::Vector3d getCenter() const {return center;}
     Eigen::Vector3d getNormal() const {return normal;}
@@ -81,6 +85,7 @@ public:
     std::vector<cpNode*> getNodes() {return nodes;}
     Eigen::VectorXi getVerts();
     std::vector<edge*> getEdges() {return pEdges;}
+    double getLongSide() {return longSide;}
     double getArea() {return area;}
     double getMu() {return doubletStrength;}
     double getPotential() {return potential;}
