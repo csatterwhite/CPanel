@@ -12,7 +12,6 @@
 #include <stdio.h>
 #include <Eigen/Dense>
 #include <vector>
-//#include "edge.h"
 
 class edge;
 
@@ -27,17 +26,26 @@ class cpNode
 public:
     cpNode(Eigen::Vector3d pnt,int index);
     
+//    cpNode(const cpNode& copy);
+    
     Eigen::Vector3d operator-=(const cpNode &rhs);
     
     Eigen::Vector3d operator+=(const cpNode &rhs);
     
     void addEdge(edge* e);
     
+    void setTE();
+    void setIndex(int i);
+    
     Eigen::Vector3d getPnt() const {return pnt;}
     
     int getIndex() const {return index;}
     
     std::vector<edge*> getEdges() {return edges;}
+    
+    edge* getOtherTrailEdge(edge* current);
+    
+    bool isTE() {return TEnode;}
     
 };
 

@@ -10,7 +10,12 @@
 #include "edge.h"
 
 
-cpNode::cpNode(Eigen::Vector3d pnt,int index) : pnt(pnt), index(index) {}
+cpNode::cpNode(Eigen::Vector3d pnt,int index) : pnt(pnt), index(index), TEnode(false) {}
+
+//cpNode::cpNode(const cpNode& copy) : pnt(copy.pnt), index(copy.index),TEnode(copy.TEnode)
+//{
+//    
+//}
 
 Eigen::Vector3d cpNode::operator-=(const cpNode &rhs)
 {
@@ -33,3 +38,21 @@ Eigen::Vector3d operator+(cpNode lhs, const cpNode &rhs)
 }
 
 void cpNode::addEdge(edge* e)  {edges.push_back(e);}
+
+void cpNode::setTE() {TEnode = true;}
+
+void cpNode::setIndex(int i) {index = i;}
+
+edge* cpNode::getOtherTrailEdge(edge* current)
+{
+    for (int i=0; i<edges.size(); i++)
+    {
+        if (edges[i]->isTE() && edges[i] != current)
+        {
+            return edges[i];
+        }
+    }
+    return nullptr;
+}
+
+
