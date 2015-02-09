@@ -7,80 +7,96 @@
 //
 
 #include "bodyStreamline.h"
+#include "geometry.h"
 
-bodyStreamline::bodyStreamline(bodyPanel* startPan,std::vector<bodyPanel*>* bPanels,std::vector<wakePanel*>* wPanels, const Eigen::Vector3d &Vinf, int pntsPerPanel) : bPanels(bPanels), wPanels(wPanels), pntsPerPanel(pntsPerPanel)
+bodyStreamline::bodyStreamline(Eigen::Vector3d startPnt,bodyPanel* startPan, const Eigen::Vector3d &Vinf,geometry* geom, int pntsPerPanel, bool marchFwd) :  pntsPerPanel(pntsPerPanel), geom(geom), Vinf(Vinf)
 {
-    Eigen::Vector3d pnt,vel,pntAbove,pntOnEdge,oldPnt,oldVel,normal;
-    oldVel = -Vinf;
+    Vmag = Vinf.norm();
     
-    double tEdge; // time to reach next edge;
-    double dt;
-    int count = 1;
-    double eps = 0.0000001;
-    bool breakFlag = startPan->getStreamFlag();
-    
-    bodyPanel* currentPan = startPan;
-    std::vector<edge*> edges = currentPan->getEdges();
-    double pntPot;
-    edge* lastEdge = nullptr;
-    
-    // Create start point
-    if (startPan->isUpper() || startPan->isLower())
+    // Propogate streamline forwards or in reverse
+    int marchDir;
+    if (marchFwd)
     {
-        pnt = trailingEdgePnt(startPan);
-//        pnt = startPan->getCenter();
+        marchDir = 1;
     }
     else
     {
-        pnt = startPan->getCenter();
+        marchDir = -1;
     }
+    
+    // Allocate variables used in propogation
+    Eigen::Vector3d pnt,vel,pntAbove,pntOnEdge,oldPnt,oldVel,normal,oldNorm;
+    double tEdge,tNominal,pntPot;
+    double eps = 0.01;
+    bool breakFlag = false;
+    double maxAngle = 2*M_PI/3;
+    edge* lastEdge = nullptr;
+    
+    // Set initial conditions
+    pnt = startPnt;
+    bodyPanel* currentPan = startPan;
+    normal = currentPan->getNormal();
+    tNominal = currentPan->getLongSide()/(pntsPerPanel*currentPan->getGlobalV().norm());
+    std::vector<edge*> edges = currentPan->getEdges();
+    oldVel = marchDir*Vinf;
+    int tempPntsPerPanel = pntsPerPanel;
 
+    // Euler integration to create streamline
     while (!breakFlag)
     {
-        pnt += 0.0001*currentPan->getNormal();
-
-        normal = currentPan->getNormal();
-        pntPot = pntPotential(pnt,Vinf,currentPan);
-        vel = -currentPan->pntVelocity(pnt, pntPot); //Negative sign to propogate backwards
+        pntAbove = pnt + eps*normal;
+        pntPot = geom->pntPotential(pntAbove,Vinf);
+        vel = marchDir*currentPan->pntVelocity(pnt, pntPot);
         
         // Project velocity onto panel to correct for small error in CHTLS
         vel = vel-(vel.dot(normal))/normal.squaredNorm()*normal;
         
-        oldPnt = pnt;
-        oldVel = vel;
-        pntAbove = oldPnt + eps*normal;
-        pnts.push_back(pntAbove);
-        velocities.push_back(oldVel);
-        potentials.push_back(pntPot);
-        
-        if (stagnationPnt(vel, oldVel))
+        if (stagnationPnt(vel,oldVel,maxAngle))
         {
             break;
         }
+        
+        oldPnt = pnt;
+        oldVel = vel;
+        pnts.push_back(pntAbove);
+        velocities.push_back(vel);
+        
         for (int i=0; i<edges.size(); i++)
         {
             if (edges[i] != lastEdge && edgeIntersection(edges[i], pnt, vel, tEdge, pntOnEdge))
             {
-                if (count < pntsPerPanel-1)
+                if (tEdge > tNominal)
                 {
-                    dt = count/(pntsPerPanel-1.0)*tEdge;
-                    assert(dt != 0);
-                    pnt = oldPnt+oldVel*dt;
-                    count++;
+                    // Next point is still on same panel
+                    pnt = oldPnt+oldVel*tNominal;
+                    pntAbove = pnt+eps*normal;
+                    maxAngle = 0.5; // ~30 degrees
                 }
                 else
                 {
-                    pnt = pntOnEdge;
-                    assert(pnt != oldPnt);
-                    currentPan->setStreamFlag();
+                    // Next point is beyond panel edge so force point to be the point on the edge
+                    oldNorm = currentPan->getNormal();
                     currentPan = edges[i]->getOtherBodyPan(currentPan);
+                    normal = currentPan->getNormal();
+                    pnt = pntOnEdge;
+                    pntAbove = pnt+eps*(0.5*oldNorm+normal);
+                    
                     lastEdge = edges[i];
-                    edges = currentPan->getEdges();
-                    if (currentPan->getStreamFlag())
+                    edges =currentPan->getEdges();
+                    
+                    if (currentPan->getCp() > 0.95)
                     {
-                        breakFlag = true;
+                        // Near stagnation point, decrease time step to avoid premature stagnation point detection
+                        tempPntsPerPanel = 4*pntsPerPanel;
                     }
-                    count = 1;
+                    else
+                    {
+                        tempPntsPerPanel = pntsPerPanel;
+                    }
+                    
+                    // For stagnation point detection, allow velocity vector to change ~30 degrees plus the change in panel normal
+                    maxAngle = .5 + safeInvCos(oldNorm, currentPan->getNormal());
+                    tNominal = currentPan->getLongSide()/(tempPntsPerPanel*currentPan->getGlobalV().norm());
                 }
                 break;
             }
@@ -90,59 +106,11 @@ bodyStreamline::bodyStreamline(bodyPanel* startPan,std::vector<bodyPanel*>* bPan
             breakFlag = true;
         }
     }
-//    for (int i=0; i<pnts.size(); i++)
-//    {
-//        std::cout << pnts[i](0) << "\t" << pnts[i](1) << "\t" << pnts[i](2) << std::endl;
-//    }
-//    std::cout << "\n" << std::endl;
-//    for (int i=0; i<pnts.size(); i++)
-//    {
-//        std::cout << velocities[i](0) << "\t" << velocities[i](1) << "\t" << velocities[i](2) << std::endl;
-//    }
-//    std::cout << "\n" << std::endl;
-//    for (int i=0; i<pnts.size(); i++)
-//    {
-//        std::cout << potentials[i] << std::endl;
-//    }
-}
-
-double bodyStreamline::pntPotential(const Eigen::Vector3d &pnt, const Eigen::Vector3d Vinf, bodyPanel* currentPan)
-{
-    double pot = 0;
-    for (int i=0; i<bPanels->size(); i++)
-    {
-        pot += (*bPanels)[i]->panelPhi(pnt);
-    }
-    for (int i=0; i<wPanels->size(); i++)
-    {
-        pot += (*wPanels)[i]->panelPhi(pnt);
-    }
-    pot += Vinf.dot(pnt);
-    return pot;
-}
-
-Eigen::Vector3d bodyStreamline::trailingEdgePnt(bodyPanel* p)
-{
-    Eigen::Vector3d pnt,TEpnt;
-    std::vector<cpNode*> TEnodes;
-    for (int i=0; i<p->getEdges().size(); i++)
-    {
-        if (p->getEdges()[i]->isTE())
-        {
-            TEnodes = p->getEdges()[i]->getNodes();
-            break;
-        }
-    }
-    TEpnt = 0.5*(TEnodes[0]->getPnt()+TEnodes[1]->getPnt());
-    // Move Point slightly upstream from trailing edge
-    pnt = TEpnt + 0.1*(p->getCenter()-TEpnt);
-    
-    return pnt;
 }
 
 bool bodyStreamline::edgeIntersection(edge* e,const Eigen::Vector3d &pnt, const Eigen::Vector3d &vel, double &dt, Eigen::Vector3d &pntOnEdge)
 {
-    //Algorithm for 3D line intersection can be found at mathworld.wolfram.com/Line-LineIntersection.html and comes from Goldman, R. "Intersection of Two Lines in Three-Space." Graphics Gems I. Sand Diego: Academic Press, p. 304, 1990.
+    //Algorithm for 3D line intersection can be found at mathworld.wolfram.com/Line-LineIntersection.html and comes from Goldman, R. "Intersection of Two Lines in Three-Space." Graphics Gems I. San Diego: Academic Press, p. 304, 1990.
     
     // dt and pntOnEdge should only be used if true is returned, otherwise their behavior is undefined.
     
@@ -161,13 +129,9 @@ bool bodyStreamline::edgeIntersection(edge* e,const Eigen::Vector3d &pnt, const 
     if (s >= 0 && s <= 1)
     {
         pntOnEdge = p1+a*s;
-        for (int i=0; i<3; i++)
+        if (safeInvCos(pntOnEdge-p3,vel) < M_PI/2)
         {
-            if (vel(i) != 0)
-            {
-                dt = (pntOnEdge(i)-p3(i))/vel(i);
-                break;
-            }
+            dt = (pntOnEdge-p3).norm()/vel.norm();
         }
         if (dt > 0)
         {
@@ -177,10 +141,20 @@ bool bodyStreamline::edgeIntersection(edge* e,const Eigen::Vector3d &pnt, const 
     return false;
 }
 
-bool bodyStreamline::stagnationPnt(const Eigen::Vector3d vel, const Eigen::Vector3d &velOld)
+bool bodyStreamline::stagnationPnt(const Eigen::Vector3d vel, const Eigen::Vector3d &velOld, double maxAngle)
 {
-    double dot = vel.dot(velOld)/(vel.norm()*velOld.norm());
+    double phi = safeInvCos(vel,velOld);
+    if (phi > maxAngle || vel.norm() < 0.01*Vmag)
+    {
+        // Two velocity vectors are pointing at each other, indicating stagnation point has been reached.
+        return true;
+    }
+    return false;
+}
 
+double bodyStreamline::safeInvCos(const Eigen::Vector3d &v1, const Eigen::Vector3d &v2)
+{
+    double dot = v1.dot(v2)/(v1.norm()*v2.norm());
     if (dot > 1)
     {
         dot = 1;
@@ -189,11 +163,7 @@ bool bodyStreamline::stagnationPnt(const Eigen::Vector3d vel, const Eigen::Vecto
     {
         dot = -1;
     }
-    double phi = acos(dot);
-    if (phi > 2*M_PI/3)
-    {
-        // Two velocity vectors are pointing at each other, indicating stagnation point has been reached.
-        return true;
-    }
-    return false;
+    
+    return acos(dot);
+
 }

@@ -17,22 +17,25 @@
 #include "edge.h"
 #include "cpNode.h"
 
+class geometry;
+
 class bodyStreamline
 {
     std::vector<Eigen::Vector3d> pnts;
     std::vector<Eigen::Vector3d> velocities;
-    std::vector<double> potentials;
-    std::vector<bodyPanel*>* bPanels;
-    std::vector<wakePanel*>* wPanels;
+    Eigen::Vector3d Vinf;
+    double Vmag;
+    geometry* geom;
     int pntsPerPanel;
     
-    Eigen::Vector3d trailingEdgePnt(bodyPanel* p);
-    double pntPotential(const Eigen::Vector3d &pnt, const Eigen::Vector3d Vinf, bodyPanel* currentPan);
+//    Eigen::Vector3d trailingEdgePnt(bodyPanel* p);
     bool edgeIntersection(edge* e,const Eigen::Vector3d &pnt, const Eigen::Vector3d &vel, double &dt, Eigen::Vector3d &pntOnEdge);
     
-    bool stagnationPnt(const Eigen::Vector3d vel, const Eigen::Vector3d &velOld);
+    bool stagnationPnt(const Eigen::Vector3d vel, const Eigen::Vector3d &velOld, double maxAngle);
+    
+    double safeInvCos(const Eigen::Vector3d &v1, const Eigen::Vector3d &v2);
 public:
-    bodyStreamline(bodyPanel* startPan,std::vector<bodyPanel*>* bPanels,std::vector<wakePanel*>* wPanels, const Eigen::Vector3d &Vinf, int pntsPerPanel);
+    bodyStreamline(Eigen::Vector3d startPnt, bodyPanel* startPan, const Eigen::Vector3d &Vinf, geometry* geom, int pntsPerPanel, bool marchFwd);
     
     std::vector<Eigen::Vector3d> getPnts() {return pnts;}
     
