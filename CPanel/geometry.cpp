@@ -454,10 +454,6 @@ void geometry::setInfCoeff()
         for (int i=0; i<nBodyPans; i++)
         {
             bPanels[j]->panelPhiInf(bPanels[i]->getCenter(),B(i,j),A(i,j));
-            if (i==j)
-            {
-                A(i,j) = -0.5;
-            }
         }
         for (int i=0; i<percentage.size(); i++)
         {
