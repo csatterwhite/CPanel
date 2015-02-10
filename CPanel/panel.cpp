@@ -264,14 +264,15 @@ Eigen::Vector3d panel::vortexV(const Eigen::Vector3d &a, const Eigen::Vector3d &
 
 double panel::vortexPhi(const double &PN,const double &Al, const Eigen::Vector3d &a,const Eigen::Vector3d &b, const Eigen::Vector3d &s, const Eigen::Vector3d &l,const Eigen::Vector3d &m,const Eigen::Vector3d &n)
 {
-    double eps = pow(10, -10);
+    double eps = pow(10, -15);
     double PA,PB,num,denom;
     
     PA = a.dot(l.cross(a.cross(s)));
     PB = PA-Al*s.dot(m);
     num = s.dot(m)*PN*(b.norm()*PA-a.norm()*PB);
     denom = PA*PB+pow(PN,2)*a.norm()*b.norm()*pow(s.dot(m),2);
-    if (std::abs(denom) < eps && std::abs(PN) < eps)
+//    if (std::abs(denom) < eps && std::abs(PN) < eps)
+    if (denom == 0 && std::abs(PN) < eps)
     {
         // Point is on edge.
         if (PN >= 0)
