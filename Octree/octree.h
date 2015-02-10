@@ -101,12 +101,16 @@ public:
         root_node = new node<type>(*copy.root_node);
     }
     
-    octree<type> operator=(octree<type> other)
+    octree<type>& operator=(const octree<type> &rhs)
     {
-        maxMembersPerNode = other.maxMembersPerNode;
-        members = other.members;
-        root_node = new node<type>(*other.root_node);
-        return this;
+        if (this == &rhs)
+        {
+            return (*this);
+        }
+        maxMembersPerNode = rhs.maxMembersPerNode;
+        members = rhs.members;
+        root_node = new node<type>(*rhs.root_node);
+        return *this;
     }
     
     void setMaxMembers(const int &maxMembers)
