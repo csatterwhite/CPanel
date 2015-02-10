@@ -29,19 +29,21 @@ struct pntDataArray
 {
     std::string name;
     Eigen::MatrixXd data;
+    
+    pntDataArray(std::string name) : name(name) {}
 };
 
 struct piece
 {
     Eigen::MatrixXd pnts;
     Eigen::MatrixXi connectivity;
-    std::vector<cellDataArray*> cellData;
-    std::vector<pntDataArray*> pntData;
+    std::vector<cellDataArray> cellData;
+    std::vector<pntDataArray> pntData;
 };
 
 class VTUfile
 {
-    piece* piece;
+    std::vector<piece> pieces;
     std::string name;
     
     void printDoubleArray(std::ofstream &f,std::string name,Eigen::MatrixXd array);
@@ -51,7 +53,13 @@ class VTUfile
     void write();
     
 public:
-    VTUfile(std::string name, struct piece* piece) : name(name), piece(piece)
+    VTUfile(std::string name, piece p) : name(name)
+    {
+        pieces.push_back(p);
+        write();
+    }
+    
+    VTUfile(std::string name, std::vector<piece> pieces) : name(name),pieces(pieces)
     {
         write();
     }

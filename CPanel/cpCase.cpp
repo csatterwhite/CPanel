@@ -8,6 +8,13 @@
 
 #include "cpCase.h"
 
+cpCase::~cpCase()
+{
+    for (int i=0; i<bStreamlines.size(); i++)
+    {
+        delete bStreamlines[i];
+    }
+}
 
 void cpCase::run()
 {
@@ -131,11 +138,9 @@ void cpCase::createStreamlines()
     std::vector<surface*> surfs = geom->getSurfaces();
     std::vector<std::pair<Eigen::Vector3d,bodyPanel*>> streamPnts;
     bodyStreamline* s;
-    std::vector<bodyStreamline*> streamlines;
-    std::vector<Eigen::Vector3d> pnts;
-    
-    std::ofstream fid;
-    fid.open("streamlines.xyz");
+//    std::vector<Eigen::Vector3d> pnts;
+//    std::ofstream fid;
+//    fid.open("streamlines.xyz");
     
     for (int i=0; i<surfs.size(); i++)
     {
@@ -143,23 +148,19 @@ void cpCase::createStreamlines()
         for (int j=0; j<streamPnts.size(); j++)
         {
             s = new bodyStreamline(std::get<0>(streamPnts[j]),std::get<1>(streamPnts[j]),Vinf,geom,2,false);
-            streamlines.push_back(s);
-            
-            pnts = s->getPnts();
-            fid << pnts.size() << std::endl;
-//            std::cout << pnts.size() << std::endl;
-            for (int k=0; k<pnts.size(); k++)
-            {
-                fid << pnts[k](0) << "\t" << pnts[k](1) << "\t" << pnts[k](2) << std::endl;
-            }
+            bStreamlines.push_back(s);
+//            
+//            pnts = s->getPnts();
+//            fid << pnts.size() << std::endl;
+////            std::cout << pnts.size() << std::endl;
+//            for (int k=0; k<pnts.size(); k++)
+//            {
+//                fid << pnts[k](0) << "\t" << pnts[k](1) << "\t" << pnts[k](2) << std::endl;
+//            }
         }
     }
-    fid.close();
+//    fid.close();
     
-    for (int i=0; i<streamlines.size(); i++)
-    {
-        delete streamlines[i];
-    }
 }
 
 void cpCase::writeFiles()
@@ -178,11 +179,13 @@ void cpCase::writeFiles()
         writeWakeData(subdir,nodeMat);
         writeSpanwiseData(subdir);
     }
+    
+    writeBodyStreamlines(subdir);
 }
 
 void cpCase::writeBodyData(boost::filesystem::path path,const Eigen::MatrixXd &nodeMat)
 {
-    std::vector<cellDataArray*> data;
+    std::vector<cellDataArray> data;
     cellDataArray mu("Doublet Strengths"),pot("Velocity Potential"),V("Velocity"),Cp("Cp"),bN("bezNormals");
     Eigen::MatrixXi con(bPanels->size(),3);
     mu.data.resize(bPanels->size(),1);
@@ -200,11 +203,11 @@ void cpCase::writeBodyData(boost::filesystem::path path,const Eigen::MatrixXd &n
         bN.data.row(i) = (*bPanels)[i]->getBezNormal();
     }
     
-    data.push_back(&mu);
-    data.push_back(&pot);
-    data.push_back(&V);
-    data.push_back(&Cp);
-    data.push_back(&bN);
+    data.push_back(mu);
+    data.push_back(pot);
+    data.push_back(V);
+    data.push_back(Cp);
+    data.push_back(bN);
     
     piece body;
     body.pnts = nodeMat;
@@ -212,12 +215,12 @@ void cpCase::writeBodyData(boost::filesystem::path path,const Eigen::MatrixXd &n
     body.cellData = data;
     
     std::string fname = path.string()+"/surfaceData.vtu";
-    VTUfile bodyFile(fname,&body);
+    VTUfile bodyFile(fname,body);
 }
 
 void cpCase::writeWakeData(boost::filesystem::path path, const Eigen::MatrixXd &nodeMat)
 {
-    std::vector<cellDataArray*> data;
+    std::vector<cellDataArray> data;
     cellDataArray mu("Doublet Strengths"),pot("Velocity Potential");
     Eigen::MatrixXi con(wPanels->size(),3);
     mu.data.resize(wPanels->size(),1);
@@ -229,8 +232,8 @@ void cpCase::writeWakeData(boost::filesystem::path path, const Eigen::MatrixXd &
         con.row(i) = (*wPanels)[i]->getVerts();
     }
     
-    data.push_back(&mu);
-    data.push_back(&pot);
+    data.push_back(mu);
+    data.push_back(pot);
     
     piece wake;
     wake.pnts = nodeMat;
@@ -238,7 +241,7 @@ void cpCase::writeWakeData(boost::filesystem::path path, const Eigen::MatrixXd &
     wake.cellData = data;
     
     std::string fname = path.string()+"/wakeData.vtu";
-    VTUfile wakeFile(fname,&wake);
+    VTUfile wakeFile(fname,wake);
 }
 
 void cpCase::writeSpanwiseData(boost::filesystem::path path)
@@ -254,6 +257,48 @@ void cpCase::writeSpanwiseData(boost::filesystem::path path)
             fout << spanLoc(i) << "," << Cl(i) << "," << Cd(i) << std::endl;
         }
     }
+}
+
+void cpCase::writeBodyStreamlines(boost::filesystem::path path)
+{
+    piece p;
+    std::vector<piece> pieces;
+    std::vector<pntDataArray> data;
+    pntDataArray vel("Velocity");
+    Eigen::MatrixXi con;
+    Eigen::MatrixXd pntMat;
+    std::vector<Eigen::Vector3d> pnts,velocities;
+    
+    for (int i=0; i<bStreamlines.size(); i++)
+    {
+        pnts = bStreamlines[i]->getPnts();
+        velocities = bStreamlines[i]->getVelocities();
+        vel.data.resize(velocities.size(),3);
+        pntMat.resize(pnts.size(),3);
+        con.resize(pnts.size()-1,2);
+        for (int j=0; j<pnts.size(); j++)
+        {
+            pntMat.row(j) = pnts[j];
+            vel.data.row(j) = velocities[j];
+            if (j<con.rows())
+            {
+                con(j,0) = j;
+                con(j,1) = j+1;
+            }
+        }
+        data.push_back(vel);
+        p.pnts = pntMat;
+        p.connectivity = con;
+        p.pntData = data;
+        
+        pieces.push_back(p);
+        data.clear();
+    }
+    
+    
+    
+    std::string fname = path.string()+"/streamlines.vtu";
+    VTUfile wakeFile(fname,pieces);
 }
 
 

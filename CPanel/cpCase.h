@@ -52,6 +52,8 @@ class cpCase
     Eigen::VectorXd Cl;
     Eigen::VectorXd Cd;
     
+    std::vector<bodyStreamline*> bStreamlines;
+    
     Eigen::Vector3d windToBody(double V,double alpha,double beta);
     void setSourceStrengths();
     bool solveMatrixEq();
@@ -63,6 +65,7 @@ class cpCase
     void writeBodyData(boost::filesystem::path path, const Eigen::MatrixXd &nodeMat);
     void writeWakeData(boost::filesystem::path path, const Eigen::MatrixXd &nodeMat);
     void writeSpanwiseData(boost::filesystem::path path);
+    void writeBodyStreamlines(boost::filesystem::path path);
     
 public:
 //    cpCase(geometry *geom,double V,double alpha,double beta, double mach, cpFile* inputFile, cpFile* geometryFile, std::string path,std::string name) : geom(geom), Vmag(V), alpha(alpha), beta(beta), mach(mach), path(path), name(name),inFile(inputFile),gFile(geometryFile)
@@ -83,6 +86,8 @@ public:
         wPanels = geom->getWakePanels();
         PG = sqrt(1-pow(mach,2));
     }
+    
+    virtual ~cpCase();
     
     void run();
     
