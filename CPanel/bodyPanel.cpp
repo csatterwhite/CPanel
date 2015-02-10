@@ -85,6 +85,11 @@ Eigen::Vector3d bodyPanel::panelV(const Eigen::Vector3d &POI)
 void bodyPanel::panelPhiInf(const Eigen::Vector3d &POI, double &phiSrc,double &phiDub)
 {
     Eigen::Vector3d pjk = POI-center;
+    bool itselfFlag = false;
+    if (pjk.norm() < pow(10,-10))
+    {
+        itselfFlag = true;
+    }
     Eigen::Matrix3d local = getLocalSys();
     double PN = pjk.dot(local.row(2));
     if (pjk.norm()/longSide > 5)
@@ -114,12 +119,23 @@ void bodyPanel::panelPhiInf(const Eigen::Vector3d &POI, double &phiSrc,double &p
             b = POI-p2;
             s = p2-p1;
             Al = local.row(2).dot(s.cross(a));
-            phiV = vortexPhi(PN,Al,a,b,s,local.row(0),local.row(1),local.row(2));
+            if (!itselfFlag)
+            {
+                phiV = vortexPhi(PN,Al,a,b,s,local.row(0),local.row(1),local.row(2));
+                phiDub += phiV;
+            }
             phiSrc += srcSidePhi(PN,Al,phiV,a,b,s);
-            phiDub += phiV;
+            
         }
         phiSrc /= (4*M_PI);
-        phiDub /= (4*M_PI);
+        if (!itselfFlag)
+        {
+            phiDub /= (4*M_PI);
+        }
+        else
+        {
+            phiDub = -0.5;
+        }
     }
 }
 

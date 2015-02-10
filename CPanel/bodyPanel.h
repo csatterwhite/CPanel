@@ -86,6 +86,8 @@ public:
     int getIndex() {return index;}
     Eigen::Vector3d getGlobalV() {return velocity;}
     double getCp() {return Cp;}
+    
+    std::vector<bodyPanel*> getCluster() {return cluster;}
 };
 
 #endif /* defined(__CPanel__bodyPanel__) */
