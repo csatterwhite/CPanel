@@ -38,6 +38,7 @@ public:
     bodyStreamline(Eigen::Vector3d startPnt, bodyPanel* startPan, const Eigen::Vector3d &Vinf, geometry* geom, int pntsPerPanel, bool marchFwd);
     
     std::vector<Eigen::Vector3d> getPnts() {return pnts;}
+    std::vector<Eigen::Vector3d> getVelocities() {return velocities;}
     
 };
 

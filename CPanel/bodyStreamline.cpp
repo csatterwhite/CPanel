@@ -27,7 +27,7 @@ bodyStreamline::bodyStreamline(Eigen::Vector3d startPnt,bodyPanel* startPan, con
     // Allocate variables used in propogation
     Eigen::Vector3d pnt,vel,pntAbove,pntOnEdge,oldPnt,oldVel,normal,oldNorm;
     double tEdge,tNominal,pntPot;
-    double eps = 0.01;
+    double eps = 0.0001;
     bool breakFlag = false;
     double maxAngle = 2*M_PI/3;
     edge* lastEdge = nullptr;
@@ -48,13 +48,14 @@ bodyStreamline::bodyStreamline(Eigen::Vector3d startPnt,bodyPanel* startPan, con
         pntPot = geom->pntPotential(pntAbove,Vinf);
         vel = marchDir*currentPan->pntVelocity(pnt, pntPot);
         
-        // Project velocity onto panel to correct for small error in CHTLS
-        vel = vel-(vel.dot(normal))/normal.squaredNorm()*normal;
         
         if (stagnationPnt(vel,oldVel,maxAngle))
         {
             break;
         }
+        
+        // Project velocity onto panel to correct for small error in CHTLS
+        vel = vel-(vel.dot(normal))/normal.squaredNorm()*normal;
         
         oldPnt = pnt;
         oldVel = vel;
@@ -70,7 +71,7 @@ bodyStreamline::bodyStreamline(Eigen::Vector3d startPnt,bodyPanel* startPan, con
                     // Next point is still on same panel
                     pnt = oldPnt+oldVel*tNominal;
                     pntAbove = pnt+eps*normal;
-                    maxAngle = 0.5; // ~30 degrees
+                    maxAngle = 0.75; // ~45 degrees
                 }
                 else
                 {
@@ -95,7 +96,7 @@ bodyStreamline::bodyStreamline(Eigen::Vector3d startPnt,bodyPanel* startPan, con
                     }
                     
                     // For stagnation point detection, allow velocity vector to change ~30 degrees plus the change in panel normal
-                    maxAngle = .5 + safeInvCos(oldNorm, currentPan->getNormal());
+                    maxAngle = .75 + safeInvCos(oldNorm, currentPan->getNormal());
                     tNominal = currentPan->getLongSide()/(tempPntsPerPanel*currentPan->getGlobalV().norm());
                 }
                 break;
