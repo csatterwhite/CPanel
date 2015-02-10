@@ -67,6 +67,7 @@ class geometry
     void readInfCoeff();
     void writeInfCoeff();
     
+    
 public:
     geometry(inputParams* p)
     {
@@ -83,6 +84,8 @@ public:
     geometry& operator=(const geometry &rhs);
     
     double pntPotential(const Eigen::Vector3d &pnt, const Eigen::Vector3d Vinf);
+    
+    void clusterCheck();
     
     short getNumberOfNodes() {return nNodes;}
     short getNumberOfTris() {return nTris;}

@@ -645,13 +645,21 @@ double geometry::pntPotential(const Eigen::Vector3d &pnt, const Eigen::Vector3d 
 }
 
 
-//void geometry::setTEnodes()
-//{
-//    for (int i=0; i<nodes.size(); i++)
-//    {
-//        if (nodes[i]->isTE())
-//        {
-//            TEnodes.push_back(nodes[i]);
-//        }
-//    }
-//}
+void geometry::clusterCheck()
+{
+    std::ofstream fid;
+    fid.open("ClusterCheck.txt");
+    int index;
+    std::vector<bodyPanel*> clust;
+    for (int i=0; i<bPanels.size(); i++)
+    {
+        clust = bPanels[i]->getCluster();
+        for (int j=0; j<clust.size(); j++)
+        {
+            index = (int)std::distance(bPanels.begin(),std::find(bPanels.begin(), bPanels.end(), clust[j]));
+            fid << index+1 << "\t";
+        }
+        fid << "\n";
+    }
+    fid.close();
+}
