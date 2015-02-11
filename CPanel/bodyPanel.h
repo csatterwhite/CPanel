@@ -21,6 +21,7 @@ class bodyPanel : public panel
     surface* parentSurf;
     std::vector<bodyPanel*> neighbors;
     std::vector<bodyPanel*> cluster;
+    int TSorder;
     double sourceStrength;
     bool upper; // Sheds wake panel from lower edge
     bool lower; // Sheds wake panel from upper edge
@@ -41,7 +42,7 @@ class bodyPanel : public panel
     bool clusterTest(bodyPanel* other, double angle,bool upFlag,bool lowFlag);
     bool wingTipTest();
     bool nearTrailingEdge();
-    void setCluster(int nPanels);
+    void setCluster(int dim, int bufferPanels);
     
 public:
     bodyPanel(std::vector<cpNode*> nodes, std::vector<edge*> pEdges, Eigen::Vector3d bezNorm,surface* parentSurf, int surfID,bool lsflag);

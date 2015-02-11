@@ -11,7 +11,7 @@
 #include "cpNode.h"
 #include "surface.h"
 
-bodyPanel::bodyPanel(std::vector<cpNode*> nodes, std::vector<edge*> pEdges, Eigen::Vector3d bezNorm,surface* parentSurf, int surfID,bool lsflag) : panel(nodes,pEdges,bezNorm,surfID), upper(false), lower(false), lsFlag(lsflag), streamFlag(false), parentSurf(parentSurf), TEpanel(false)
+bodyPanel::bodyPanel(std::vector<cpNode*> nodes, std::vector<edge*> pEdges, Eigen::Vector3d bezNorm,surface* parentSurf, int surfID,bool lsflag) : panel(nodes,pEdges,bezNorm,surfID), upper(false), lower(false), lsFlag(lsflag), streamFlag(false), parentSurf(parentSurf), TEpanel(false), TSorder(3)
 {
     for (int i=0; i<pEdges.size(); i++)
     {
@@ -229,8 +229,9 @@ inline Eigen::Vector3d bodyPanel::pntSrcV(const Eigen::Vector3d &pjk)
     return area*pjk/(4*M_PI*pow(pjk.norm(),3));
 }
 
-void bodyPanel::setCluster(int nPanels)
+void bodyPanel::setCluster(int dim, int bufferPanels)
 {
+    int nPanels = chtlsnd::factorial(TSorder+dim)/(chtlsnd::factorial(dim)*chtlsnd::factorial(TSorder)) + bufferPanels; // Binomial Coefficient
     int oldSize = (int)cluster.size();
     cluster.push_back(this);
     bool upFlag = upper;
@@ -258,37 +259,37 @@ void bodyPanel::setCluster(int nPanels)
                 }
             }
         }
-        assert(cluster.size() != oldSize);
-        oldSize = (int)cluster.size();
-        for (int i=0; i<toAdd.size(); i++)
+        
+        if (toAdd.size() == 0 && cluster.size() < nPanels+1)
         {
-            cluster.push_back(toAdd[i]);
-            if (cluster.size() == nPanels+1)
+            // No valid panels could be found so decrease order of taylor series
+            while (cluster.size() < nPanels+1 && TSorder > 1)
             {
-                break;
+                TSorder -= 1;
+                nPanels = chtlsnd::factorial(TSorder+dim)/(chtlsnd::factorial(dim)*chtlsnd::factorial(TSorder)) + bufferPanels; // Binomial Coefficient
+            }
+            cluster.erase(cluster.begin()+nPanels+1,cluster.end());
+            break;
+        }
+        else
+        {
+            oldSize = (int)cluster.size();
+            for (int i=0; i<toAdd.size(); i++)
+            {
+                cluster.push_back(toAdd[i]);
+                if (cluster.size() == nPanels+1)
+                {
+                    break;
+                }
             }
         }
     }
-//    bool flag = false;
-//    if (wingTipTest(this) && flag == false)
-//    {
-//        flag = true;
-//        std::ofstream fid;
-//        fid.open("/Users/Chris/Desktop/Thesis/Code/Geometry and Solution Files/ClusterCheck_lower.txt");
-//        fid << center(0) << "\t" << center(1) << "\t" << center(2) << "\n";
-//        for (int i=0; i<cluster.size(); i++)
-//        {
-//            fid << cluster[i]->getCenter()(0) << "\t" << cluster[i]->getCenter()(1) << "\t" << cluster[i]->getCenter()(2) << "\n";
-//        }
-//        fid.close();
-//    }
 }
 
 Eigen::Vector3d bodyPanel::pntVelocity(const Eigen::Vector3d &pnt,double pntPot)
 {
     Eigen::Vector3d vel;
-    int TSorder = 3;
-    int obs,dim;
+    int dim;
     Eigen::MatrixXd Xf,Xb,Vb;
     Eigen::VectorXd df;
     std::vector<bodyPanel*> clust;
@@ -304,24 +305,11 @@ Eigen::Vector3d bodyPanel::pntVelocity(const Eigen::Vector3d &pnt,double pntPot)
     
     if (cluster.size() == 0)
     {
-        obs = chtlsnd::factorial(TSorder+dim)/(chtlsnd::factorial(dim)*chtlsnd::factorial(TSorder)); // Binomial Coefficient
-        if (tipFlag)
-        {
-            obs += 3;
-        }
-        else
-        {
-            obs = obs+15;
-        }
-        setCluster(obs);
+        int bufferPans = 10; // Panels beyond the minimum number needed (binomial coefficient)
+        setCluster(dim,bufferPans);
     }
     clust = cluster;
     clust.erase(clust.begin());
-    
-//    if (pnt == center)
-//    {
-//        clust.erase(clust.begin()); // Do not include center in survey points if finding velocity at center because CHTLS will return NaN
-//    }
     
     if (tipFlag)
     {
@@ -359,7 +347,6 @@ Eigen::Vector3d bodyPanel::pntVelocity(const Eigen::Vector3d &pnt,double pntPot)
         }
         Xb = Xf;
         chtlsnd vWeights(pnt,Xf,TSorder,Xb,Vb,Eigen::Vector3d::Zero());
-//        chtlsnd vWeights(pnt,Xf,TSorder,Xb,Vb,bezNormal);
 
         vel(0) = vWeights.getF().row(0)*df;
         vel(1) = vWeights.getF().row(1)*df;
