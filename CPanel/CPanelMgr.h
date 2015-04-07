@@ -18,12 +18,14 @@ class caseMgr
 {
     inputParams* p;
     geometry* geom;
+    Eigen::VectorXi outSpacing;
  
     std::vector<cpCase*> cases;
     
     void setCases();
     void runCases();
     void writeSummary();
+    void writeCase(int caseNumber, cpCase* c, std::ofstream &outStream);
 public:
     caseMgr(inputParams* p,geometry* geom) : p(p), geom(geom)
     {

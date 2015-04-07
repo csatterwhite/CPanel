@@ -29,8 +29,8 @@ void caseMgr::setCases()
 
 void caseMgr::runCases()
 {
-    std::cout << "Running Cases..." << std::endl;
-    std::cout << std::setw(10) << std::left << "Case #" << std::setw(17) << std::left << "Solve System" << std::setw(14) << std::left << "Flow Data" << std::setw(18) << std::left << "Trefftz Plane" << std::endl;
+    std::cout << "\nRunning Cases... (\u2713 - Complete, X - Not Requested)\n" << std::endl;
+    std::cout << std::setw(10) << std::left << "Case #" << std::setw(15) << std::left << "Solve System" << std::setw(15) << std::left << "Surface Data" << std::setw(16) << std::left << "Trefftz Plane" <<  std::setw(16) << std::left << "Streamlines" << std::endl;
     for (int i=0; i<cases.size(); i++)
     {
         std::string out;
@@ -57,14 +57,36 @@ void caseMgr::writeSummary()
         out << std::left; // Left justify results
         out << std::fixed;
         out << std::setprecision(3);
-        Eigen::VectorXi s(9);
-        s << 11,7,8,8,8,8,12,12,12;
-        out << std::setw(s(0)) << "Velocity" << std::setw(s(1)) << "Mach" << std::setw(s(2)) << "Alpha" << std::setw(s(3)) << "Beta" << std::setw(s(4)) << "CL" << std::setw(s(5)) << "CD" << std::setw(s(6)) << "Cm (pitch)" << std::setw(s(7)) << "Cl (roll)" << std::setw(s(8)) << "Cn (yaw)" << "\n";
+        outSpacing.resize(9);
+        outSpacing << 11,7,8,8,8,8,12,12,12;
         for (int i=0; i<cases.size(); i++)
         {
-            out << std::setw(s(0)) << cases[i]->getV() << std::setw(s(1)) << cases[i]->getMach() << std::setw(s(2)) << cases[i]->getAlpha() << std::setw(s(3)) << cases[i]->getBeta() << std::setw(s(4)) << cases[i]->getCL() << std::setw(s(5)) << cases[i]->getCD() << std::setw(s(6)) << cases[i]->getMoment()(1) << std::setw(s(7)) << cases[i]->getMoment()(0) << std::setw(s(8)) << cases[i]->getMoment()(2) << "\n";
+            writeCase(i+1, cases[i], out);
         }
     }
     std::cout << "Case data written to " << outFile << std::endl;
+    
+}
+
+void caseMgr::writeCase(int caseNumber, cpCase* c, std::ofstream &outStream)
+{
+    outStream << std::endl;
+    outStream << "---Case #" << caseNumber << "---" << std::endl;
+    outStream << "\n\t--Flow Conditions--" << std::endl;
+    outStream << "\t\t" << std::setw(outSpacing(0)) << "Velocity" << std::setw(outSpacing(1)) << "Mach" << std::setw(outSpacing(2)) << "Alpha" << std::setw(outSpacing(3)) << "Beta" << "\n";
+    outStream << "\t\t" << std::setw(outSpacing(0)) << c->getV() << std::setw(outSpacing(1)) << c->getMach() << std::setw(outSpacing(2)) << c->getAlpha() << std::setw(outSpacing(3)) << c->getBeta() << "\n";
+    outStream << "\n\t--Force Coefficients--" << std::endl;
+    outStream << "\n\t\t-Trefftz Plane-" << std::endl;
+    outStream << "\t\t\tCL = " << c->getCL() << "\tCDi = " << c->getCD() << std::endl;
+    outStream << "\n\t\t-Surface Integrated Force Coefficients-" << std::endl;
+    outStream << "\t\t\t" << std::setw(15) << "Body Axis" << std::setw(8) << "CN" << std::setw(8) << "CA" << std::setw(8) << "CY" << std::endl;
+    outStream << "\t\t\t" << std::setw(15) << " " << std::setw(8) << c->getBodyForces()(2) << std::setw(8) << c->getBodyForces()(0) << std::setw(8) << c->getBodyForces()(1) << std::endl;
+    outStream << "\t\t\t" << std::setw(15) << "Wind Axis" << std::setw(8) << "CL" << std::setw(8) << "CD" << std::setw(8) << "CY" << std::endl;
+    outStream << "\t\t\t" << std::setw(15) << " " << std::setw(8) << c->getWindForces()(2) << std::setw(8) << c->getWindForces()(0) << std::setw(8) << c->getWindForces()(1) << std::endl;
+    
+    outStream << "\n\t--Moment Coefficients--" << std::endl;
+    outStream << "\t\t" << std::setw(12) << "Cm (pitch)" << std::setw(12) << "Cl (roll)" << std::setw(12) << "Cn (yaw)" << std::endl;
+    outStream << "\t\t" << std::setw(12) << c->getMoment()(1) << std::setw(12) << c->getMoment()(0) << std::setw(12) << c->getMoment()(2) << std::endl;
+    outStream << "\n\n" << std::endl;
     
 }

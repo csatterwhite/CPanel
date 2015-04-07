@@ -22,12 +22,15 @@ void cpCase::run()
     std::string check = "\u2713";
     setSourceStrengths();
     converged = solveMatrixEq();
-    std::cout << std::setw(19) << std::left << check << std::flush;
+    std::cout << std::setw(17) << std::left << check << std::flush;
     compVelocity();
-    std::cout << std::setw(16) << std::left << check << std::flush;
+    std::cout << std::setw(17) << std::left << check << std::flush;
     trefftzPlaneAnalysis();
-    std::cout << std::setw(20) << std::left << check << std::endl;
+    std::cout << std::setw(18) << std::left << check << std::flush;
+
     createStreamlines();
+    std::cout << std::setw(16) << std::left << check << std::endl;
+        
     if (!converged)
     {
         std::cout << "*** Warning : Solution did not converge ***" << std::endl;;
