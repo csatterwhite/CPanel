@@ -33,6 +33,7 @@ public:
     Eigen::Vector3d operator+=(const cpNode &rhs);
     
     void addEdge(edge* e);
+    edge* getTE(edge* exception);
     
     void setTE();
     void setIndex(int i);

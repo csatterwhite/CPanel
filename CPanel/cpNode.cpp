@@ -39,6 +39,22 @@ Eigen::Vector3d operator+(cpNode lhs, const cpNode &rhs)
 
 void cpNode::addEdge(edge* e)  {edges.push_back(e);}
 
+edge* cpNode::getTE(edge* exception)
+{
+    for (int i=0; i<edges.size(); i++)
+    {
+        if (edges[i]->isTE() && edges[i] != exception)
+        {
+            if (edges[i]->getN2() == this)
+            {
+                edges[i]->flipDir();
+            }
+            return edges[i];
+        }
+    }
+    return nullptr;
+}
+
 void cpNode::setTE() {TEnode = true;}
 
 void cpNode::setIndex(int i) {index = i;}
