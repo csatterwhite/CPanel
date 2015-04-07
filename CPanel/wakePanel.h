@@ -43,6 +43,7 @@ public:
     void setStrength();
     bodyPanel* getUpper() {return upperPan;}
     bodyPanel* getLower() {return lowerPan;}
+    edge* getTE();
     bool isTEpanel() {return TEpanel;}
 };
 

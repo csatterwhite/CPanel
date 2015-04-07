@@ -50,6 +50,7 @@ public:
     std::vector<bodyPanel*> getPanels() const {return panels;}
     int getID() const {return surfID;}
     std::vector<std::pair<Eigen::Vector3d,bodyPanel*>> getStreamlineStartPnts(const Eigen::Vector3d &Vinf);
+    bool sharpTE() {return TEflag;}
     
 
     

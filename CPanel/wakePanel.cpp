@@ -86,6 +86,8 @@ void wakePanel::setStrength()
 
 void wakePanel::setParentPanels()
 {
+    parentWake->addTEPanel(this);
+    
     std::vector<edge*> TEedges;
     for (int i=0; i<pEdges.size(); i++)
     {
@@ -141,6 +143,18 @@ void wakePanel::setParentPanels()
     
     wakeLine* wLine = new wakeLine(upperPan,lowerPan,normal);
     parentWake->addWakeLine(wLine);
+}
+
+edge* wakePanel::getTE()
+{
+    for (int i=0; i<pEdges.size(); i++)
+    {
+        if (pEdges[i]->isTE())
+        {
+            return pEdges[i];
+        }
+    }
+    return nullptr;
 }
 
 //wakePanel* wakePanel::makeVortexSheet()

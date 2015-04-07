@@ -22,6 +22,7 @@ class wakeLine;
 class wake
 {
     std::vector<wakePanel*> wpanels;
+    std::vector<wakePanel*> TEpanels;
     std::vector<wakeLine*> wakeLines;
     std::vector<wakePanel*> vortexSheets;
     double yMin;
@@ -43,13 +44,19 @@ public:
 //    wake(const wake& copy);
     
     void addPanel(wakePanel* wPan);
+    void addTEPanel(wakePanel* p);
     void addWakeLine(wakeLine* wl);
     
     std::vector<wakePanel*> getPanels() const {return wpanels;}
     
     void trefftzPlane(double Vinf,double Sref, double &CL, double &CD, Eigen::VectorXd &yLoc, Eigen::VectorXd &Cl, Eigen::VectorXd &Cd);
     
+    Eigen::Vector3d lambVectorInt(const Eigen::Vector3d &Vinf,Eigen::VectorXd &yLoc);
+    
+    
+    
     std::vector<wakeLine*> getWakeLines() {return wakeLines;}
+    std::vector<wakePanel*> getTrailingEdgePanels() {return TEpanels;}
     
     double wakeStrength(double y);
     

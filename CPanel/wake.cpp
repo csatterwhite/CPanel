@@ -68,6 +68,11 @@ void wake::addPanel(wakePanel* wPan)
     wpanels.push_back(wPan);
 }
 
+void wake::addTEPanel(wakePanel* p)
+{
+    TEpanels.push_back(p);
+}
+
 void wake::addWakeLine(wakeLine* wl)
 {
     wakeLines.push_back(wl);
@@ -76,7 +81,7 @@ void wake::addWakeLine(wakeLine* wl)
 
 void wake::trefftzPlane(double Vinf,double Sref, double &CL, double &CD, Eigen::VectorXd &yLoc, Eigen::VectorXd &Cl, Eigen::VectorXd &Cd)
 {
-    int nPnts = 30;
+    int nPnts = 60;
     if (nPnts % 2 != 0)
     {
         //Number is odd and needs to be even for simpsons rule integration.
@@ -114,6 +119,46 @@ void wake::trefftzPlane(double Vinf,double Sref, double &CL, double &CD, Eigen::
         CD += 1.0/3*step*(Cd(i)+4*Cd(i+1)+Cd(i+2));
         i += 2;
     }
+}
+
+Eigen::Vector3d wake::lambVectorInt(const Eigen::Vector3d &Vinf,Eigen::VectorXd &yLoc)
+{
+    // Sort by y position
+    std::sort(TEpanels.begin(), TEpanels.end(), [](wakePanel* w1, wakePanel* w2) {return w1->getCenter()(1) < w2->getCenter()(1);});
+    yLoc.resize(TEpanels.size()+2);
+    edge* TE = TEpanels[0]->getTE();
+    
+    if (TE->getN1()->getPnt()(1) > TE->getN2()->getPnt()(1))
+    {
+        TE->flipDir();
+    }
+    
+    int i = 1;
+    Eigen::Vector3d vel,circ;
+    Eigen::MatrixXd sectForces = Eigen::MatrixXd::Zero(TEpanels.size()+2,3);
+    while (TE != nullptr)
+    {
+        yLoc(i) = TE->getMidPoint()(1);
+        vel = TE->edgeVelocity(Vinf);
+        circ = TE->TEgamma();
+        sectForces.row(i) = vel.cross(circ);
+        TE = TE->nextTE();
+        i++;
+    }
+    
+    Eigen::Vector3d F = Eigen::Vector3d::Zero();
+    Eigen::Vector3d sectF1,sectF2;
+    i = 0;
+    
+    while (i < sectForces.rows()-1)
+    {
+        sectF1 = sectForces.row(i);
+        sectF2 = sectForces.row(i+1);
+        F = F + 0.5*(yLoc(i+1)-yLoc(i))*(sectF1+sectF2);
+        i++;
+    }
+    
+    return F;
 }
 
 wakeLine* wake::findWakeLine(double y)
