@@ -57,10 +57,17 @@ Eigen::Vector3d cpCase::windToBody(double V, double alpha, double beta)
     Eigen::Vector3d Vt;
     Eigen::Vector3d Vel;
     Vt << V,0,0;
+    transform = T;
 
-    Vel = T*Vt;
+    Vel = transform*Vt;
     
     return Vel;
+}
+
+Eigen::Vector3d cpCase::bodyToWind(const Eigen::Vector3d &vec)
+{
+    Eigen::Matrix3d T = transform.transpose();
+    return T*vec;
 }
 
 void cpCase::setSourceStrengths()
@@ -110,15 +117,20 @@ void cpCase::compVelocity()
     //  Velocity Survey with known doublet and source strengths
     CM.setZero();
     Eigen::Vector3d moment;
+    Fbody = Eigen::Vector3d::Zero();
+    bodyPanel* p;
     for (int i=0; i<bPanels->size(); i++)
     {
+        p = (*bPanels)[i];
         (*bPanels)[i]->computeVelocity();
         (*bPanels)[i]->computeCp(Vmag,PG);
+        Fbody += -p->getCp()*p->getArea()*p->getBezNormal()/params->Sref;
         moment = (*bPanels)[i]->computeMoments(params->cg);
         CM(0) += moment(0)/(params->Sref*params->bref);
         CM(1) += moment(1)/(params->Sref*params->cref);
         CM(2) += moment(2)/(params->Sref*params->bref);
     }
+    Fwind = bodyToWind(Fbody);
 }
 
 void cpCase::trefftzPlaneAnalysis()
@@ -126,13 +138,21 @@ void cpCase::trefftzPlaneAnalysis()
     std::vector<wake*> wakes = geom->getWakes();
     for (int i=0; i<wakes.size(); i++)
     {
-        wakes[i]->trefftzPlane(Vmag,params->Sref,CL,CD,spanLoc,Cl,Cd);
-        CL /= PG;
-        CD /= pow(PG,2);
+        wakes[i]->trefftzPlane(Vmag,params->Sref,CL_trefftz,CD_trefftz,spanLoc,Cl,Cd);
+        CL_trefftz /= PG;
+        CD_trefftz /= pow(PG,2);
         Cl /= PG;
         Cd /= pow(PG,2);
         spanLoc *= 2/params->bref;
     }
+//    for (int i=0; i<spanLoc.size(); i++)
+//    {
+//        std::cout << spanLoc(i) << " ; " << std::endl;
+//    }
+//    for (int i=0; i<spanLoc.size(); i++)
+//    {
+//        std::cout << Cl(i) << " ; " << std::endl;
+//    }
 }
 
 void cpCase::createStreamlines()
@@ -141,9 +161,6 @@ void cpCase::createStreamlines()
     std::vector<surface*> surfs = geom->getSurfaces();
     std::vector<std::pair<Eigen::Vector3d,bodyPanel*>> streamPnts;
     bodyStreamline* s;
-//    std::vector<Eigen::Vector3d> pnts;
-//    std::ofstream fid;
-//    fid.open("streamlines.xyz");
     
     for (int i=0; i<surfs.size(); i++)
     {
@@ -152,18 +169,8 @@ void cpCase::createStreamlines()
         {
             s = new bodyStreamline(std::get<0>(streamPnts[j]),std::get<1>(streamPnts[j]),Vinf,geom,2,false);
             bStreamlines.push_back(s);
-//            
-//            pnts = s->getPnts();
-//            fid << pnts.size() << std::endl;
-////            std::cout << pnts.size() << std::endl;
-//            for (int k=0; k<pnts.size(); k++)
-//            {
-//                fid << pnts[k](0) << "\t" << pnts[k](1) << "\t" << pnts[k](2) << std::endl;
-//            }
         }
     }
-//    fid.close();
-    
 }
 
 void cpCase::writeFiles()

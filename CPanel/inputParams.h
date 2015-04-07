@@ -28,6 +28,7 @@ struct inputParams
     double Sref;
     double bref;
     double cref;
+    double streamSpacing;
     Eigen::Vector3d cg;
     Eigen::VectorXd velocities,alphas,betas,machs;
     

@@ -185,7 +185,7 @@ void geometry::readTri(std::string tri_file, bool normFlag)
         Eigen::MatrixXd norms = Eigen::MatrixXd::Zero(nTris,3);
         if (normFlag)
         {
-            std::cout << "Reading Bezier Normals from Geometry File" << std::endl;
+            std::cout << "Reading Bezier Normals from Geometry File..." << std::endl;
             for (int i=0; i<nTris; i++)
             {
                 fid >> norms(i,0) >> norms(i,1) >> norms(i,2);
@@ -248,7 +248,6 @@ void geometry::readTri(std::string tri_file, bool normFlag)
             {
                 readInfCoeff();
                 read = true;
-                std::cout << "Influence Coefficients read from " << infCoeffFile << "\n" <<std::endl;
             }
         }
         
@@ -401,7 +400,7 @@ edge* geometry::findEdge(cpNode* n1,cpNode* n2)
     }
     
     // If edge doesn't exist, create one
-    edge* e = new edge(n1,n2);
+    edge* e = new edge(n1,n2,this);
     edges.push_back(e);
     return e;
 }
@@ -572,6 +571,8 @@ bool geometry::infCoeffFileExists()
 
 void geometry::readInfCoeff()
 {
+    std::cout << "Reading Influence Coefficients from " << infCoeffFile << "..." << std::endl;
+    
     std::ifstream fid;
     fid.open(infCoeffFile);
     int nPans;
@@ -597,6 +598,7 @@ void geometry::readInfCoeff()
 
 void geometry::writeInfCoeff()
 {
+    std::cout << "Writing Influence Coefficients to " << infCoeffFile << "..." << std::endl;
     std::ofstream fid;
     fid.open(infCoeffFile);
     fid << bPanels.size() << "\n";
@@ -629,7 +631,7 @@ Eigen::MatrixXd geometry::getNodePnts()
     return nodePnts;
 }
 
-double geometry::pntPotential(const Eigen::Vector3d &pnt, const Eigen::Vector3d Vinf)
+double geometry::pntPotential(const Eigen::Vector3d &pnt, const Eigen::Vector3d &Vinf)
 {
     double pot = 0;
     for (int i=0; i<bPanels.size(); i++)
@@ -642,6 +644,21 @@ double geometry::pntPotential(const Eigen::Vector3d &pnt, const Eigen::Vector3d 
     }
     pot += Vinf.dot(pnt);
     return pot;
+}
+
+Eigen::Vector3d geometry::pntVelocity(const Eigen::Vector3d &pnt, const Eigen::Vector3d &Vinf)
+{
+    Eigen::Vector3d vel = Eigen::Vector3d::Zero();
+    for (int i=0; i<bPanels.size(); i++)
+    {
+        vel += bPanels[i]->panelV(pnt);
+    }
+    for (int i=0; i<wPanels.size(); i++)
+    {
+        vel += wPanels[i]->panelV(pnt);
+    }
+    vel += Vinf;
+    return vel;
 }
 
 

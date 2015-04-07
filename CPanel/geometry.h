@@ -83,7 +83,8 @@ public:
     
     geometry& operator=(const geometry &rhs);
     
-    double pntPotential(const Eigen::Vector3d &pnt, const Eigen::Vector3d Vinf);
+    double pntPotential(const Eigen::Vector3d &pnt, const Eigen::Vector3d &Vinf);
+    Eigen::Vector3d pntVelocity(const Eigen::Vector3d &pnt, const Eigen::Vector3d &Vinf);
     
     void clusterCheck();
     

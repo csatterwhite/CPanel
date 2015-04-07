@@ -23,6 +23,7 @@
 #include "inputParams.h"
 
 
+
 class cpCase
 {
     geometry *geom;
@@ -41,20 +42,26 @@ class cpCase
 //    double cref;
 //    Eigen::Vector3d cg;
     Eigen::Vector3d Vinf;
+    Eigen::Matrix3d transform; 
+    
+    
     std::vector<bodyPanel*>* bPanels;
     std::vector<wakePanel*>* wPanels;
     Eigen::VectorXd sigmas;
     
-    double CL;
-    double CD;
+    double CL_trefftz;
+    double CD_trefftz;
+    Eigen::Vector3d Fbody;
+    Eigen::Vector3d Fwind;
     Eigen::Vector3d CM; //[roll,pitch,yaw]
     Eigen::VectorXd spanLoc;
     Eigen::VectorXd Cl;
     Eigen::VectorXd Cd;
     
     std::vector<bodyStreamline*> bStreamlines;
-    
     Eigen::Vector3d windToBody(double V,double alpha,double beta);
+    
+    Eigen::Vector3d bodyToWind(const Eigen::Vector3d &vec);
     void setSourceStrengths();
     bool solveMatrixEq();
     void compVelocity();
@@ -95,9 +102,11 @@ public:
     double getV() {return Vmag;}
     double getAlpha() {return alpha;}
     double getBeta() {return beta;}
-    double getCL() {return CL;}
-    double getCD() {return CD;}
+    double getCL() {return CL_trefftz;}
+    double getCD() {return CD_trefftz;}
     Eigen::Vector3d getMoment() {return CM;}
+    Eigen::Vector3d getBodyForces() {return Fbody;}
+    Eigen::Vector3d getWindForces() {return Fwind;}
     
 };
 #endif /* defined(__CPanel__runCase__) */

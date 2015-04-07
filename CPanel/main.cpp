@@ -16,12 +16,12 @@
 #include <boost/filesystem/operations.hpp>
 
 
-void usage()
+void usage(const char * argv[])
 {
     printf("\n");
-    printf("CPanel is an unstructured panel code developed by students at California Polytechnic State University - San Luis Obispo.\n");
+    printf("%s is an unstructured panel code developed by students at California Polytechnic State University - San Luis Obispo.\n",argv[0]);
     printf("\n");
-    printf("Usage: CPanel -i<infile> \n");
+    printf("Usage: %s -i<infile> \n",argv[0]);
     printf("   -i<infile>   Required parameter to specify settings input file.\n");
     printf("\n");
     printf("The input file contains the geometry filename, reference values, and freestream conditions.\n\n");
@@ -79,7 +79,7 @@ int main(int argc, const char * argv[])
     if (argc != 2)
     {
         printf("ERROR : Incorrect Usage");
-        usage();
+        usage(argv);
         exit(EXIT_FAILURE);
     }
     
@@ -90,7 +90,7 @@ int main(int argc, const char * argv[])
     
     if (!inData.set())
     {
-        usage();
+        usage(argv);
         exit(EXIT_FAILURE);
     }
     

@@ -258,8 +258,12 @@ Eigen::Vector3d panel::dubVInf(const Eigen::Vector3d &POI)
 
 Eigen::Vector3d panel::vortexV(const Eigen::Vector3d &a, const Eigen::Vector3d &b, const Eigen::Vector3d &s)
 {
-    double core = 0.1;
-    return -(a.cross(b)*(a.norm()+b.norm()))/(a.norm()*b.norm()*((a.norm()*b.norm())+a.dot(b))+(pow(core*s.norm(),2)));
+//    if (a.norm() < s.norm() || b.norm() < s.norm())
+//    {
+//        int dummy = 1;
+//    }
+    double core = .05;
+    return (a.cross(b)*(a.norm()+b.norm()))/(a.norm()*b.norm()*((a.norm()*b.norm())+a.dot(b))+(pow(core,2)));
 }
 
 double panel::vortexPhi(const double &PN,const double &Al, const Eigen::Vector3d &a,const Eigen::Vector3d &b, const Eigen::Vector3d &s, const Eigen::Vector3d &l,const Eigen::Vector3d &m,const Eigen::Vector3d &n)
@@ -294,7 +298,7 @@ double panel::pntDubPhi(const double &PN, const double &PJK)
 
 Eigen::Vector3d panel::pntDubV(const Eigen::Vector3d n,const Eigen::Vector3d &pjk)
 {
-    return -area*(3*pjk.dot(n)*pjk-pow(pjk.norm(),2)*n)/(4*M_PI*pow(pjk.norm(),5));
+    return area*(3*pjk.dot(n)*pjk-pow(pjk.norm(),2)*n)/(4*M_PI*pow(pjk.norm(),5));
 }
 
 Eigen::VectorXi panel::getVerts()

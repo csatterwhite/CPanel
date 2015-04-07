@@ -72,14 +72,11 @@ double bodyPanel::panelPhi(const Eigen::Vector3d &POI)
 
 Eigen::Vector3d bodyPanel::panelV(const Eigen::Vector3d &POI)
 {
-    double mu,sigma;
     Eigen::Vector3d vSrc,vDub;
     
-    mu = doubletStrength;
-    sigma = sourceStrength;
     panelVInf(POI,vSrc,vDub);
     
-    return sigma*vSrc+mu*vDub;
+    return sourceStrength*vSrc+doubletStrength*vDub;
 }
 
 void bodyPanel::panelPhiInf(const Eigen::Vector3d &POI, double &phiSrc,double &phiDub)
