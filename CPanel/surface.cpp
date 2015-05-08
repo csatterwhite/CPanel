@@ -11,7 +11,7 @@
 #include "bodyStreamline.h"
 
 
-surface::surface(const int &surfaceID,geometry* geom) : surfID(surfaceID), geom(geom), TEflag(false) {}
+surface::surface(const int &surfaceID,geometry* geom) : surfID(surfaceID), geom(geom), TEflag(false), LSflag(false) {}
 //==== Destructor ====//
 //surface::~surface()
 //{
@@ -28,7 +28,7 @@ void surface::addPanel(bodyPanel* bPan)
 
 std::vector<edge*> surface::getTrailingEdges()
 {
-    if (!TEflag || trailingEdges.size() > 0)
+    if (!LSflag)
     {
         std::vector<edge*> empty;
         return empty;
@@ -49,6 +49,8 @@ std::vector<edge*> surface::getTrailingEdges()
             trailingEdges.push_back(TE);
         }
     }
+    
+    // Sort edges so that the streamlines can start tracing at one side of surface and progress, keeping track of neighboring streamlines.
     Eigen::Vector3d vec;
     vec = trailingEdges[0]->getVector();
     vec.normalize();
@@ -93,7 +95,7 @@ std::vector<std::pair<Eigen::Vector3d,bodyPanel*>> surface::getStreamlineStartPn
     std::pair<Eigen::Vector3d,bodyPanel*> pair;
     bodyPanel* pStag;
     
-    if (!TEflag)
+    if (!LSflag)
     {
         std::vector<std::pair<Eigen::Vector3d,bodyPanel*>> pntPairs;
         Eigen::Vector3d stagPnt = rearStagnationPnt(Vinf,pStag);

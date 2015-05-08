@@ -12,7 +12,7 @@
 #include "edge.h"
 
 
-wakePanel::wakePanel(std::vector<cpNode*> nodes, std::vector<edge*> pEdges, Eigen::Vector3d bezNorm, int surfID, wake* parentWake) : panel(nodes,pEdges,bezNorm,surfID), TEpanel(false), parentWake(parentWake)
+wakePanel::wakePanel(std::vector<cpNode*> nodes, std::vector<edge*> pEdges, Eigen::Vector3d bezNorm, wake* parentWake,int surfID) : panel(nodes,pEdges,bezNorm,surfID), TEpanel(false), parentWake(parentWake)
 {
     for (int i=0; i<pEdges.size(); i++)
     {
@@ -20,8 +20,13 @@ wakePanel::wakePanel(std::vector<cpNode*> nodes, std::vector<edge*> pEdges, Eige
     }
 }
 
-//wakePanel::wakePanel(const wakePanel &copy) : panel(copy), upperPan(copy.upperPan), lowerPan(copy.lowerPan), TEpanel(copy.TEpanel), parentWake(copy.parentWake) {}
+wakePanel::wakePanel(const wakePanel &copy) : panel(copy), upperPan(copy.upperPan), lowerPan(copy.lowerPan), TEpanel(copy.TEpanel), parentWake(copy.parentWake) {}
 
+void wakePanel::setTEpanel()
+{
+    TEpanel = true;
+    parentWake->addTEPanel(this);
+}
 void wakePanel::setUpper(bodyPanel* up) {upperPan = up;}
 void wakePanel::setLower(bodyPanel* lp) {lowerPan = lp;}
 
@@ -84,65 +89,89 @@ void wakePanel::setStrength()
     doubletStrength = upperPan->getMu()-lowerPan->getMu();
 }
 
-void wakePanel::setParentPanels()
+void wakePanel::setParentPanels(bodyPanel* upper, bodyPanel* lower)
 {
-    parentWake->addTEPanel(this);
+    if (!TEpanel)
+    {
+        setTEpanel();
+    }
     
-    std::vector<edge*> TEedges;
-    for (int i=0; i<pEdges.size(); i++)
+    if (upperPan == nullptr)
     {
-        if (pEdges[i]->isTE())
-        {
-            TEedges.push_back(pEdges[i]);
-        }
-    }
-    std::vector<bodyPanel*> parentPans;
-    
-    // If TEedges.size() > 2, panel is at wing body joint
-    for (int i=0; i<TEedges.size(); i++)
-    {
-        parentPans = TEedges[i]->getBodyPans();
-        if (parentPans[0]->getID() == ID-10000)
-        {
-            // Test for edge on parent lifting surface if panel is at wing body joint
-            break;
-        }
-    }
-    if (parentPans[0]->getCenter()(2) > parentPans[1]->getCenter()(2))
-    {
-        upperPan = parentPans[0];
-        lowerPan = parentPans[1];
-        upperPan->setUpper();
-        lowerPan->setLower();
-    }
-    else if (parentPans[0]->getCenter()(2) < parentPans[1]->getCenter()(2))
-    {
-        upperPan = parentPans[1];
-        lowerPan = parentPans[0];
-        upperPan->setUpper();
-        lowerPan->setLower();
+        // Parents have not yet been set
+        upperPan = upper;
+        lowerPan = lower;
     }
     else
     {
-        // Panels somehow are coplanar. Sort by normal direction
-        if (parentPans[0]->getNormal()(2) > parentPans[1]->getNormal()(2))
+        // Parents already set, wake panel is at wing body joint. Choose panels further upstream
+        if (upper->getCenter()(0) < center(0))
         {
-            upperPan = parentPans[0];
-            lowerPan = parentPans[1];
-            upperPan->setUpper();
-            lowerPan->setLower();
-        }
-        else if (parentPans[0]->getNormal()(2) < parentPans[1]->getNormal()(2))
-        {
-            upperPan = parentPans[1];
-            lowerPan = parentPans[0];
-            upperPan->setUpper();
-            lowerPan->setLower();
+            upperPan = upper;
+            lowerPan = lower;
         }
     }
     
     wakeLine* wLine = new wakeLine(upperPan,lowerPan,normal);
     parentWake->addWakeLine(wLine);
+    
+//    parentWake->addTEPanel(this);
+//    
+//    std::vector<edge*> TEedges;
+//    for (int i=0; i<pEdges.size(); i++)
+//    {
+//        if (pEdges[i]->isTE())
+//        {
+//            TEedges.push_back(pEdges[i]);
+//        }
+//    }
+//    std::vector<bodyPanel*> parentPans;
+//    
+//    // If TEedges.size() > 2, panel is at wing body joint
+//    for (int i=0; i<TEedges.size(); i++)
+//    {
+//        parentPans = TEedges[i]->getBodyPans();
+//        if (parentPans[0]->getID() == ID-10000)
+//        {
+//            // Test for edge on parent lifting surface if panel is at wing body joint
+//            break;
+//        }
+//    }
+//    if (parentPans[0]->getCenter()(2) > parentPans[1]->getCenter()(2))
+//    {
+//        upperPan = parentPans[0];
+//        lowerPan = parentPans[1];
+//        upperPan->setUpper();
+//        lowerPan->setLower();
+//    }
+//    else if (parentPans[0]->getCenter()(2) < parentPans[1]->getCenter()(2))
+//    {
+//        upperPan = parentPans[1];
+//        lowerPan = parentPans[0];
+//        upperPan->setUpper();
+//        lowerPan->setLower();
+//    }
+//    else
+//    {
+//        // Panels somehow are coplanar. Sort by normal direction
+//        if (parentPans[0]->getNormal()(2) > parentPans[1]->getNormal()(2))
+//        {
+//            upperPan = parentPans[0];
+//            lowerPan = parentPans[1];
+//            upperPan->setUpper();
+//            lowerPan->setLower();
+//        }
+//        else if (parentPans[0]->getNormal()(2) < parentPans[1]->getNormal()(2))
+//        {
+//            upperPan = parentPans[1];
+//            lowerPan = parentPans[0];
+//            upperPan->setUpper();
+//            lowerPan->setLower();
+//        }
+//    }
+//    
+//    wakeLine* wLine = new wakeLine(upperPan,lowerPan,normal);
+//    parentWake->addWakeLine(wLine);
 }
 
 edge* wakePanel::getTE()

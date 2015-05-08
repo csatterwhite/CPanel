@@ -122,10 +122,10 @@ void cpCase::compVelocity()
     for (int i=0; i<bPanels->size(); i++)
     {
         p = (*bPanels)[i];
-        (*bPanels)[i]->computeVelocity();
-        (*bPanels)[i]->computeCp(Vmag,PG);
+        p->computeVelocity();
+        p->computeCp(Vmag,PG);
         Fbody += -p->getCp()*p->getArea()*p->getBezNormal()/params->Sref;
-        moment = (*bPanels)[i]->computeMoments(params->cg);
+        moment = p->computeMoments(params->cg);
         CM(0) += moment(0)/(params->Sref*params->bref);
         CM(1) += moment(1)/(params->Sref*params->cref);
         CM(2) += moment(2)/(params->Sref*params->bref);
@@ -136,23 +136,14 @@ void cpCase::compVelocity()
 void cpCase::trefftzPlaneAnalysis()
 {
     std::vector<wake*> wakes = geom->getWakes();
+    CL_trefftz = 0;
+    CD_trefftz = 0;
     for (int i=0; i<wakes.size(); i++)
     {
-        wakes[i]->trefftzPlane(Vmag,params->Sref,CL_trefftz,CD_trefftz,spanLoc,Cl,Cd);
-        CL_trefftz /= PG;
-        CD_trefftz /= pow(PG,2);
-        Cl /= PG;
-        Cd /= pow(PG,2);
-        spanLoc *= 2/params->bref;
+        wakes[i]->trefftzPlane(Vmag,params->Sref);
+        CL_trefftz += wakes[i]->getCL()/PG;
+        CD_trefftz += wakes[i]->getCD()/pow(PG,2);
     }
-//    for (int i=0; i<spanLoc.size(); i++)
-//    {
-//        std::cout << spanLoc(i) << " ; " << std::endl;
-//    }
-//    for (int i=0; i<spanLoc.size(); i++)
-//    {
-//        std::cout << Cl(i) << " ; " << std::endl;
-//    }
 }
 
 void cpCase::createStreamlines()
@@ -256,16 +247,28 @@ void cpCase::writeWakeData(boost::filesystem::path path, const Eigen::MatrixXd &
 
 void cpCase::writeSpanwiseData(boost::filesystem::path path)
 {
-    std::string fname = path.string()+"/spanwiseData.csv";
-    std::ofstream fout;
-    fout.open(fname);
-    if (fout)
+    std::vector<wake*> wakes = geom->getWakes();
+    for (int i=0; i<wakes.size(); i++)
     {
-        fout << "2y/b,Cl,Cdi" << std::endl;
-        for (int i=0; i<spanLoc.size(); i++)
+        Eigen::VectorXd spanLoc,Cl,Cd;
+        spanLoc = 2*wakes[i]->getSpanwisePnts()/params->Sref;
+        Cl = wakes[i]->getSpanwiseCl()/PG;
+        Cd = wakes[i]->getSpanwiseCd()/pow(PG,2);
+        
+        std::stringstream ss;
+        ss << path.string() << "/spanwiseData_Wake" << i+1 << ".csv";
+        std::string fname = ss.str();
+        std::ofstream fout;
+        fout.open(fname);
+        if (fout)
         {
-            fout << spanLoc(i) << "," << Cl(i) << "," << Cd(i) << std::endl;
+            fout << "2y/b,Cl,Cdi" << std::endl;
+            for (int i=0; i<spanLoc.size(); i++)
+            {
+                fout << spanLoc(i) << "," << Cl(i) << "," << Cd(i) << std::endl;
+            }
         }
+        fout.close();
     }
 }
 

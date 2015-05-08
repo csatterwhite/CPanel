@@ -27,7 +27,6 @@ class bodyPanel : public panel
     bool lower; // Sheds wake panel from upper edge
     bool TEpanel;
     edge* TE;
-    bool lsFlag; // Lifting surface flag
     bool tipFlag;
     bool streamFlag; // Surface Streamline crosses panel.
     Eigen::Vector3d velocity;
@@ -45,7 +44,7 @@ class bodyPanel : public panel
     void setCluster(int dim, int bufferPanels);
     
 public:
-    bodyPanel(std::vector<cpNode*> nodes, std::vector<edge*> pEdges, Eigen::Vector3d bezNorm,surface* parentSurf, int surfID,bool lsflag);
+    bodyPanel(std::vector<cpNode*> nodes, std::vector<edge*> pEdges, Eigen::Vector3d bezNorm,surface* parentSurf, int surfID);
     
 //    bodyPanel(const bodyPanel &copy);
     
@@ -54,6 +53,8 @@ public:
     void setLower();
     void setTEpanel(edge* trailingEdge);
     void setIndex(int i);
+    void setLSflag();
+    void setTipFlag();
     
     double panelPhi(const Eigen::Vector3d &POI);
     Eigen::Vector3d panelV(const Eigen::Vector3d &POI);
@@ -81,7 +82,7 @@ public:
     bool isLower() {return lower;}
     bool isTEpanel() {return TEpanel;}
     edge* getTrailingEdge() {return TE;}
-    bool isLiftSurf() {return lsFlag;}
+    
     bool isTipPan() {return tipFlag;}
     bool getStreamFlag() {return streamFlag;}
     int getIndex() {return index;}

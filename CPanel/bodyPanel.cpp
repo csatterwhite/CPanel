@@ -11,20 +11,11 @@
 #include "cpNode.h"
 #include "surface.h"
 
-bodyPanel::bodyPanel(std::vector<cpNode*> nodes, std::vector<edge*> pEdges, Eigen::Vector3d bezNorm,surface* parentSurf, int surfID,bool lsflag) : panel(nodes,pEdges,bezNorm,surfID), upper(false), lower(false), lsFlag(lsflag), streamFlag(false), parentSurf(parentSurf), TEpanel(false), TSorder(3)
+bodyPanel::bodyPanel(std::vector<cpNode*> nodes, std::vector<edge*> pEdges, Eigen::Vector3d bezNorm,surface* parentSurf, int surfID) : panel(nodes,pEdges,bezNorm,surfID), upper(false), lower(false), streamFlag(false), parentSurf(parentSurf), TEpanel(false), TSorder(3), tipFlag(false)
 {
     for (int i=0; i<pEdges.size(); i++)
     {
         pEdges[i]->addBodyPan(this);
-    }
-    
-    if (lsFlag)
-    {
-        tipFlag = wingTipTest();
-    }
-    else
-    {
-        tipFlag = false;
     }
 }
 
@@ -37,13 +28,53 @@ void bodyPanel::addNeighbor(bodyPanel* p)
 
 void bodyPanel::setUpper() {upper = true;}
 void bodyPanel::setLower() {lower = true;}
+
 void bodyPanel::setTEpanel(edge* trailingEdge)
 {
     TEpanel = true;
-    parentSurf->setTEflag();
+    parentSurf->setLSflag();
     TE = trailingEdge;
 }
+
 void bodyPanel::setIndex(int i) {index = i;}
+
+void bodyPanel::setTipFlag()
+{
+    if (center(1) == 3 || center(1) == -3)
+    {
+        int dummy = 0;
+    }
+    int count = 0;
+    double angle;
+    Eigen::Vector3d nNormal;
+    for (int i=0; i<neighbors.size(); i++)
+    {
+        nNormal = neighbors[i]->getNormal();
+        double dot = normal.dot(nNormal)/(normal.norm()*nNormal.norm());
+        if (dot > 1)
+        {
+            dot = 1;
+        }
+        else if (dot < -1)
+        {
+            dot = -1;
+        }
+        
+        angle = acos(dot);
+        
+        if (angle > 1.4 || angle < pow(10,-8))
+        {
+            // The angle between normal vectors is...
+            //     > 80 degrees, indicates edge of wingtip patch
+            //     < eps, indicates panels on wingtip patch in the same plane
+            count++;
+        }
+    }
+    if (count == neighbors.size())
+    {
+        tipFlag = true;
+    }
+}
 
 void bodyPanel::setSigma(Eigen::Vector3d Vinf, double Vnorm)
 {
@@ -260,7 +291,7 @@ void bodyPanel::setCluster(int dim, int bufferPanels)
         if (toAdd.size() == 0 && cluster.size() < nPanels+1)
         {
             // No valid panels could be found so decrease order of taylor series
-            while (cluster.size() < nPanels+1 && TSorder > 1)
+            while (cluster.size() < nPanels+1 && TSorder >= 1)
             {
                 TSorder -= 1;
                 nPanels = chtlsnd::factorial(TSorder+dim)/(chtlsnd::factorial(dim)*chtlsnd::factorial(TSorder)) + bufferPanels; // Binomial Coefficient
@@ -290,7 +321,7 @@ Eigen::Vector3d bodyPanel::pntVelocity(const Eigen::Vector3d &pnt,double pntPot)
     Eigen::MatrixXd Xf,Xb,Vb;
     Eigen::VectorXd df;
     std::vector<bodyPanel*> clust;
-    
+        
     if (tipFlag)
     {
         dim = 2;
@@ -395,9 +426,14 @@ bool bodyPanel::clusterTest(bodyPanel* other,double angle,bool upFlag,bool lowFl
     return (acos(dot) < angle && std::find(cluster.begin(),cluster.end(),other)==cluster.end() && other != this);
 }
 
+void bodyPanel::setLSflag()
+{
+    parentSurf->setLSflag();
+}
+
 bool bodyPanel::wingTipTest()
 {
-    if (!lsFlag)
+    if (!parentSurf->isLiftingSurf())
     {
         return false;
     }
@@ -412,18 +448,21 @@ bool bodyPanel::wingTipTest()
 bool bodyPanel::nearTrailingEdge()
 {
     // Returns true if panel is on trailing edge or a neighbor is on trailing edge
-    if (lsFlag && (upper || lower))
+    if (parentSurf->isLiftingSurf())
     {
-        return true;
-    }
-    else if (lsFlag)
-    {
-        std::vector<bodyPanel*> neighbs = getNeighbors();
-        for (int i=0; i<neighbs.size(); i++)
+        if (upper || lower)
         {
-            if (neighbs[i]->isUpper() || neighbs[i]->isLower())
+            return true;
+        }
+        else
+        {
+            std::vector<bodyPanel*> neighbs = getNeighbors();
+            for (int i=0; i<neighbs.size(); i++)
             {
-                return true;
+                if (neighbs[i]->isUpper() || neighbs[i]->isLower())
+                {
+                    return true;
+                }
             }
         }
     }

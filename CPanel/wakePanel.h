@@ -26,14 +26,15 @@ class wakePanel : public panel
     wake* parentWake;
     
 public:
-    wakePanel(std::vector<cpNode*> nodes, std::vector<edge*> pEdges, Eigen::Vector3d bezNorm, int surfID, wake* parentWake);
+    wakePanel(std::vector<cpNode*> nodes, std::vector<edge*> pEdges, Eigen::Vector3d bezNorm, wake* parentWake, int surfID);
     
-//    wakePanel(const wakePanel &copy);
+    wakePanel(const wakePanel &copy);
     
-    void setTEpanel() {TEpanel = true;}
+    void setTEpanel();
     void setUpper(bodyPanel* up);
     void setLower(bodyPanel* lp);
-    void setParentPanels();
+    void setParentPanels(bodyPanel* upper, bodyPanel* lower);
+    void setParentWake(wake* w) {parentWake = w;}
 //    wakePanel* makeVortexSheet();
     void interpPanels(std::vector<bodyPanel*> &interpP, double &interpC);
     double panelPhi(const Eigen::Vector3d &POI);

@@ -28,8 +28,10 @@
 
 class geometry
 {
-    std::vector<liftingSurf*> liftingSurfs;
-    std::vector<surface*> nonLiftingSurfs;
+    std::vector<surface*> surfaces;
+    std::vector<wake*> wakes;
+//    std::vector<liftingSurf*> liftingSurfs;
+//    std::vector<surface*> nonLiftingSurfs;
     std::vector<bodyPanel*> bPanels;
     std::vector<wakePanel*> wPanels;
     
@@ -92,8 +94,9 @@ public:
     short getNumberOfTris() {return nTris;}
     std::vector<cpNode*> getNodes() {return nodes;}
     Eigen::MatrixXd getNodePnts();
-    std::vector<liftingSurf*> getLiftingSurfs() {return liftingSurfs;}
-    std::vector<surface*> getNonLiftingSurfs() {return nonLiftingSurfs;}
+//    std::vector<liftingSurf*> getLiftingSurfs() {return liftingSurfs;}
+//    std::vector<surface*> getNonLiftingSurfs() {return nonLiftingSurfs;}
+
     std::vector<surface*> getSurfaces();
     panelOctree* getOctree() {return &pOctree;}
     std::vector<panel*> getPanels();

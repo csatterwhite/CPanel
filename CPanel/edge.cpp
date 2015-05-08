@@ -33,27 +33,41 @@ void edge::addWakePan(wakePanel* w)
 
 void edge::checkTE()
 {
-    if (wakePans.size() == 1 && bodyPans.size() == 2)
+    if (bodyPans.size() == 2)
     {
-        TE = true;
-        wakePans[0]->setTEpanel();
-        n1->setTE();
-        n2->setTE();
-    }
-    
-    else if (bodyPans.size() == 2)
-    {
-        // Check for sharp edge without wake shed (i.e. vertical tail).  Used to start streamline tracing
-        double angle = acos(bodyPans[0]->getNormal().dot(bodyPans[1]->getNormal()));
-        if (angle > 5*M_PI/6 && bodyPans[0]->getID() == bodyPans[1]->getID())
+        if (wakePans.size() == 1)
         {
             TE = true;
+            bodyPanel* upper;
+            bodyPanel* lower;
+            if (bodyPans[0]->getNormal()(2) > bodyPans[1]->getNormal()(2))
+            {
+                upper = bodyPans[0];
+                lower = bodyPans[1];
+            }
+            else
+            {
+                upper = bodyPans[1];
+                lower = bodyPans[0];
+            }
+            wakePans[0]->setParentPanels(upper,lower);
             n1->setTE();
             n2->setTE();
-            bodyPans[0]->setTEpanel(this);
+        }
+        else
+        {
+            // Check for sharp edge without wake shed (i.e. vertical tail).  Used to start streamline tracing
+            double angle = acos(bodyPans[0]->getNormal().dot(bodyPans[1]->getNormal()));
+            if (angle > 5*M_PI/6 && bodyPans[0]->getID() == bodyPans[1]->getID())
+            {
+                TE = true;
+                n1->setTE();
+                n2->setTE();
+                bodyPans[0]->setTEpanel(this);
+                bodyPans[1]->setTEpanel(this);
+            }
         }
     }
-    
 }
 
 bool edge::isTE()  {return TE;}

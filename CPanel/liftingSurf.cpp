@@ -10,7 +10,7 @@
 
 liftingSurf::liftingSurf(int surfID,geometry* geom) : surface(surfID,geom)
 {
-    wakeSurf = new wake;
+//    wakeSurf = new wake;
 }
 
 void liftingSurf::addPanel(bodyPanel* bPan)

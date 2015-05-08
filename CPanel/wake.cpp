@@ -41,6 +41,7 @@ void wake::addPanel(wakePanel* wPan)
         yMin = yMax;
         x0 = pnt(0);
         xf = x0;
+        normal = wPan->getNormal();
     }
     
     for (int i=0; i<nodes.size(); i++)
@@ -68,6 +69,60 @@ void wake::addPanel(wakePanel* wPan)
     wpanels.push_back(wPan);
 }
 
+bool wake::isSameWake(wake* other)
+{
+    if (other == this)
+    {
+        return false;
+    }
+    
+    Eigen::Vector3d p1 = wpanels[0]->getCenter();
+    Eigen::Vector3d p2 = other->getPanels()[0]->getCenter();
+    
+    Eigen::Vector3d vec = p2-p1;
+    
+    double dot = vec.dot(normal)/(vec.norm());
+    if (std::abs(dot) < pow(10,-10) && (yMin == other->getYMax() || yMax == other->getYMin()))
+    {
+        // Normal vector and vector connecting two points are orthogonal
+        return true;
+    }
+    return false;
+}
+
+void wake::mergeWake(wake *other)
+{
+    std::vector<wakePanel*> pans = other->getPanels();
+    wakePanel* w;
+    for (int i=0; i<pans.size(); i++)
+    {
+        w = new wakePanel(*pans[i]);
+        wpanels.push_back(w);
+        w->setParentWake(this);
+        if (pans[i]->isTEpanel())
+        {
+            w->setTEpanel();
+        }
+    }
+    
+    std::vector<wakeLine*> otherLines = other->getWakeLines();
+    wakeLine* wLine;
+    for (int i=0; i<otherLines.size(); i++)
+    {
+        wLine = new wakeLine(*otherLines[i]);
+        addWakeLine(wLine);
+    }
+    
+    if (other->getYMin() < yMin)
+    {
+        yMin = other->getYMin();
+    }
+    if (other->getYMax() > yMax)
+    {
+        yMax = other->getYMax();
+    }
+}
+
 void wake::addTEPanel(wakePanel* p)
 {
     TEpanels.push_back(p);
@@ -79,7 +134,7 @@ void wake::addWakeLine(wakeLine* wl)
     std::sort(wakeLines.begin(),wakeLines.end(),[](wakeLine* w1, wakeLine* w2) {return w1->getY() < w2->getY();});
 }
 
-void wake::trefftzPlane(double Vinf,double Sref, double &CL, double &CD, Eigen::VectorXd &yLoc, Eigen::VectorXd &Cl, Eigen::VectorXd &Cd)
+void wake::trefftzPlane(double Vinf,double Sref)
 {
     int nPnts = 60;
     if (nPnts % 2 != 0)
@@ -98,7 +153,7 @@ void wake::trefftzPlane(double Vinf,double Sref, double &CL, double &CD, Eigen::
     Cd = Eigen::VectorXd::Zero(nPnts+1);
     Eigen::MatrixXd trefftzPnts = Eigen::MatrixXd::Zero(nPnts+1,3);
 
-    double xTrefftz = x0+(xf-x0)/2;
+    double xTrefftz = x0+2*(xf-x0)/3;
     Eigen::Vector3d pWake;
     for (int i=1; i<nPnts; i++)
     {
