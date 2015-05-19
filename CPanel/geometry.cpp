@@ -659,7 +659,7 @@ double geometry::pntPotential(const Eigen::Vector3d &pnt, const Eigen::Vector3d 
     return pot;
 }
 
-Eigen::Vector3d geometry::pntVelocity(const Eigen::Vector3d &pnt, const Eigen::Vector3d &Vinf)
+Eigen::Vector3d geometry::pntVelocity(const Eigen::Vector3d &pnt, const Eigen::Vector3d &Vinf, double PG)
 {
     Eigen::Vector3d vel = Eigen::Vector3d::Zero();
     for (int i=0; i<bPanels.size(); i++)
@@ -671,6 +671,8 @@ Eigen::Vector3d geometry::pntVelocity(const Eigen::Vector3d &pnt, const Eigen::V
         vel += wPanels[i]->panelV(pnt);
     }
     vel += Vinf;
+    
+    vel(0) /= PG; // Prandtl-Glauert Correction
     return vel;
 }
 

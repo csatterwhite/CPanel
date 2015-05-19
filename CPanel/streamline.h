@@ -21,6 +21,7 @@ class streamline
     std::vector<Eigen::Vector3d> pnts;
     std::vector<Eigen::Vector3d> velocities;
     Eigen::Vector3d Vinf;
+    double PG;
     geometry* geom;
     
     Eigen::Matrix<double,1,6> coeff5,coeff4;
@@ -29,7 +30,7 @@ class streamline
     Eigen::Vector3d rkf(const Eigen::Vector3d &x0,double dt,double &error);
     
 public:
-    streamline(const Eigen::Vector3d &startPnt, double xMax, double tol, const Eigen::Vector3d &Vinf,geometry* geom);
+    streamline(const Eigen::Vector3d &startPnt, double xMax, double tol, const Eigen::Vector3d &Vinf, double PG, geometry* geom);
     
     std::vector<Eigen::Vector3d> getPnts() {return pnts;}
     std::vector<Eigen::Vector3d> getVelocities() {return velocities;}

@@ -15,6 +15,7 @@
 //#include "cpNode.h"
 //
 //class edge;
+class cpNode;
 
 class bodyPanel : public panel
 {
@@ -62,10 +63,12 @@ public:
     void panelPhiInf(const Eigen::Vector3d &POI, double &phiSrc,double &phiDub);
     void panelVInf(const Eigen::Vector3d &POI, Eigen::Vector3d &vSrc,Eigen::Vector3d &vDub);
     
-    Eigen::Vector3d pntVelocity(const Eigen::Vector3d &pnt,double pntPot);
+    Eigen::Vector3d pntVelocity(const Eigen::Vector3d &pnt,double pntPot, double PG);
     
-    void computeVelocity();
-    void computeCp(double Vinf,double PG);
+    double dist2Pan(bodyPanel* other);
+    
+    void computeVelocity(double PG);
+    void computeCp(double Vinf);
     Eigen::Vector3d computeMoments(const Eigen::Vector3d &cg);
     
     void setSigma(Eigen::Vector3d Vinf, double Vnorm);
@@ -75,6 +78,7 @@ public:
     void setStreamFlag();
     
     std::vector<bodyPanel*> getNeighbors() {return neighbors;}
+    std::vector<bodyPanel*> getRelatedPanels();
     
     double getSigma() {return sourceStrength;}
     double getMu() {return doubletStrength;}

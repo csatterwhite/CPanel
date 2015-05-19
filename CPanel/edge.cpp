@@ -129,6 +129,11 @@ Eigen::Vector3d edge::getMidPoint()
     return (n1->getPnt()+0.5*getVector());
 }
 
+Eigen::Vector3d edge::getNormal()
+{
+    return 0.5*(bodyPans[0]->getNormal()+bodyPans[1]->getNormal());
+}
+
 void edge::setNeighbors()
 {
     if (bodyPans.size() == 2)

@@ -168,8 +168,8 @@ void cpCase::compVelocity()
     for (int i=0; i<bPanels->size(); i++)
     {
         p = (*bPanels)[i];
-        p->computeVelocity();
-        p->computeCp(Vmag,PG);
+        p->computeVelocity(PG);
+        p->computeCp(Vmag);
         Fbody += -p->getCp()*p->getArea()*p->getBezNormal()/params->Sref;
         moment = p->computeMoments(params->cg);
         CM(0) += moment(0)/(params->Sref*params->bref);
@@ -201,13 +201,45 @@ void cpCase::createStreamlines()
     
     for (int i=0; i<surfs.size(); i++)
     {
-        streamPnts = surfs[i]->getStreamlineStartPnts(Vinf);
+        streamPnts = surfs[i]->getStreamlineStartPnts(Vinf,PG);
         for (int j=0; j<streamPnts.size(); j++)
         {
-            s = new bodyStreamline(std::get<0>(streamPnts[j]),std::get<1>(streamPnts[j]),Vinf,geom,2,false);
+            s = new bodyStreamline(std::get<0>(streamPnts[j]),std::get<1>(streamPnts[j]),Vinf,PG,geom,3,false);
             bStreamlines.push_back(s);
         }
     }
+}
+
+void cpCase::stabilityDerivatives()
+{
+    double delta = 0.5;
+    double dRad = delta*M_PI/180;
+    cpCase dA(geom,Vmag,alpha+delta,beta,mach,params);
+    cpCase dB(geom,Vmag,alpha,beta+delta,mach,params);
+    
+    dA.run(false,false,false);
+    dB.run(false,false,false);
+    
+    Eigen::Vector3d FA = dA.getWindForces();
+    FA(2) = dA.getCL();
+    FA(0) = dA.getCD();
+    
+    Eigen::Vector3d FB = dB.getWindForces();
+    FB(2) = dB.getCL();
+    FB(0) = dB.getCD();
+    
+    Eigen::Vector3d F = Fwind;
+    F(2) = CL_trefftz;
+    F(0) = CD_trefftz;
+    
+    // Finish calculating stability derivatives
+    dF_dAlpha = (FA-F)/dRad;
+    dF_dBeta = (FB-F)/dRad;
+    
+    dM_dAlpha = (dA.getMoment()-CM)/dRad;
+    dM_dBeta = (dB.getMoment()-CM)/dRad;
+    
+    
 }
 
 void cpCase::writeFiles()

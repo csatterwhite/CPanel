@@ -17,6 +17,10 @@ bodyPanel::bodyPanel(std::vector<cpNode*> nodes, std::vector<edge*> pEdges, Eige
     {
         pEdges[i]->addBodyPan(this);
     }
+    for (int i=0; i<nodes.size(); i++)
+    {
+        nodes[i]->addBodyPanel(this);
+    }
 }
 
 //bodyPanel::bodyPanel(const bodyPanel &copy) : panel(copy), sourceStrength(copy.sourceStrength), tipFlag(copy.tipFlag) {}
@@ -40,10 +44,6 @@ void bodyPanel::setIndex(int i) {index = i;}
 
 void bodyPanel::setTipFlag()
 {
-    if (center(1) == 3 || center(1) == -3)
-    {
-        int dummy = 0;
-    }
     int count = 0;
     double angle;
     Eigen::Vector3d nNormal;
@@ -174,12 +174,6 @@ void bodyPanel::panelVInf(const Eigen::Vector3d &POI, Eigen::Vector3d &vSrc,Eige
     Eigen::Vector3d pjk = POI-center;
     Eigen::Matrix3d local = getLocalSys();
     double PN = pjk.dot(local.row(2));
-//    if (pjk.norm() < .00001)
-//    {
-//        vSrc = 0.5*bezNormal;
-//        vDub << 0,0,0;
-//        return;
-//    }
     if (pjk.norm()/longSide > 5)
     {
         vSrc = pntSrcV(pjk);
@@ -283,7 +277,10 @@ void bodyPanel::setCluster(int dim, int bufferPanels)
                     {
                         lowFlag = true;
                     }
-                    toAdd.push_back(temp[j]);
+                    if (std::find(toAdd.begin(), toAdd.end(), temp[j]) == toAdd.end())
+                    {
+                        toAdd.push_back(temp[j]);
+                    }
                 }
             }
         }
@@ -293,7 +290,14 @@ void bodyPanel::setCluster(int dim, int bufferPanels)
             // No valid panels could be found so decrease order of taylor series
             while (cluster.size() < nPanels+1 && TSorder >= 1)
             {
-                TSorder -= 1;
+                if (bufferPanels > 0)
+                {
+                    bufferPanels -= 1;
+                }
+                else
+                {
+                    TSorder -= 1;
+                }
                 nPanels = chtlsnd::factorial(TSorder+dim)/(chtlsnd::factorial(dim)*chtlsnd::factorial(TSorder)) + bufferPanels; // Binomial Coefficient
             }
             cluster.erase(cluster.begin()+nPanels+1,cluster.end());
@@ -314,7 +318,8 @@ void bodyPanel::setCluster(int dim, int bufferPanels)
     }
 }
 
-Eigen::Vector3d bodyPanel::pntVelocity(const Eigen::Vector3d &pnt,double pntPot)
+
+Eigen::Vector3d bodyPanel::pntVelocity(const Eigen::Vector3d &pnt,double pntPot, double PG)
 {
     Eigen::Vector3d vel;
     int dim;
@@ -381,23 +386,24 @@ Eigen::Vector3d bodyPanel::pntVelocity(const Eigen::Vector3d &pnt,double pntPot)
         vel(2) = vWeights.getF().row(2)*df;
     }
     assert(vel == vel);
+    vel(0) /= PG; // Prandlt Glauert Correction
     return vel;
 }
 
-void bodyPanel::computeCp(double Vinf,double PG)
+void bodyPanel::computeCp(double Vinf)
 {
-    Cp = (1-pow(velocity.norm()/Vinf,2))/PG;
+    Cp = (1-pow(velocity.norm()/Vinf,2));
 }
 
-void bodyPanel::computeVelocity()
+void bodyPanel::computeVelocity(double PG)
 {
-    velocity = pntVelocity(center,potential);
+    velocity = pntVelocity(center,potential,PG);
 }
 
 Eigen::Vector3d bodyPanel::computeMoments(const Eigen::Vector3d &cg)
 {
     Eigen::Vector3d r = center-cg;
-    Eigen::Vector3d F = Cp*bezNormal*area;
+    Eigen::Vector3d F = -Cp*bezNormal*area;
     return r.cross(F);
 }
 
@@ -468,3 +474,31 @@ bool bodyPanel::nearTrailingEdge()
     }
     return false;
 }
+
+double bodyPanel::dist2Pan(bodyPanel* other)
+{
+    return (other->getCenter()-center).norm();
+}
+
+std::vector<bodyPanel*> bodyPanel::getRelatedPanels()
+{
+    std::vector<bodyPanel*> pans;
+    pans.push_back(this);
+    std::vector<bodyPanel*> nodePans;
+    
+    for (int i=0; i<nodes.size(); i++)
+    {
+        nodePans = nodes[i]->getBodyPans();
+        for (int j=0; j<nodePans.size(); j++)
+        {
+            if (std::find(pans.begin(),pans.end(),nodePans[j]) == pans.end())
+            {
+                pans.push_back(nodePans[j]);
+            }
+            
+        }
+    }
+    return pans;
+}
+
+

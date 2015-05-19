@@ -57,6 +57,7 @@ public:
     bodyPanel* getOtherBodyPan(bodyPanel* currentPan);
     Eigen::Vector3d getVector();
     Eigen::Vector3d getMidPoint();
+    Eigen::Vector3d getNormal();
 };
 
 #endif /* defined(__CPanel__edge__) */

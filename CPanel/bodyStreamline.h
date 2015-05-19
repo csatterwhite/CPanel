@@ -25,17 +25,19 @@ class bodyStreamline
     std::vector<Eigen::Vector3d> velocities;
     Eigen::Vector3d Vinf;
     double Vmag;
+    double PG;
+    int marchDir;
     geometry* geom;
     int pntsPerPanel;
     
 //    Eigen::Vector3d trailingEdgePnt(bodyPanel* p);
-    bool edgeIntersection(edge* e,const Eigen::Vector3d &pnt, const Eigen::Vector3d &vel, double &dt, Eigen::Vector3d &pntOnEdge);
+    edge* edgeIntersection(bodyPanel* pan,const Eigen::Vector3d &pnt, double pntPot, Eigen::Vector3d &vel, double &dt, Eigen::Vector3d &pntOnEdge, double maxAngle, edge* lastEdge, bool &stagFlag);
     
     bool stagnationPnt(const Eigen::Vector3d vel, const Eigen::Vector3d &velOld, double maxAngle);
     
     double safeInvCos(const Eigen::Vector3d &v1, const Eigen::Vector3d &v2);
 public:
-    bodyStreamline(Eigen::Vector3d startPnt, bodyPanel* startPan, const Eigen::Vector3d &Vinf, geometry* geom, int pntsPerPanel, bool marchFwd);
+    bodyStreamline(Eigen::Vector3d startPnt, bodyPanel* startPan, const Eigen::Vector3d &Vinf, double PG, geometry* geom, int pntsPerPanel, bool marchFwd);
     
     std::vector<Eigen::Vector3d> getPnts() {return pnts;}
     std::vector<Eigen::Vector3d> getVelocities() {return velocities;}

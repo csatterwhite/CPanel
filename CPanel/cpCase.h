@@ -59,6 +59,11 @@ class cpCase
     Eigen::VectorXd Cl;
     Eigen::VectorXd Cd;
     
+    Eigen::Vector3d dF_dAlpha;
+    Eigen::Vector3d dF_dBeta;
+    Eigen::Vector3d dM_dAlpha;
+    Eigen::Vector3d dM_dBeta;
+    
     std::vector<bodyStreamline*> bStreamlines;
     Eigen::Vector3d windToBody(double V,double alpha,double beta);
     
@@ -68,6 +73,7 @@ class cpCase
     void compVelocity();
     void trefftzPlaneAnalysis();
     void createStreamlines();
+    void stabilityDerivatives();
     void writeVTU(std::string filename);
     void writeFiles();
     void writeBodyData(boost::filesystem::path path, const Eigen::MatrixXd &nodeMat);
@@ -97,6 +103,10 @@ public:
     Eigen::Vector3d getMoment() {return CM;}
     Eigen::Vector3d getBodyForces() {return Fbody;}
     Eigen::Vector3d getWindForces() {return Fwind;}
+    Eigen::Vector3d get_dF_dAlpha() {return dF_dAlpha;}
+    Eigen::Vector3d get_dF_dBeta() {return dF_dBeta;}
+    Eigen::Vector3d get_dM_dAlpha() {return dM_dAlpha;}
+    Eigen::Vector3d get_dM_dBeta() {return dM_dBeta;}
     
 };
 #endif /* defined(__CPanel__runCase__) */
