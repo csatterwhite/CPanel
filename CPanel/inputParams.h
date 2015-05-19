@@ -32,6 +32,10 @@ struct inputParams
     Eigen::Vector3d cg;
     Eigen::VectorXd velocities,alphas,betas,machs;
     
+    bool surfStreamFlag;
+    bool stabDerivFlag;
+    bool writeCoeffFlag;
+    
     inputParams(cpFile* inFile) : inputFile(inFile) {}
     
     ~inputParams()

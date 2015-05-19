@@ -76,17 +76,6 @@ class cpCase
     void writeBodyStreamlines(boost::filesystem::path path);
     
 public:
-//    cpCase(geometry *geom,double V,double alpha,double beta, double mach, cpFile* inputFile, cpFile* geometryFile, std::string path,std::string name) : geom(geom), Vmag(V), alpha(alpha), beta(beta), mach(mach), path(path), name(name),inFile(inputFile),gFile(geometryFile)
-//    {
-//        Vinf = windToBody(V,alpha,beta);
-//        bPanels = geom->getBodyPanels();
-//        wPanels = geom->getWakePanels();
-//        Sref = geom->getSref();
-//        bref = geom->getbref();
-//        cref = geom->getcref();
-//        cg = geom->getCG();
-//        PG = sqrt(1-pow(mach,2));
-//    }
     cpCase(geometry *geom,double V, double alpha, double beta, double mach, inputParams* inParams) : geom(geom), Vmag(V), alpha(alpha), beta(beta), mach(mach), params(inParams)
     {
         Vinf = windToBody(V,alpha,beta);
@@ -97,7 +86,7 @@ public:
     
     virtual ~cpCase();
     
-    void run();
+    void run(bool printFlag, bool surfStreamFlag, bool stabDerivFlag);
     
     double getMach() {return mach;}
     double getV() {return Vmag;}

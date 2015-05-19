@@ -45,6 +45,8 @@ class geometry
     
     Eigen::MatrixXd B; // Source Influence Coefficient Matrix
     Eigen::MatrixXd A; // Doublet Influence Coefficient Matrix
+    
+    bool writeCoeffFlag;
     std::string infCoeffFile;
 
     void readTri(std::string tri_file, bool normFlag);
@@ -76,7 +78,9 @@ public:
         std::stringstream temp;
         temp << p->geomFile->name << ".infCoeff";
         infCoeffFile = temp.str();
+        writeCoeffFlag = p->writeCoeffFlag;
         readTri(p->geomFile->file, p->normFlag);
+        
     }
     
     virtual ~geometry();

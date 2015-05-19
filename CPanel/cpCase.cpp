@@ -16,27 +16,73 @@ cpCase::~cpCase()
     }
 }
 
-void cpCase::run()
+void cpCase::run(bool printFlag, bool surfStreamFlag, bool stabDerivFlag)
 {
     bool converged;
     std::string check = "\u2713";
     setSourceStrengths();
     converged = solveMatrixEq();
-    std::cout << std::setw(17) << std::left << check << std::flush;
+    if (printFlag)
+    {
+        std::cout << std::setw(17) << std::left << check << std::flush;
+    }
+    
     compVelocity();
-    std::cout << std::setw(17) << std::left << check << std::flush;
+    
+    if (printFlag)
+    {
+        std::cout << std::setw(17) << std::left << check << std::flush;
+    }
+    
     trefftzPlaneAnalysis();
-    std::cout << std::setw(18) << std::left << check << std::flush;
+    
+    if (printFlag)
+    {
+        std::cout << std::setw(18) << std::left << check << std::flush;
+    }
 
-    createStreamlines();
-    std::cout << std::setw(16) << std::left << check << std::endl;
+    if (surfStreamFlag)
+    {
+        createStreamlines();
+        if (printFlag)
+        {
+            std::cout << std::setw(16) << std::left << check << std::flush;
+        }
+    }
+    else
+    {
+        if (printFlag)
+        {
+            std::cout << std::setw(16) << std::left << "X" << std::flush;
+        }
+    }
+    
+    if (stabDerivFlag)
+    {
+        stabilityDerivatives();
+        if (printFlag)
+        {
+            std::cout << std::setw(23) << std::left << check << std::endl;
+        }
+    }
+    else
+    {
+        if (printFlag)
+        {
+            std::cout << std::setw(23) << std::left << "X" << std::endl;
+        }
+    }
+    
         
-    if (!converged)
+    if (!converged && printFlag)
     {
         std::cout << "*** Warning : Solution did not converge ***" << std::endl;;
     }
     
-    writeFiles();
+    if (printFlag)
+    {
+        writeFiles();
+    }
 }
 
 Eigen::Vector3d cpCase::windToBody(double V, double alpha, double beta)

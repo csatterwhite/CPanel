@@ -29,8 +29,8 @@ void caseMgr::setCases()
 
 void caseMgr::runCases()
 {
-    std::cout << "\nRunning Cases... (\u2713 - Complete, X - Not Requested)\n" << std::endl;
-    std::cout << std::setw(10) << std::left << "Case #" << std::setw(15) << std::left << "Solve System" << std::setw(15) << std::left << "Surface Data" << std::setw(16) << std::left << "Trefftz Plane" <<  std::setw(16) << std::left << "Streamlines" << std::endl;
+    std::cout << "\nRunning " << cases.size() << " Cases... (\u2713 - Complete, X - Not Requested)\n" << std::endl;
+    std::cout << std::setw(10) << std::left << "Case #" << std::setw(15) << std::left << "Solve System" << std::setw(15) << std::left << "Surface Data" << std::setw(16) << std::left << "Trefftz Plane" <<  std::setw(16) << std::left << "Streamlines" << std::setw(23) << std::left << "Stability Derivatives" << std::endl;
     for (int i=0; i<cases.size(); i++)
     {
         std::string out;
@@ -38,7 +38,7 @@ void caseMgr::runCases()
         outstream << i+1 << "/" << cases.size();
         out = outstream.str();
         std::cout << std::setw(10) << std::left << out << std::flush;
-        cases[i]->run();
+        cases[i]->run(true,p->surfStreamFlag,p->stabDerivFlag);
     }
     std::cout << "Complete" << std::endl;
 }
@@ -72,11 +72,11 @@ void caseMgr::writeCase(int caseNumber, cpCase* c, std::ofstream &outStream)
 {
     outStream << std::endl;
     outStream << "---Case #" << caseNumber << "---" << std::endl;
-    outStream << "\n\t--Flow Conditions--" << std::endl;
+    outStream << "\n\t--Flow Conditions--\n" << std::endl;
     outStream << "\t\t" << std::setw(outSpacing(0)) << "Velocity" << std::setw(outSpacing(1)) << "Mach" << std::setw(outSpacing(2)) << "Alpha" << std::setw(outSpacing(3)) << "Beta" << "\n";
     outStream << "\t\t" << std::setw(outSpacing(0)) << c->getV() << std::setw(outSpacing(1)) << c->getMach() << std::setw(outSpacing(2)) << c->getAlpha() << std::setw(outSpacing(3)) << c->getBeta() << "\n";
-    outStream << "\n\t--Force Coefficients--" << std::endl;
-    outStream << "\n\t\t-Trefftz Plane-" << std::endl;
+    outStream << "\n\t--Force Coefficients--\n" << std::endl;
+    outStream << "\t\t-Trefftz Plane-" << std::endl;
     outStream << "\t\t\tCL = " << c->getCL() << "\tCDi = " << c->getCD() << std::endl;
     outStream << "\n\t\t-Surface Integrated Force Coefficients-" << std::endl;
     outStream << "\t\t\t" << std::setw(15) << "Body Axis" << std::setw(8) << "CN" << std::setw(8) << "CA" << std::setw(8) << "CY" << std::endl;

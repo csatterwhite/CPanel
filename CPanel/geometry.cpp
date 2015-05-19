@@ -222,13 +222,9 @@ void geometry::readTri(std::string tri_file, bool normFlag)
         
         createSurfaces(connectivity,norms,allID,wakeIDs);
         
-        for (int i=0; i<edges.size(); i++)
-        {
-            if (edges[i]->getBodyPans().size() == 0 && edges[i]->isTE())
-            {
-                assert(edges[i]->isTE() != true);
-            }
-        }
+        std::cout << "\tNodes : " << nodes.size() << std::endl;
+        std::cout << "\tEdges : " << edges.size() << std::endl;
+        std::cout << "\tPanels : " << nTris << std::endl;
         
         // Erase duplicate node pointers
         std::sort( nodes.begin(), nodes.end() );
@@ -250,15 +246,6 @@ void geometry::readTri(std::string tri_file, bool normFlag)
         {
             edges[i]->setNeighbors();
         }
-        
-        
-//        for (int i=0; i<wPanels.size(); i++)
-//        {
-//            if (wPanels[i]->isTEpanel())
-//            {
-//                wPanels[i]->setParentPanels();
-//            }
-//        }
         
         for (int i=0; i<wakes.size(); i++)
         {
@@ -294,7 +281,6 @@ void geometry::readTri(std::string tri_file, bool normFlag)
         {
             bPanels[i]->setTipFlag();
         }
-
         
         // Calculate influence coefficient matrices
         
@@ -379,58 +365,8 @@ bool geometry::isLiftingSurf(int currentID, std::vector<int> wakeIDs)
 
 void geometry::createSurfaces(const Eigen::MatrixXi &connectivity, const Eigen::MatrixXd &norms, const Eigen::VectorXi &allID, std::vector<int> wakeIDs)
 {
-//    surface* surf = nullptr;
-//    liftingSurf* surfL = nullptr;
-//    bodyPanel* bPan;
-//    wakePanel* wPan;
-//    std::vector<edge*> pEdges;
-//    bool LS = false;
-//    for (int i=0; i<nTris; i++)
-//    {
-//        std::vector<cpNode*> pNodes;
-//        pNodes.push_back(nodes[connectivity(i,0)]);
-//        pNodes.push_back(nodes[connectivity(i,1)]);
-//        pNodes.push_back(nodes[connectivity(i,2)]);
-//        pEdges = panEdges(pNodes);
-//        if (i==0 || allID(i)!=allID(i-1))
-//        {
-//            LS = isLiftingSurf(allID(i),wakeIDs);
-//            if (LS)
-//            {
-//                surfL = new liftingSurf(allID(i),this);
-//                liftingSurfs.push_back(surfL);
-//            }
-//            else if (allID(i) <= 10000)
-//            {
-//                surf = new surface(allID(i),this);
-//                nonLiftingSurfs.push_back(surf);
-//            }
-//            else
-//            {
-//                surfL = getParentSurf(allID(i));
-//            }
-//        }
-//        if (LS)
-//        {
-//            bPan = new bodyPanel(pNodes,pEdges,norms.row(i),liftingSurfs.back(),allID(i),true);
-//            liftingSurfs.back()->addPanel(bPan);
-//            bPanels.push_back(bPan);
-//        }
-//        else if (allID(i) <= 10000)
-//        {
-//            bPan = new bodyPanel(pNodes,pEdges,norms.row(i),nonLiftingSurfs.back(),allID(i),false);
-//            nonLiftingSurfs.back()->addPanel(bPan);
-//            bPanels.push_back(bPan);
-//        }
-//        else
-//        {
-//            wPan = new wakePanel(pNodes,pEdges,norms.row(i),allID(i),surfL->getWake());
-//            surfL->addPanel(wPan);
-//            wPanels.push_back(wPan);
-//        }
-//    }
-    surface* s;
-    wake* w;
+    surface* s = nullptr;
+    wake* w = nullptr;
     bodyPanel* bPan;
     wakePanel* wPan;
     std::vector<edge*> pEdges;
@@ -502,33 +438,12 @@ edge* geometry::findEdge(cpNode* n1,cpNode* n2)
     return e;
 }
 
-//liftingSurf* geometry::getParentSurf(int wakeID)
-//{
-//    for (int i=0; i<liftingSurfs.size(); i++)
-//    {
-//        if (liftingSurfs[i]->getID() == wakeID-10000)
-//        {
-//            return liftingSurfs[i];
-//        }
-//    }
-//    return nullptr;
-//}
-
 void geometry::createOctree()
 {
     std::vector<panel*> panels;
     std::vector<wakePanel*> tempW;
     std::vector<bodyPanel*> tempB;
-//    for (int i=0; i<liftingSurfs.size(); i++)
-//    {
-//        temp = liftingSurfs[i]->getAllPanels();
-//        panels.insert(panels.end(),temp.begin(),temp.end());
-//    }
-//    for (int i=0; i<nonLiftingSurfs.size(); i++)
-//    {
-//        tempB = nonLiftingSurfs[i]->getPanels();
-//        panels.insert(panels.end(),tempB.begin(),tempB.end());
-//    }
+
     for (int i=0; i<surfaces.size(); i++)
     {
         tempB = surfaces[i]->getPanels();
@@ -602,7 +517,11 @@ void geometry::setInfCoeff()
         
     }
     std::cout << "Complete" << std::endl;
-    writeInfCoeff();
+
+    if (writeCoeffFlag)
+    {
+        writeInfCoeff();
+    }
 }
 
 Eigen::Vector4i geometry::interpIndices(std::vector<bodyPanel*> interpPans)
@@ -618,43 +537,18 @@ Eigen::Vector4i geometry::interpIndices(std::vector<bodyPanel*> interpPans)
 
 std::vector<surface*> geometry::getSurfaces()
 {
-//    std::vector<surface*> surfs;
-//    for (int i=0; i<nonLiftingSurfs.size(); i++)
-//    {
-//        surfs.push_back(nonLiftingSurfs[i]);
-//    }
-//    for (int i=0; i<liftingSurfs.size(); i++)
-//    {
-//        surfs.push_back(liftingSurfs[i]);
-//    }
-//    return surfs;
     return surfaces;
 }
 
 std::vector<wake*> geometry::getWakes()
 {
-//    std::vector<wake*> wakes;
-//    for (int i=0; i<liftingSurfs.size(); i++)
-//    {
-//        wakes.push_back(liftingSurfs[i]->getWake());
-//    }
-//    return wakes;
     return wakes;
 }
 
 std::vector<panel*> geometry::getPanels()
 {
     std::vector<panel*> panels;
-//    for (int i=0; i<liftingSurfs.size(); i++)
-//    {
-//        std::vector<panel*> temp = liftingSurfs[i]->getAllPanels();
-//        panels.insert(panels.end(),temp.begin(),temp.end());
-//    }
-//    for (int i=0; i<nonLiftingSurfs.size(); i++)
-//    {
-//        std::vector<bodyPanel*> temp = nonLiftingSurfs[i]->getPanels();
-//        panels.insert(panels.end(),temp.begin(),temp.end());
-//    }
+
     for (int i=0; i<surfaces.size(); i++)
     {
         std::vector<bodyPanel*> temp = surfaces[i]->getPanels();

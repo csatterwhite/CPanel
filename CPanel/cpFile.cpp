@@ -34,7 +34,7 @@ void cpFile::parsefile()
     
     if (!relPath)
     {
-        path = file.substr(0,pathEnd+1);
+        path = file.substr(0,pathEnd);
     }
     else
     {
