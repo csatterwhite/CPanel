@@ -30,7 +30,7 @@ void caseMgr::setCases()
 void caseMgr::runCases()
 {
     std::cout << "\nRunning " << cases.size() << " Cases... (\u2713 - Complete, X - Not Requested)\n" << std::endl;
-    std::cout << std::setw(10) << std::left << "Case #" << std::setw(15) << std::left << "Solve System" << std::setw(15) << std::left << "Surface Data" << std::setw(16) << std::left << "Trefftz Plane" <<  std::setw(16) << std::left << "Streamlines" << std::setw(23) << std::left << "Stability Derivatives" << std::endl;
+    std::cout << std::setw(10) << std::left << "Case #" << std::setw(15) << std::left << "Solve System" << std::setw(15) << std::left << "Surface Data" << std::setw(16) << std::left << "Trefftz Plane" <<  std::setw(14) << std::left << "Streamlines" << std::setw(22) << std::left << "Stability Derivatives" << std::endl;
     for (int i=0; i<cases.size(); i++)
     {
         std::string out;
@@ -84,9 +84,16 @@ void caseMgr::writeCase(int caseNumber, cpCase* c, std::ofstream &outStream)
     outStream << "\t\t\t" << std::setw(15) << "Wind Axis" << std::setw(8) << "CL" << std::setw(8) << "CD" << std::setw(8) << "CY" << std::endl;
     outStream << "\t\t\t" << std::setw(15) << " " << std::setw(8) << c->getWindForces()(2) << std::setw(8) << c->getWindForces()(0) << std::setw(8) << c->getWindForces()(1) << std::endl;
     
-    outStream << "\n\t--Moment Coefficients--" << std::endl;
+    outStream << "\n\t--Moment Coefficients--\n" << std::endl;
     outStream << "\t\t" << std::setw(12) << "Cm (pitch)" << std::setw(12) << "Cl (roll)" << std::setw(12) << "Cn (yaw)" << std::endl;
     outStream << "\t\t" << std::setw(12) << c->getMoment()(1) << std::setw(12) << c->getMoment()(0) << std::setw(12) << c->getMoment()(2) << std::endl;
+    
+    outStream << "\n\t--Stability Derivatives--\n" << std::endl;
+    outStream << "\t\t" << std::setw(12) << "CL_alpha" << std::setw(12) << "CY_alpha" << std::setw(12) << "Cm_alpha" << std::setw(12) << "Cl_alpha" << std::setw(12) << "Cn_alpha" << std::endl;
+    outStream << "\t\t" << std::setw(12) << c->get_dF_dAlpha()(2) << std::setw(12) << c->get_dF_dAlpha()(1) << std::setw(12) << c->get_dM_dAlpha()(1) << std::setw(12) << c->get_dM_dAlpha()(0) << std::setw(12) << c->get_dM_dAlpha()(2) << std::endl;
+    
+    outStream << "\t\t" << std::setw(12) << "CL_beta" << std::setw(12) << "CY_beta" << std::setw(12) << "Cm_beta" << std::setw(12) << "Cl_beta" << std::setw(12) << "Cn_beta" << std::endl;
+    outStream << "\t\t" << std::setw(12) << c->get_dF_dBeta()(2) << std::setw(12) << c->get_dF_dBeta()(1) << std::setw(12) << c->get_dM_dBeta()(1) << std::setw(12) << c->get_dM_dBeta()(0) << std::setw(12) << c->get_dM_dBeta()(2) << std::endl;
     outStream << "\n\n" << std::endl;
     
 }
