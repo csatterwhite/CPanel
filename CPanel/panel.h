@@ -68,14 +68,14 @@ public:
         
     void setPotential(Eigen::Vector3d Vinf);
     
-    bool inPanelProjection(const Eigen::Vector3d &POI);
+    bool inPanelProjection(const Eigen::Vector3d &POI, Eigen::Vector3d &projectedPnt);
     
     double dubPhiInf(const Eigen::Vector3d &POI);
     Eigen::Vector3d dubVInf(const Eigen::Vector3d &POI);
     virtual double panelPhi(const Eigen::Vector3d &POI) = 0;
     virtual Eigen::Vector3d panelV(const Eigen::Vector3d &POI) = 0;
     
-    std::vector<Eigen::Vector3d> pntsAroundPnt(int nPnts,const Eigen::Vector3d &POI);
+    std::vector<Eigen::Vector3d> pntsAroundPnt(int nPnts,const Eigen::Vector3d &POI, double r);
     Eigen::Vector3d pntNearEdge(edge* e);
     
     int getID() {return ID;}

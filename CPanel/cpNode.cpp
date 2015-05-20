@@ -8,6 +8,7 @@
 
 #include "cpNode.h"
 #include "edge.h"
+#include "bodyPanel.h"
 
 
 cpNode::cpNode(Eigen::Vector3d pnt,int index) : pnt(pnt), index(index), TEnode(false) {}
@@ -38,6 +39,8 @@ Eigen::Vector3d operator+(cpNode lhs, const cpNode &rhs)
 }
 
 void cpNode::addEdge(edge* e)  {edges.push_back(e);}
+
+void cpNode::addBodyPanel(bodyPanel* p) {bodyPans.push_back(p);}
 
 edge* cpNode::getTE(edge* exception)
 {

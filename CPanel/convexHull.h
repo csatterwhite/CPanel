@@ -15,6 +15,7 @@
 #include <list>
 #include <algorithm>
 #include "math.h"
+#include "cpNode.h"
 
 
 class convexHull
@@ -67,6 +68,8 @@ public:
         }
     }
     std::vector<member*> getHull() {return hull;}
+    
+    bool compareNodes(std::vector<Eigen::Vector3d> nodesLocal);
 };
 
 #endif /* defined(__CPanel__convexHull__) */

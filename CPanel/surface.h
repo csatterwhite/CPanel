@@ -28,7 +28,7 @@ protected:
     bool TEflag; //Surface has sharp trailing edges
     bool LSflag; //Surface is a lifting surface
     std::vector<edge*> trailingEdges;
-    Eigen::Vector3d rearStagnationPnt(const Eigen::Vector3d &Vinf,bodyPanel* &p);
+    Eigen::Vector3d rearStagnationPnt(const Eigen::Vector3d &Vinf, double PG, bodyPanel* &p,double &dist);
     std::vector<edge*> getTrailingEdges();
     
 public:
@@ -51,7 +51,7 @@ public:
 
     std::vector<bodyPanel*> getPanels() const {return panels;}
     int getID() const {return surfID;}
-    std::vector<std::pair<Eigen::Vector3d,bodyPanel*>> getStreamlineStartPnts(const Eigen::Vector3d &Vinf);
+    std::vector<std::pair<Eigen::Vector3d,bodyPanel*>> getStreamlineStartPnts(const Eigen::Vector3d &Vinf,double PG);
     bool sharpTE() {return TEflag;}
     bool isLiftingSurf() {return LSflag;}
 

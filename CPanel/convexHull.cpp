@@ -112,3 +112,39 @@ Eigen::Vector3d convexHull::makeVector(member* p1, member* p2)
     vec(2) = 0; //Only computing 2D complex hull
     return vec;
 }
+
+bool convexHull::compareNodes(std::vector<Eigen::Vector3d> nodesLocal)
+{
+    if (hull.size() > nodesLocal.size())
+    {
+        return false;
+    }
+    
+    Eigen::Vector3d pMember;
+    bool breakFlag = false;
+    
+    for (int i=0; i<hull.size(); i++)
+    {
+        pMember(0) = hull[i]->x;
+        pMember(1) = hull[i]->y;
+        pMember(2) = hull[i]->z;
+        for (int j=0; j<nodesLocal.size(); j++)
+        {
+            if (pMember == nodesLocal[j])
+            {
+                breakFlag = true;
+                break;
+            }
+        }
+        if (breakFlag)
+        {
+            breakFlag = false;
+            continue;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    return true;
+}

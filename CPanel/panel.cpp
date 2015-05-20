@@ -98,22 +98,33 @@ void panel::setPotential(Eigen::Vector3d Vinf)
     potential = Vinf.dot(center)-doubletStrength;
 }
 
-bool panel::inPanelProjection(const Eigen::Vector3d &POI)
+bool panel::inPanelProjection(const Eigen::Vector3d &POI, Eigen::Vector3d &projectedPnt)
 {
     // Returns true if point is contained in extrusion of panel infinitely in normal direction
     Eigen::MatrixXd points(nodes.size()+1,3);
+    std::vector<Eigen::Vector3d> nodesLocal;
     for (int i=0; i<nodes.size(); i++)
     {
-        points.row(i) = nodes[i]->getPnt();
+        nodesLocal.push_back(global2local(nodes[i]->getPnt(), true));
+        points.row(i) = nodesLocal[i];
     }
-    points.row(nodes.size()) = POI;
-    for (int i=0; i<points.rows(); i++)
-    {
-        points.row(i) = global2local(points.row(i), true);
-    }
+    points.row(nodes.size()) = global2local(POI,true);
     
     convexHull hull(points,true);
-    return (hull.getHull().size() == nodes.size());
+    
+    if (hull.compareNodes(nodesLocal))
+    {
+        Eigen::Vector3d vec = POI-center;
+        Eigen::Vector3d projVec = vec-(vec.dot(normal))*normal;
+        projectedPnt = center + projVec;
+//        projectedPnt = points.row(nodes.size());
+//        projectedPnt(2) = 0; // Get point in panel plane.
+//        projectedPnt = local2global(projectedPnt, true);
+        return true;
+    }
+    
+    projectedPnt = POI;
+    return false;
 }
 
 Eigen::Matrix3d panel::getLocalSys()
@@ -311,19 +322,19 @@ Eigen::VectorXi panel::getVerts()
     return verts;
 }
 
-std::vector<Eigen::Vector3d> panel::pntsAroundPnt(int nPnts,const Eigen::Vector3d &POI)
+std::vector<Eigen::Vector3d> panel::pntsAroundPnt(int nPnts,const Eigen::Vector3d &POI,double r)
 {
-    double r = 100000;
-    double d;
-    for (int i=0; i<pEdges.size(); i++)
-    {
-        d = pEdges[i]->distToEdge(POI);
-        if (d < r)
-        {
-            r = d;
-        }
-    }
-    r *= 0.9;
+//    double r = 100000;
+//    double d;
+//    for (int i=0; i<pEdges.size(); i++)
+//    {
+//        d = pEdges[i]->distToEdge(POI);
+//        if (d < r)
+//        {
+//            r = d;
+//        }
+//    }
+//    r *= 0.9;
     
     std::vector<Eigen::Vector3d> pnts;
     double theta;

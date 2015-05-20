@@ -14,12 +14,14 @@
 #include <vector>
 
 class edge;
+class bodyPanel;
 
 class cpNode
 {
     Eigen::Vector3d pnt;
     int index;
     std::vector<edge*> edges;
+    std::vector<bodyPanel*> bodyPans;
     
     bool TEnode;
     
@@ -33,6 +35,8 @@ public:
     Eigen::Vector3d operator+=(const cpNode &rhs);
     
     void addEdge(edge* e);
+    void addBodyPanel(bodyPanel* p);
+    
     edge* getTE(edge* exception);
     
     void setTE();
@@ -43,6 +47,8 @@ public:
     int getIndex() const {return index;}
     
     std::vector<edge*> getEdges() {return edges;}
+    
+    std::vector<bodyPanel*> getBodyPans() {return bodyPans;}
     
     edge* getOtherTrailEdge(edge* current);
     

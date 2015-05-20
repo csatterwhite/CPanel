@@ -73,13 +73,17 @@ std::vector<edge*> surface::getTrailingEdges()
     return trailingEdges;
 }
 
-Eigen::Vector3d surface::rearStagnationPnt(const Eigen::Vector3d &Vinf, bodyPanel* &p)
+Eigen::Vector3d surface::rearStagnationPnt(const Eigen::Vector3d &Vinf, double PG, bodyPanel* &p, double &dist)
 {
     // Sort panels to get furthest downstream in front.
     std::sort(panels.begin(),panels.end(),[](bodyPanel* p1, bodyPanel* p2) {return (p1->getPotential() > p2->getPotential());});
     
     p = panels[0];
-    bodyStreamline s(p->getCenter(),p,Vinf,geom,10,true);
+    bodyStreamline s(p->getCenter(),p,Vinf,PG,geom,20,true);
+    
+//    std::cout << s.getPnts().size() << std::endl;
+    
+    dist = (s.getPnts()[s.getPnts().size()-2]-s.getPnts().back()).norm();
     
 //    std::vector<Eigen::Vector3d> pnts = s.getPnts();
 //    for (int i=0; i<pnts.size(); i++)
@@ -90,21 +94,49 @@ Eigen::Vector3d surface::rearStagnationPnt(const Eigen::Vector3d &Vinf, bodyPane
     return s.getPnts().back();
 }
 
-std::vector<std::pair<Eigen::Vector3d,bodyPanel*>> surface::getStreamlineStartPnts(const Eigen::Vector3d &Vinf)
+std::vector<std::pair<Eigen::Vector3d,bodyPanel*>> surface::getStreamlineStartPnts(const Eigen::Vector3d &Vinf, double PG)
 {
     std::pair<Eigen::Vector3d,bodyPanel*> pair;
     bodyPanel* pStag;
+    double dist;
     
     if (!LSflag)
     {
         std::vector<std::pair<Eigen::Vector3d,bodyPanel*>> pntPairs;
-        Eigen::Vector3d stagPnt = rearStagnationPnt(Vinf,pStag);
-        std::vector<Eigen::Vector3d> pnts = pStag->pntsAroundPnt(10,stagPnt);
+        Eigen::Vector3d stagPnt = rearStagnationPnt(Vinf,PG,pStag,dist);
+        std::vector<Eigen::Vector3d> pnts = pStag->pntsAroundPnt(10,stagPnt,0.3*pStag->getLongSide());
+        
+        std::vector<bodyPanel*> closePanels = pStag->getRelatedPanels();
+        Eigen::Vector3d projPnt;
+//        std::sort(closePanels.begin(),closePanels.end(),[&](bodyPanel* p1,bodyPanel *p2) {return pStag->dist2Pan(p1) < pStag->dist2Pan(p2);});
+        
+//        std::ofstream fid;
+//        fid.open("StreamlinePnts.txt");
+        
         for (int i=0; i<pnts.size(); i++)
         {
-            pair = std::make_pair(pnts[i],pStag);
-            pntPairs.push_back(pair);
+            for (int j=0; j<closePanels.size(); j++)
+            {
+                if (closePanels[j]->inPanelProjection(pnts[i],projPnt))
+                {
+//                    Eigen::Vector3d v1,v2;
+//                    v1 = closePanels[j]->getNormal();
+//                    v2 = projPnt-closePanels[j]->getCenter();
+//                    v1.normalize();
+//                    v2.normalize();
+//                    double dot = v1.dot(v2);
+//                   
+//                    std::cout << projPnt(0) << "\t" << projPnt(1) << "\t" << projPnt(2) << std::endl;
+                    
+                    pair = std::make_pair(projPnt,closePanels[j]);
+                    pntPairs.push_back(pair);
+                    break;
+                }
+            }
+            
         }
+//        fid.close();
+        
         return pntPairs;
     }
     else
@@ -157,3 +189,5 @@ std::vector<std::pair<Eigen::Vector3d,bodyPanel*>> surface::getStreamlineStartPn
         return pairs1;
     }
 }
+                                                                                                 
+                                                                                        
