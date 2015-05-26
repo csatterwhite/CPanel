@@ -91,6 +91,9 @@ void wakePanel::setStrength()
 
 void wakePanel::setParentPanels(bodyPanel* upper, bodyPanel* lower)
 {
+    // Set flags used in gathering surrounding panels on same side of discontinuity in velocity calculation.
+    upper->setUpper();
+    lower->setLower();
     if (!TEpanel)
     {
         setTEpanel();
@@ -105,6 +108,7 @@ void wakePanel::setParentPanels(bodyPanel* upper, bodyPanel* lower)
     else
     {
         // Parents already set, wake panel is at wing body joint. Choose panels further upstream
+        
         if (upper->getCenter()(0) < center(0))
         {
             upperPan = upper;
@@ -112,66 +116,11 @@ void wakePanel::setParentPanels(bodyPanel* upper, bodyPanel* lower)
         }
     }
     
+    
+    
     wakeLine* wLine = new wakeLine(upperPan,lowerPan,normal);
     parentWake->addWakeLine(wLine);
     
-//    parentWake->addTEPanel(this);
-//    
-//    std::vector<edge*> TEedges;
-//    for (int i=0; i<pEdges.size(); i++)
-//    {
-//        if (pEdges[i]->isTE())
-//        {
-//            TEedges.push_back(pEdges[i]);
-//        }
-//    }
-//    std::vector<bodyPanel*> parentPans;
-//    
-//    // If TEedges.size() > 2, panel is at wing body joint
-//    for (int i=0; i<TEedges.size(); i++)
-//    {
-//        parentPans = TEedges[i]->getBodyPans();
-//        if (parentPans[0]->getID() == ID-10000)
-//        {
-//            // Test for edge on parent lifting surface if panel is at wing body joint
-//            break;
-//        }
-//    }
-//    if (parentPans[0]->getCenter()(2) > parentPans[1]->getCenter()(2))
-//    {
-//        upperPan = parentPans[0];
-//        lowerPan = parentPans[1];
-//        upperPan->setUpper();
-//        lowerPan->setLower();
-//    }
-//    else if (parentPans[0]->getCenter()(2) < parentPans[1]->getCenter()(2))
-//    {
-//        upperPan = parentPans[1];
-//        lowerPan = parentPans[0];
-//        upperPan->setUpper();
-//        lowerPan->setLower();
-//    }
-//    else
-//    {
-//        // Panels somehow are coplanar. Sort by normal direction
-//        if (parentPans[0]->getNormal()(2) > parentPans[1]->getNormal()(2))
-//        {
-//            upperPan = parentPans[0];
-//            lowerPan = parentPans[1];
-//            upperPan->setUpper();
-//            lowerPan->setLower();
-//        }
-//        else if (parentPans[0]->getNormal()(2) < parentPans[1]->getNormal()(2))
-//        {
-//            upperPan = parentPans[1];
-//            lowerPan = parentPans[0];
-//            upperPan->setUpper();
-//            lowerPan->setLower();
-//        }
-//    }
-//    
-//    wakeLine* wLine = new wakeLine(upperPan,lowerPan,normal);
-//    parentWake->addWakeLine(wLine);
 }
 
 edge* wakePanel::getTE()
