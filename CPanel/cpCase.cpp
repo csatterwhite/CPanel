@@ -259,7 +259,10 @@ void cpCase::writeFiles()
         writeSpanwiseData(subdir);
     }
     
-    writeBodyStreamlines(subdir);
+    if (params->surfStreamFlag)
+    {
+        writeBodyStreamlines(subdir);
+    }
 }
 
 void cpCase::writeBodyData(boost::filesystem::path path,const Eigen::MatrixXd &nodeMat)
