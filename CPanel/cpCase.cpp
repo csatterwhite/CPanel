@@ -168,7 +168,7 @@ void cpCase::compVelocity()
     for (int i=0; i<bPanels->size(); i++)
     {
         p = (*bPanels)[i];
-        p->computeVelocity(PG);
+        p->computeVelocity(PG,Vinf);
         p->computeCp(Vmag);
         Fbody += -p->getCp()*p->getArea()*p->getBezNormal()/params->Sref;
         moment = p->computeMoments(params->cg);

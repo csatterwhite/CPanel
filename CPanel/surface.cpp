@@ -73,7 +73,7 @@ std::vector<edge*> surface::getTrailingEdges()
     return trailingEdges;
 }
 
-Eigen::Vector3d surface::rearStagnationPnt(const Eigen::Vector3d &Vinf, double PG, bodyPanel* &p, double &dist)
+Eigen::Vector3d surface::rearStagnationPnt(const Eigen::Vector3d &Vinf, double PG, bodyPanel* &p)
 {
     // Sort panels to get furthest downstream in front.
     std::sort(panels.begin(),panels.end(),[](bodyPanel* p1, bodyPanel* p2) {return (p1->getPotential() > p2->getPotential());});
@@ -82,8 +82,6 @@ Eigen::Vector3d surface::rearStagnationPnt(const Eigen::Vector3d &Vinf, double P
     bodyStreamline s(p->getCenter(),p,Vinf,PG,geom,20,true);
     
 //    std::cout << s.getPnts().size() << std::endl;
-    
-    dist = (s.getPnts()[s.getPnts().size()-2]-s.getPnts().back()).norm();
     
 //    std::vector<Eigen::Vector3d> pnts = s.getPnts();
 //    for (int i=0; i<pnts.size(); i++)
@@ -98,12 +96,11 @@ std::vector<std::pair<Eigen::Vector3d,bodyPanel*>> surface::getStreamlineStartPn
 {
     std::pair<Eigen::Vector3d,bodyPanel*> pair;
     bodyPanel* pStag;
-    double dist;
     
     if (!LSflag)
     {
         std::vector<std::pair<Eigen::Vector3d,bodyPanel*>> pntPairs;
-        Eigen::Vector3d stagPnt = rearStagnationPnt(Vinf,PG,pStag,dist);
+        Eigen::Vector3d stagPnt = rearStagnationPnt(Vinf,PG,pStag);
         std::vector<Eigen::Vector3d> pnts = pStag->pntsAroundPnt(10,stagPnt,0.3*pStag->getLongSide());
         
         std::vector<bodyPanel*> closePanels = pStag->getRelatedPanels();

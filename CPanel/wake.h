@@ -73,6 +73,10 @@ public:
 //    std::vector<wakePanel*> getVortexSheets() {return vortexSheets;}
     double getYMin() {return yMin;}
     double getYMax() {return yMax;}
+    double getX0() {return x0;}
+    double getXf() {return xf;}
+    double getZ0() {return z0;}
+    double getZf() {return zf;}
     
     double getCL() {return CL;}
     double getCD() {return CD;}

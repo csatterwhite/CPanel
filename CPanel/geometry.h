@@ -62,6 +62,7 @@ class geometry
     bool isLiftingSurf(int currentID, std::vector<int> wakeIDs);
 //    void correctWakeNodes(int wakeNodeStart);
     void correctWakeConnectivity(int wakeNodeStart,int wakeTriStart,Eigen::MatrixXi &connectivity);
+    double shortestEdge(const Eigen::MatrixXi &connectivity);
     liftingSurf* getParentSurf(int wakeID);
     
     void setInfCoeff();

@@ -44,6 +44,12 @@ void bodyPanel::setIndex(int i) {index = i;}
 
 void bodyPanel::setTipFlag()
 {
+    if (!parentSurf->isLiftingSurf())
+    {
+        tipFlag = false;
+        return;
+    }
+    
     int count = 0;
     double angle;
     Eigen::Vector3d nNormal;
@@ -62,18 +68,17 @@ void bodyPanel::setTipFlag()
         
         angle = acos(dot);
         
-        if (angle > 1.4 || angle < pow(10,-8))
+        if (angle < pow(10,-5) && asin(nNormal(0)) > -M_PI/12)
         {
-            // The angle between normal vectors is...
-            //     > 80 degrees, indicates edge of wingtip patch
-            //     < eps, indicates panels on wingtip patch in the same plane
+            // asin(nNormal(0)) is the angle normal vector makes with xy plane.  Catches bug where some leading edge panels were being flagged as on the tip patch.
             count++;
         }
     }
-    if (count == neighbors.size())
+    if (count >= 2)
     {
         tipFlag = true;
     }
+    
 }
 
 void bodyPanel::setSigma(Eigen::Vector3d Vinf, double Vnorm)
@@ -251,14 +256,26 @@ inline Eigen::Vector3d bodyPanel::pntSrcV(const Eigen::Vector3d &pjk)
     return area*pjk/(4*M_PI*pow(pjk.norm(),3));
 }
 
-void bodyPanel::setCluster(int dim, int bufferPanels)
+void bodyPanel::setCluster()
 {
-    int nPanels = chtlsnd::factorial(TSorder+dim)/(chtlsnd::factorial(dim)*chtlsnd::factorial(TSorder)) + bufferPanels; // Binomial Coefficient
+    int dim;
+    int buffer = 10;
+    if (tipFlag)
+    {
+        dim = 2;
+    }
+    else
+    {
+        dim = 3;
+    }
+    
+    double nObs = chtlsnd::factorial(TSorder+dim)/(chtlsnd::factorial(dim)*chtlsnd::factorial(TSorder))-1+buffer; // Binomial Coefficient
+    double nPanels = std::ceil(nObs/2);
     int oldSize = (int)cluster.size();
     cluster.push_back(this);
     bool upFlag = upper;
     bool lowFlag = lower;
-    while (cluster.size() < nPanels+1)
+    while (cluster.size() < nPanels)
     {
         std::vector<bodyPanel*> toAdd;
         for (unsigned long i=oldSize; i<cluster.size(); i++)
@@ -285,21 +302,26 @@ void bodyPanel::setCluster(int dim, int bufferPanels)
             }
         }
         
-        if (toAdd.size() == 0 && cluster.size() < nPanels+1)
+        if (toAdd.size() == 0 && cluster.size() < nPanels)
         {
             // No valid panels could be found so decrease order of taylor series
             while (cluster.size() < nPanels+1 && TSorder >= 1)
             {
-                if (bufferPanels > 0)
+                if (buffer > 0)
                 {
-                    bufferPanels -= 1;
+                    buffer -= 1;
                 }
                 else
                 {
                     TSorder -= 1;
                 }
-                nPanels = chtlsnd::factorial(TSorder+dim)/(chtlsnd::factorial(dim)*chtlsnd::factorial(TSorder)) + bufferPanels; // Binomial Coefficient
+                
+                // Do Something to fix error when cluster can't be found.
+                
+                nObs = chtlsnd::factorial(TSorder+dim)/(chtlsnd::factorial(dim)*chtlsnd::factorial(TSorder)) + buffer; // Binomial Coefficient
+                nPanels = ceil(nObs/2);
             }
+            
             cluster.erase(cluster.begin()+nPanels+1,cluster.end());
             break;
         }
@@ -319,74 +341,103 @@ void bodyPanel::setCluster(int dim, int bufferPanels)
 }
 
 
-Eigen::Vector3d bodyPanel::pntVelocity(const Eigen::Vector3d &pnt,double pntPot, double PG)
+Eigen::Vector3d bodyPanel::pntVelocity(const Eigen::Vector3d &pnt,double pntPotential, double PG, const Eigen::Vector3d &Vinf)
 {
     Eigen::Vector3d vel;
-    int dim;
-    Eigen::MatrixXd Xf,Xb,Vb;
-    Eigen::VectorXd df;
-    std::vector<bodyPanel*> clust;
-        
-    if (tipFlag)
-    {
-        dim = 2;
-    }
-    else
-    {
-        dim = 3;
-    }
     
     if (cluster.size() == 0)
     {
-        int bufferPans = 10; // Panels beyond the minimum number needed (binomial coefficient)
-        setCluster(dim,bufferPans);
+        setCluster();
     }
-    clust = cluster;
-    clust.erase(clust.begin());
     
     if (tipFlag)
     {
-        Eigen::Vector3d pntLocal = global2local(pnt,true);
-        Eigen::Vector2d X0 = pntLocal.head(2);
-        Eigen::Vector2d V0 = Eigen::Vector2d::Zero();
-        Xf.resize(clust.size(),3);
-        Xb = Eigen::MatrixXd::Zero(0,dim);
-        Vb = Eigen::MatrixXd::Zero(0,dim);
-        df.resize(clust.size());
-        for (int i=0; i<clust.size(); i++)
-        {
-            Xf.row(i) = global2local(clust[i]->getCenter(),true);
-            df(i) = clust[i]->getPotential()-pntPot;
-        }
-        Eigen::MatrixXd xLocal = Xf.block(0,0,clust.size(),2);
-        chtlsnd tipV(X0,xLocal,TSorder,Xb,Vb,V0);
-        Eigen::Vector3d vLocal;
-        vLocal(0) = tipV.getF().row(0)*df;
-        vLocal(1) = tipV.getF().row(1)*df;
-        vLocal(2) = 0;
-        vel = local2global(vLocal,false);
+        vel = velocity2D(pnt,pntPotential);
     }
     else
     {
-        Xf.resize(clust.size(),dim);
-        Xb.resize(clust.size(),dim);
-        Vb.resize(clust.size(),dim);
-        df.resize(clust.size());
-        for (int i=0; i<clust.size(); i++)
+        vel = velocity3D(pnt,pntPotential);
+        if (vel != vel)
         {
-            Xf.row(i) = clust[i]->getCenter();
-            Vb.row(i) = clust[i]->getBezNormal();
-            df(i) = clust[i]->getPotential()-pntPot;
+            // NaN can be returned if supporting data was all on a flat patch (essentially 2D)
+            vel = velocity2D(pnt,pntPotential);
         }
-        Xb = Xf;
-        chtlsnd vWeights(pnt,Xf,TSorder,Xb,Vb,Eigen::Vector3d::Zero());
-
-        vel(0) = vWeights.getF().row(0)*df;
-        vel(1) = vWeights.getF().row(1)*df;
-        vel(2) = vWeights.getF().row(2)*df;
     }
-    assert(vel == vel);
+    
+    if (vel != vel)
+    {
+        // Last resort approximation if CHTLS not able to compute velocity. From Kinney (CBAERO).
+        vel = (bezNormal.cross(Vinf)).cross(bezNormal);
+    }
+    
     vel(0) /= PG; // Prandlt Glauert Correction
+    return vel;
+}
+
+Eigen::Vector3d bodyPanel::velocity2D(const Eigen::Vector3d &pnt,double pntPotential)
+{
+    int dim = 2;
+    std::vector<bodyPanel*> clust = cluster;
+    if (pnt == center)
+    {
+        clust.erase(clust.begin());
+    }
+    Eigen::Vector3d vel;
+    Eigen::MatrixXd Xf,Xb,Vb;
+    Eigen::VectorXd df;
+    
+    Eigen::Vector3d pntLocal = global2local(pnt,true);
+    Eigen::Vector2d X0 = pntLocal.head(2);
+    Eigen::Vector2d V0 = Eigen::Vector2d::Zero();
+    Xf.resize(clust.size(),3);
+    Xb = Eigen::MatrixXd::Zero(0,dim);
+    Vb = Eigen::MatrixXd::Zero(0,dim);
+    df.resize(clust.size());
+    for (int i=0; i<clust.size(); i++)
+    {
+        Xf.row(i) = global2local(clust[i]->getCenter(),true);
+        df(i) = clust[i]->getPotential()-pntPotential;
+    }
+    Eigen::MatrixXd xLocal = Xf.block(0,0,clust.size(),2);
+    chtlsnd tipV(X0,xLocal,TSorder,Xb,Vb,V0);
+    Eigen::Vector3d vLocal;
+    vLocal(0) = tipV.getF().row(0)*df;
+    vLocal(1) = tipV.getF().row(1)*df;
+    vLocal(2) = 0;
+    vel = local2global(vLocal,false);
+    
+    return vel;
+}
+
+Eigen::Vector3d bodyPanel::velocity3D(const Eigen::Vector3d &pnt,double pntPotential)
+{
+    int dim = 3;
+    std::vector<bodyPanel*> clust = cluster;
+    if (pnt == center)
+    {
+        clust.erase(clust.begin());
+    }
+    Eigen::Vector3d vel;
+    Eigen::MatrixXd Xf,Xb,Vb;
+    Eigen::VectorXd df;
+    
+    Xf.resize(clust.size(),dim);
+    Xb.resize(clust.size(),dim);
+    Vb.resize(clust.size(),dim);
+    df.resize(clust.size());
+    for (int i=0; i<clust.size(); i++)
+    {
+        Xf.row(i) = clust[i]->getCenter();
+        Vb.row(i) = clust[i]->getBezNormal();
+        df(i) = clust[i]->getPotential()-pntPotential;
+    }
+    Xb = Xf;
+    chtlsnd vWeights(pnt,Xf,TSorder,Xb,Vb,Eigen::Vector3d::Zero());
+    
+    vel(0) = vWeights.getF().row(0)*df;
+    vel(1) = vWeights.getF().row(1)*df;
+    vel(2) = vWeights.getF().row(2)*df;
+    
     return vel;
 }
 
@@ -395,9 +446,9 @@ void bodyPanel::computeCp(double Vinf)
     Cp = (1-pow(velocity.norm()/Vinf,2));
 }
 
-void bodyPanel::computeVelocity(double PG)
+void bodyPanel::computeVelocity(double PG, const Eigen::Vector3d &Vinf)
 {
-    velocity = pntVelocity(center,potential,PG);
+    velocity = pntVelocity(center,potential,PG,Vinf);
 }
 
 Eigen::Vector3d bodyPanel::computeMoments(const Eigen::Vector3d &cg)
@@ -435,20 +486,6 @@ bool bodyPanel::clusterTest(bodyPanel* other,double angle,bool upFlag,bool lowFl
 void bodyPanel::setLSflag()
 {
     parentSurf->setLSflag();
-}
-
-bool bodyPanel::wingTipTest()
-{
-    if (!parentSurf->isLiftingSurf())
-    {
-        return false;
-    }
-    else
-    {
-        // Catch panels with a wingtip normal component in y direction corresponding to max sweep and dihedral of 45 and 15 degrees, respectively.
-        return std::abs(normal(1)) >= .7;
-    }
-    
 }
 
 bool bodyPanel::nearTrailingEdge()

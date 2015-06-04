@@ -247,18 +247,23 @@ void geometry::readTri(std::string tri_file, bool normFlag)
             edges[i]->setNeighbors();
         }
         
+        
+        std::vector<wake*> newWakes;
         for (int i=0; i<wakes.size(); i++)
         {
-            for (int j=0; j<wakes.size(); j++)
+            for (int j=i; j<wakes.size(); j++)
             {
                 if (wakes[i]->isSameWake(wakes[j]))
                 {
                     wakes[i]->mergeWake(wakes[j]);
                     delete wakes[j];
-                    wakes.erase(wakes.begin()+j);
+                    newWakes.push_back(wakes[i]);
                 }
             }
         }
+        
+        wakes = newWakes;
+        
         
         // Collect all panels in geometry
         
@@ -276,11 +281,52 @@ void geometry::readTri(std::string tri_file, bool normFlag)
         }
         
         // Check panels for tip patches.  Needed to do 2D CHTLS to avoid nonphysical results near discontinuity at trailing edge.
-        
         for (int i=0; i<bPanels.size(); i++)
         {
             bPanels[i]->setTipFlag();
         }
+        for (int i=0; i<bPanels.size(); i++)
+        {
+            bPanels[i]->setCluster();
+        }
+        
+//        std::cout << std::endl;
+//        for (int i=0; i<bPanels.size(); i++)
+//        {
+//            if (bPanels[i]->isUpper())
+//            {
+//                std::cout << bPanels[i]->getCenter()(0) << "," << bPanels[i]->getCenter()(1) << "," << bPanels[i]->getCenter()(2) << ";" << std::endl;
+//            }
+//        }
+//        std::cout << std::endl;
+//        for (int i=0; i<bPanels.size(); i++)
+//        {
+//            if (bPanels[i]->isLower())
+//            {
+//                std::cout << bPanels[i]->getCenter()(0) << "," << bPanels[i]->getCenter()(1) << "," << bPanels[i]->getCenter()(2) << ";" << std::endl;
+//            }
+//        }
+        
+//        Eigen::Vector3d center;
+//        std::vector<edge*> bodyPanEdges;
+//        std::vector<edge*> wakePanEdges;
+//        for (int i=0; i<bPanels.size(); i++)
+//        {
+//            center = bPanels[i]->getCenter();
+//            if (center(0) > 5.45 && center(0) < 5.74 && center(1) > -0.77 && center(1) < -0.65 && center(2) > -0.59 && center(2) < -0.42)
+//            {
+//                bodyPanEdges = bPanels[i]->getEdges();
+//            }
+//        }
+//        
+//        for (int i=0; i<wPanels.size(); i++)
+//        {
+//            center = wPanels[i]->getCenter();
+//            if (center(0) > 5.45 && center(0) < 5.74 && center(1) > -0.92 && center(1) < -0.65 && center(2) > -0.59 && center(2) < -0.58)
+//            {
+//                wakePanEdges = wPanels[i]->getEdges();
+//            }
+//        }
         
         // Calculate influence coefficient matrices
         
@@ -309,7 +355,7 @@ void geometry::readTri(std::string tri_file, bool normFlag)
     }
     else
     {
-        std::cout << "ERROR : File not found" << std::endl;
+        std::cout << "ERROR : Geometry file not found" << std::endl;
         exit(EXIT_FAILURE);
     }
 }
@@ -318,15 +364,16 @@ void geometry::correctWakeConnectivity(int wakeNodeStart,int wakeTriStart,Eigen:
 {
     Eigen::Vector3d vec;
     Eigen::Matrix<double,Eigen::Dynamic,2> indReps; // [toReplace, replaceWith]
-    double diff = pow(10,-3);
+    double tol = shortestEdge(connectivity);
     int count = 0;
     for (int i=0; i<wakeNodeStart; i++)
     {
         for (int j=wakeNodeStart; j<nNodes; j++)
         {
             vec = nodes[i]->getPnt()-nodes[j]->getPnt();
-            if (vec.lpNorm<Eigen::Infinity>() < diff)
+            if (vec.lpNorm<Eigen::Infinity>() < tol)
             {
+                
                 nodes[j] = nodes[i];
                 count++;
                 indReps.conservativeResize(count,2);
@@ -349,6 +396,37 @@ void geometry::correctWakeConnectivity(int wakeNodeStart,int wakeTriStart,Eigen:
             }
         }
     }
+}
+
+double geometry::shortestEdge(const Eigen::MatrixXi &connectivity)
+{
+    int nrows,ncols;
+    Eigen::Vector3d p1,p2;
+    nrows = (int)connectivity.rows();
+    ncols = (int)connectivity.cols();
+    double l;
+    double shortest = 100000;
+    for (int i=0; i<nrows; i++)
+    {
+        for (int j=0; j<ncols; j++)
+        {
+            p1 = nodes[connectivity(i,j)]->getPnt();
+            if (j < ncols-1)
+            {
+                p2 = nodes[connectivity(i,j+1)]->getPnt();
+            }
+            else
+            {
+                p2 = nodes[connectivity(i,0)]->getPnt();
+            }
+            l = (p2-p1).norm();
+            if (l < shortest)
+            {
+                shortest = l;
+            }
+        }
+    }
+    return shortest;
 }
 
 bool geometry::isLiftingSurf(int currentID, std::vector<int> wakeIDs)

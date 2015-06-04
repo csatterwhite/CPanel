@@ -15,10 +15,6 @@
 
 wake::~wake()
 {
-    for (int i=0; i<wpanels.size(); i++)
-    {
-        delete wpanels[i];
-    }
     for (int i=0; i<wakeLines.size(); i++)
     {
         delete wakeLines[i];
@@ -41,6 +37,8 @@ void wake::addPanel(wakePanel* wPan)
         yMin = yMax;
         x0 = pnt(0);
         xf = x0;
+        z0 = pnt(2);
+        zf = z0;
         normal = wPan->getNormal();
     }
     
@@ -58,11 +56,17 @@ void wake::addPanel(wakePanel* wPan)
         if (pnt(0) > xf)
         {
             xf = pnt(0);
-            zf = pnt(2);
         }
         else if (pnt(0) < x0)
         {
             x0 = pnt(0);
+        }
+        if (pnt(2) > zf)
+        {
+            zf = pnt(2);
+        }
+        else if (pnt(2) < z0)
+        {
             z0 = pnt(2);
         }
     }
@@ -76,17 +80,25 @@ bool wake::isSameWake(wake* other)
         return false;
     }
     
-    Eigen::Vector3d p1 = wpanels[0]->getCenter();
-    Eigen::Vector3d p2 = other->getPanels()[0]->getCenter();
+//    Eigen::Vector3d p1 = wpanels[0]->getCenter();
+//    Eigen::Vector3d p2 = other->getPanels()[0]->getCenter();
+//    
+//    Eigen::Vector3d vec = p2-p1;
+//    
+//    double dot = vec.dot(normal)/(vec.norm());
+//    if (std::abs(dot) < pow(10,-10) && (yMin == other->getYMax() || yMax == other->getYMin()))
+//    {
+//        // Normal vector and vector connecting two points are orthogonal
+//        return true;
+//    }
     
-    Eigen::Vector3d vec = p2-p1;
-    
-    double dot = vec.dot(normal)/(vec.norm());
-    if (std::abs(dot) < pow(10,-10) && (yMin == other->getYMax() || yMax == other->getYMin()))
+    double eps = pow(10, -4);
+//    if (other->getX0() == x0 && other->getZ0() == z0 && other->getXf() == xf && other->getZf() == zf)
+    if (std::abs(other->getX0() - x0) < eps && std::abs(other->getZ0() - z0) < eps && std::abs(other->getXf() - xf) < eps && std::abs(other->getZf() - zf) < eps)
     {
-        // Normal vector and vector connecting two points are orthogonal
         return true;
     }
+    
     return false;
 }
 
@@ -96,13 +108,9 @@ void wake::mergeWake(wake *other)
     wakePanel* w;
     for (int i=0; i<pans.size(); i++)
     {
-        w = new wakePanel(*pans[i]);
+        w = pans[i];
         wpanels.push_back(w);
         w->setParentWake(this);
-        if (pans[i]->isTEpanel())
-        {
-            w->setTEpanel();
-        }
     }
     
     std::vector<wakeLine*> otherLines = other->getWakeLines();
@@ -112,6 +120,14 @@ void wake::mergeWake(wake *other)
         wLine = new wakeLine(*otherLines[i]);
         addWakeLine(wLine);
     }
+    
+//    ///////
+//    std::cout << std::endl;
+//    for (int i=0; i<wakeLines.size(); i++)
+//    {
+//        std::cout << wakeLines[i]->getPMid()(0) << "," << wakeLines[i]->getPMid()(1) << "," << wakeLines[i]->getPMid()(2) << ";" << std::endl;
+//    }
+//    ////
     
     if (other->getYMin() < yMin)
     {

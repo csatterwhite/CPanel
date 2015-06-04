@@ -40,7 +40,28 @@ void edge::checkTE()
             TE = true;
             bodyPanel* upper;
             bodyPanel* lower;
-            if (bodyPans[0]->getNormal()(2) > bodyPans[1]->getNormal()(2))
+            Eigen::Vector3d v1,v2,normal;
+            double theta1,theta2;
+            normal = wakePans[0]->getNormal();
+            v1 = bodyPans[0]->getCenter()-wakePans[0]->getCenter();
+            v2 = bodyPans[1]->getCenter()-wakePans[0]->getCenter();
+            theta1 = acos(v1.dot(normal)/(v1.norm()*normal.norm()));
+            theta2 = acos(v2.dot(normal)/(v2.norm()*normal.norm()));
+            
+            // By comparing the angle instead of just z location, distinction of upper and lower will be consistent even in the case of a wake shed from a vertical tail.
+            //
+            // \ upper
+            //  \
+            //   .p1   n
+            //    \   /|\
+            //     \___|___wake
+            //     /
+            //    /
+            //   .p2
+            //  /
+            // / lower
+            
+            if (theta1 < theta2)
             {
                 upper = bodyPans[0];
                 lower = bodyPans[1];

@@ -26,7 +26,7 @@ bodyStreamline::bodyStreamline(Eigen::Vector3d startPnt,bodyPanel* startPan, con
     // Allocate variables used in propogation
     Eigen::Vector3d pnt,vel,pntAbove,pntOnEdge;
     double tEdge, dt, pntPot;
-    double eps = 0.00001;
+    double eps = 0.0000001;
     bool stagPnt = false;
     double angleTol = M_PI/4;
     double maxAngle = angleTol;
@@ -115,7 +115,7 @@ edge* bodyStreamline::edgeIntersection(bodyPanel* pan,const Eigen::Vector3d &pnt
     dt = -1;
     std::vector<edge*> edges = pan->getEdges();
     
-    vel = marchDir*pan->pntVelocity(pnt, pntPot, PG);
+    vel = marchDir*pan->pntVelocity(pnt, pntPot, PG, Vinf);
     vel = vel-(vel.dot(pan->getNormal()))*pan->getNormal();
     
     // Check for Stagnation Point

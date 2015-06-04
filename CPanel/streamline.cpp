@@ -29,10 +29,6 @@ streamline::streamline(const Eigen::Vector3d &startPnt, double xMax, double tol,
             dt = dt*pow((tol*dt/(2*error)),0.25);
         }
         nextPnt = rkf(nextPnt, dt, error);
-        if (nextPnt(0) > xMax)
-        {
-            int dummy = 1;
-        }
     }
 }
 

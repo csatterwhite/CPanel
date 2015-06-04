@@ -10,6 +10,7 @@
 #define __CPanel__bodyPanel__
 
 #include <iostream>
+#include <math.h>
 #include "panel.h"
 //#include "edge.h"
 //#include "cpNode.h"
@@ -39,10 +40,13 @@ class bodyPanel : public panel
     Eigen::Vector3d srcSideV(const double &PN,const double &Al,const Eigen::Vector3d &a,const Eigen::Vector3d &b, const Eigen::Vector3d &s,const Eigen::Vector3d &l,const Eigen::Vector3d &m,const Eigen::Vector3d &n);
     inline double pntSrcPhi(const double &PJK);
     inline Eigen::Vector3d pntSrcV(const Eigen::Vector3d &pjk);
+    
+    Eigen::Vector3d velocity2D(const Eigen::Vector3d &pnt,double pntPotential);
+    Eigen::Vector3d velocity3D(const Eigen::Vector3d &pnt,double pntPotential);
+    
     bool clusterTest(bodyPanel* other, double angle,bool upFlag,bool lowFlag);
-    bool wingTipTest();
     bool nearTrailingEdge();
-    void setCluster(int dim, int bufferPanels);
+    
     
 public:
     bodyPanel(std::vector<cpNode*> nodes, std::vector<edge*> pEdges, Eigen::Vector3d bezNorm,surface* parentSurf, int surfID);
@@ -56,6 +60,7 @@ public:
     void setIndex(int i);
     void setLSflag();
     void setTipFlag();
+    void setCluster();
     
     double panelPhi(const Eigen::Vector3d &POI);
     Eigen::Vector3d panelV(const Eigen::Vector3d &POI);
@@ -63,11 +68,11 @@ public:
     void panelPhiInf(const Eigen::Vector3d &POI, double &phiSrc,double &phiDub);
     void panelVInf(const Eigen::Vector3d &POI, Eigen::Vector3d &vSrc,Eigen::Vector3d &vDub);
     
-    Eigen::Vector3d pntVelocity(const Eigen::Vector3d &pnt,double pntPot, double PG);
+    Eigen::Vector3d pntVelocity(const Eigen::Vector3d &pnt,double pntPotential, double PG, const Eigen::Vector3d &Vinf);
     
     double dist2Pan(bodyPanel* other);
     
-    void computeVelocity(double PG);
+    void computeVelocity(double PG, const Eigen::Vector3d &Vinf);
     void computeCp(double Vinf);
     Eigen::Vector3d computeMoments(const Eigen::Vector3d &cg);
     
