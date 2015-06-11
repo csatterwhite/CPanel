@@ -80,20 +80,7 @@ bool wake::isSameWake(wake* other)
         return false;
     }
     
-//    Eigen::Vector3d p1 = wpanels[0]->getCenter();
-//    Eigen::Vector3d p2 = other->getPanels()[0]->getCenter();
-//    
-//    Eigen::Vector3d vec = p2-p1;
-//    
-//    double dot = vec.dot(normal)/(vec.norm());
-//    if (std::abs(dot) < pow(10,-10) && (yMin == other->getYMax() || yMax == other->getYMin()))
-//    {
-//        // Normal vector and vector connecting two points are orthogonal
-//        return true;
-//    }
-    
-    double eps = pow(10, -4);
-//    if (other->getX0() == x0 && other->getZ0() == z0 && other->getXf() == xf && other->getZf() == zf)
+    double eps = pow(10, -2);
     if (std::abs(other->getX0() - x0) < eps && std::abs(other->getZ0() - z0) < eps && std::abs(other->getXf() - xf) < eps && std::abs(other->getZf() - zf) < eps)
     {
         return true;
@@ -120,14 +107,6 @@ void wake::mergeWake(wake *other)
         wLine = new wakeLine(*otherLines[i]);
         addWakeLine(wLine);
     }
-    
-//    ///////
-//    std::cout << std::endl;
-//    for (int i=0; i<wakeLines.size(); i++)
-//    {
-//        std::cout << wakeLines[i]->getPMid()(0) << "," << wakeLines[i]->getPMid()(1) << "," << wakeLines[i]->getPMid()(2) << ";" << std::endl;
-//    }
-//    ////
     
     if (other->getYMin() < yMin)
     {
@@ -280,42 +259,43 @@ double wake::wakeStrength(double y)
 double wake::Vradial(Eigen::Vector3d pWake)
 {
     double r;
-    double theta = M_PI/8;
-//    double deltaZ = 0.5;
+    double theta = M_PI/4;
+    double dZmax = 0.3;
+    double delZ;
     Eigen::Vector3d POI;
     POI(0) = pWake(0);
     if (pWake(1) >= 0)
     {
         r = yMax-pWake(1);
-//        if (r < deltaZ)
-//        {
-//            deltaZ = r;
-//        }
-//        POI(1) = yMax-sqrt(pow(r,2)-pow(deltaZ,2));
-        POI(1) = yMax-r*cos(theta);
-
     }
     else
     {
         r = pWake(1)-yMin;
-//        if (r < deltaZ)
-//        {
-//            deltaZ = r;
-//        }
-//        POI(1) = yMin+sqrt(pow(r,2)-pow(deltaZ,2));
-        POI(1) = yMin+r*cos(theta);
-
     }
+    delZ = r*sin(theta);
+    if (delZ > dZmax)
+    {
+        delZ = dZmax;
+        theta = asin(dZmax/r);
+    }
+    if (pWake(1) >= 0)
+    {
+        POI(1) = yMax-r*cos(theta);
+    }
+    else
+    {
+        POI(1) = yMin+r*cos(theta);
+    }
+    
     POI(2) = pWake(2)+r*sin(theta);
-//    POI(2) = pWake(2)+deltaZ;
     
     double Vr;
-    int nPnts = 16;
+    int nPnts = 6;
     if (nPnts % 2 != 0)
     {
         nPnts++; //Make even if odd
     }
-    double dz = 0.05;
+    double dz = 0.5*delZ;
     double step = 2*dz/(nPnts-1);
     double phiPOI = 0;
     Eigen::VectorXd dPhiy(nPnts);
@@ -377,6 +357,8 @@ Eigen::Vector3d wake::pntInWake(double x, double y)
     double t,scale;
     std::vector<edge*> edges;
     pntInWake.setZero();
+    Eigen::Vector3d yDir;
+    yDir << 0,1,0;
     for (int i=0; i<wpanels.size(); i++)
     {
         if (wpanels[i]->isTEpanel())
@@ -393,7 +375,7 @@ Eigen::Vector3d wake::pntInWake(double x, double y)
                         t = (y-p1(1))/(p2(1)-p1(1));
                         tvec = (p2-p1);
                         pnt = p1+t*tvec;
-                        out = wpanels[i]->getNormal().cross(tvec);
+                        out = -wpanels[i]->getNormal().cross(yDir);
                         if (out(0) < 0)
                         {
                             out *= -1; // Flip sign if p1 and p2 were out of order

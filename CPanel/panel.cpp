@@ -324,18 +324,6 @@ Eigen::VectorXi panel::getVerts()
 
 std::vector<Eigen::Vector3d> panel::pntsAroundPnt(int nPnts,const Eigen::Vector3d &POI,double r)
 {
-//    double r = 100000;
-//    double d;
-//    for (int i=0; i<pEdges.size(); i++)
-//    {
-//        d = pEdges[i]->distToEdge(POI);
-//        if (d < r)
-//        {
-//            r = d;
-//        }
-//    }
-//    r *= 0.9;
-    
     std::vector<Eigen::Vector3d> pnts;
     double theta;
     Eigen::Vector3d pnt;
