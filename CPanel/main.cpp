@@ -19,7 +19,7 @@
 void usage(const char * argv[])
 {
     printf("\n");
-    printf("%s is an unstructured panel code developed by students at California Polytechnic State University - San Luis Obispo.\n",argv[0]);
+    printf("CPanel is an unstructured panel code developed by students at California Polytechnic State University - San Luis Obispo.\n");
     printf("\n");
     printf("Usage: %s <infile> \n",argv[0]);
     printf("   <infile>   Required parameter to specify settings input file.\n");
@@ -58,7 +58,7 @@ void usage(const char * argv[])
     printf("0\n");
     printf("Mach_Number\n");
     printf("1\n");
-    printf("1.4\n");
+    printf("0.3\n");
     printf("\n");
     printf("%% Solver Options (0 = OFF, 1 = ON) %%\n");
     printf("Surface_Streamlines\n");
