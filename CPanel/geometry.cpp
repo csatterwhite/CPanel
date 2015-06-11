@@ -248,21 +248,23 @@ void geometry::readTri(std::string tri_file, bool normFlag)
         }
         
         
-        std::vector<wake*> newWakes;
-        for (int i=0; i<wakes.size(); i++)
+        if (wakes.size() > 1)
         {
-            for (int j=i; j<wakes.size(); j++)
+            std::vector<wake*> newWakes;
+            for (int i=0; i<wakes.size(); i++)
             {
-                if (wakes[i]->isSameWake(wakes[j]))
+                for (int j=i; j<wakes.size(); j++)
                 {
-                    wakes[i]->mergeWake(wakes[j]);
-                    delete wakes[j];
-                    newWakes.push_back(wakes[i]);
+                    if (wakes[i]->isSameWake(wakes[j]))
+                    {
+                        wakes[i]->mergeWake(wakes[j]);
+                        delete wakes[j];
+                        newWakes.push_back(wakes[i]);
+                    }
                 }
             }
+            wakes = newWakes;
         }
-        
-        wakes = newWakes;
         
         
         // Collect all panels in geometry
