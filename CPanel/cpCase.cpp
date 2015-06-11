@@ -332,7 +332,7 @@ void cpCase::writeSpanwiseData(boost::filesystem::path path)
     for (int i=0; i<wakes.size(); i++)
     {
         Eigen::VectorXd spanLoc,Cl,Cd;
-        spanLoc = 2*wakes[i]->getSpanwisePnts()/params->Sref;
+        spanLoc = 2*wakes[i]->getSpanwisePnts()/params->bref;
         Cl = wakes[i]->getSpanwiseCl()/PG;
         Cd = wakes[i]->getSpanwiseCd()/pow(PG,2);
         
