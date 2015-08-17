@@ -11,6 +11,7 @@
 #include "wakeLine.h"
 #include "edge.h"
 #include "cpNode.h"
+#include "geometry.h"
 
 
 wake::~wake()
@@ -289,6 +290,7 @@ double wake::Vradial(Eigen::Vector3d pWake)
     
     POI(2) = pWake(2)+r*sin(theta);
     
+    
     double Vr;
     int nPnts = 6;
     if (nPnts % 2 != 0)
@@ -302,10 +304,11 @@ double wake::Vradial(Eigen::Vector3d pWake)
     Eigen::VectorXd dPhiz(nPnts);
     Eigen::MatrixXd dY(nPnts,1);
     Eigen::MatrixXd dZ(nPnts,1);
-    for (int i=0; i<wpanels.size(); i++)
-    {
-        phiPOI += wpanels[i]->panelPhi(POI);
-    }
+//    for (int i=0; i<wpanels.size(); i++)
+//    {
+//        phiPOI += wpanels[i]->panelPhi(POI);
+//    }
+    phiPOI = geom->wakePotential(POI);
 
     int i=0;
     while (i < nPnts)
@@ -318,20 +321,14 @@ double wake::Vradial(Eigen::Vector3d pWake)
         zdir << 0,0,1;
         Eigen::Vector3d pnt1 = POI+delta*ydir;
         Eigen::Vector3d pnt2 = POI+delta*zdir;
-        for (int j=0; j<wpanels.size(); j++)
-        {
-            phiPnt1 += wpanels[j]->panelPhi(pnt1);
-            phiPnt2 += wpanels[j]->panelPhi(pnt2);
-        }
-        if (pnt1(2) > 0)
-        {
-            // Correct for jump in discontinuity;
-            phiPnt1 += wakeStrength(pWake(1));
-        }
-        if (pnt2(2) > 0)
-        {
-            phiPnt2 += wakeStrength(pWake(1));
-        }
+//        for (int j=0; j<wpanels.size(); j++)
+//        {
+//            phiPnt1 += wpanels[j]->panelPhi(pnt1);
+//            phiPnt2 += wpanels[j]->panelPhi(pnt2);
+//        }
+        phiPnt1 = geom->wakePotential(pnt1);
+        phiPnt2 = geom->wakePotential(pnt2);
+        
         dPhiy(i) = phiPnt1-phiPOI;
         dPhiz(i) = phiPnt2-phiPOI;
         dY(i) = pnt1(1) - POI(1);

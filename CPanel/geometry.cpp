@@ -248,6 +248,7 @@ void geometry::readTri(std::string tri_file, bool normFlag)
         }
         
         
+        bool wakeMergeFlag = false;
         if (wakes.size() > 1)
         {
             std::vector<wake*> newWakes;
@@ -260,10 +261,14 @@ void geometry::readTri(std::string tri_file, bool normFlag)
                         wakes[i]->mergeWake(wakes[j]);
                         delete wakes[j];
                         newWakes.push_back(wakes[i]);
+                        wakeMergeFlag = true;
                     }
                 }
             }
-            wakes = newWakes;
+            if (wakeMergeFlag == true)
+            {
+                wakes = newWakes;
+            }
         }
         
         
@@ -281,6 +286,7 @@ void geometry::readTri(std::string tri_file, bool normFlag)
             tempW = wakes[i]->getPanels();
             wPanels.insert(wPanels.begin(),tempW.begin(),tempW.end());
         }
+        
         
         // Check panels for tip patches.  Needed to do 2D CHTLS to avoid nonphysical results near discontinuity at trailing edge.
         for (int i=0; i<bPanels.size(); i++)
@@ -471,7 +477,7 @@ void geometry::createSurfaces(const Eigen::MatrixXi &connectivity, const Eigen::
         {
             if (i==0 || allID(i)!=allID(i-1))
             {
-                w = new wake(allID(i));
+                w = new wake(allID(i),this);
                 wakes.push_back(w);
             }
             wPan = new wakePanel(pNodes,pEdges,norms.row(i),w,allID(i));
@@ -736,6 +742,16 @@ double geometry::pntPotential(const Eigen::Vector3d &pnt, const Eigen::Vector3d 
         pot += wPanels[i]->panelPhi(pnt);
     }
     pot += Vinf.dot(pnt);
+    return pot;
+}
+
+double geometry::wakePotential(const Eigen::Vector3d &pnt)
+{
+    double pot = 0;
+    for (int i=0; i<wPanels.size(); i++)
+    {
+        pot += wPanels[i]->panelPhi(pnt);
+    }
     return pot;
 }
 

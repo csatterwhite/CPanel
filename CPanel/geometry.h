@@ -91,6 +91,7 @@ public:
     geometry& operator=(const geometry &rhs);
     
     double pntPotential(const Eigen::Vector3d &pnt, const Eigen::Vector3d &Vinf);
+    double wakePotential(const Eigen::Vector3d &pnt);
     Eigen::Vector3d pntVelocity(const Eigen::Vector3d &pnt, const Eigen::Vector3d &Vinf, double PG);
     
     void clusterCheck();

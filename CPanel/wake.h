@@ -18,10 +18,12 @@
 
 class wakePanel;
 class wakeLine;
+class geometry;
 
 class wake
 {
     int ID;
+    geometry* geom;
     std::vector<wakePanel*> wpanels;
     std::vector<wakePanel*> TEpanels;
     std::vector<wakeLine*> wakeLines;
@@ -45,7 +47,7 @@ class wake
     Eigen::Vector3d pntVel(Eigen::Matrix<double,1,3> POI, Eigen::MatrixXd pntCloud,Eigen::Matrix<bool,Eigen::Dynamic,1> upperFlag, Eigen::Vector3d Vinf);
     
 public:
-    wake(int wakeID) : ID(wakeID), yMin(0) {}
+    wake(int wakeID, geometry* geom) : ID(wakeID), geom(geom), yMin(0) {}
     
     ~wake();
     
