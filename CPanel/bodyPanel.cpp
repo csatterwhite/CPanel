@@ -68,7 +68,7 @@ void bodyPanel::setTipFlag()
         
         angle = acos(dot);
         
-        if (angle < pow(10,-5) && asin(nNormal(0)) > -M_PI/12)
+        if (angle < pow(10,-8) && asin(nNormal(0)) > -M_PI/12)
         {
             // asin(nNormal(0)) is the angle normal vector makes with xy plane.  Catches bug where some leading edge panels were being flagged as on the tip patch.
             count++;
