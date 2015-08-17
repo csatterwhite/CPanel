@@ -269,10 +269,6 @@ Eigen::Vector3d panel::dubVInf(const Eigen::Vector3d &POI)
 
 Eigen::Vector3d panel::vortexV(const Eigen::Vector3d &a, const Eigen::Vector3d &b, const Eigen::Vector3d &s)
 {
-//    if (a.norm() < s.norm() || b.norm() < s.norm())
-//    {
-//        int dummy = 1;
-//    }
     double core = .05;
     return (a.cross(b)*(a.norm()+b.norm()))/(a.norm()*b.norm()*((a.norm()*b.norm())+a.dot(b))+(pow(core,2)));
 }
@@ -286,7 +282,6 @@ double panel::vortexPhi(const double &PN,const double &Al, const Eigen::Vector3d
     PB = PA-Al*s.dot(m);
     num = s.dot(m)*PN*(b.norm()*PA-a.norm()*PB);
     denom = PA*PB+pow(PN,2)*a.norm()*b.norm()*pow(s.dot(m),2);
-//    if (std::abs(denom) < eps && std::abs(PN) < eps)
     if (denom == 0 && std::abs(PN) < eps)
     {
         // Point is on edge.
