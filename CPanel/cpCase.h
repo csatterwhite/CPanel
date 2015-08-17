@@ -22,26 +22,22 @@
 #include "cpFile.h"
 #include "inputParams.h"
 
+//#include "streamline.h"
+
 
 
 
 class cpCase
 {
     geometry *geom;
-//    std::string path;
-//    std::string name;
-//    cpFile* inFile;
-//    cpFile* gFile;
+
     inputParams* params;
     double Vmag;
     double mach;
-    double PG; // Prandtl-Glauert Correction
+    double PG; // Prandtl-Glauert Correction - (1-M^2)^(1/2)
     double alpha;
     double beta;
-//    double Sref;
-//    double bref;
-//    double cref;
-//    Eigen::Vector3d cg;
+    
     Eigen::Vector3d Vinf;
     Eigen::Matrix3d transform; 
     

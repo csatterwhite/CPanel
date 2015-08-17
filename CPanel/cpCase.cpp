@@ -208,6 +208,68 @@ void cpCase::createStreamlines()
             bStreamlines.push_back(s);
         }
     }
+    
+//    // Off Body Streamline (Temporary)
+//    std::vector<streamline*> sLines;
+//    streamline* sline;
+//    Eigen::Vector3d start;
+//    int ny = 1;
+//    int nz = 6;
+//    double dz = 0.1;
+//    for (int i=0; i<ny; i++)
+//    {
+//        for (int j=0; j<nz; j++)
+//        {
+////            start << -1,-0.5*params->bref+params->bref*i/(ny-1),-0.35+j*dz;
+//            start << -1,-2.85,-0.45+j*dz;
+//            sline = new streamline(start,20,0.0001,Vinf,PG,geom);
+//            sLines.push_back(sline);
+//        }
+//    }
+//    
+//    piece p;
+//    std::vector<piece> pieces;
+//    std::vector<pntDataArray> data;
+//    pntDataArray vel("Velocity");
+//    Eigen::MatrixXi con;
+//    Eigen::MatrixXd pntMat;
+//    std::vector<Eigen::Vector3d> pnts,velocities;
+//    
+//    for (int i=0; i<sLines.size(); i++)
+//    {
+//        pnts = sLines[i]->getPnts();
+//        velocities = sLines[i]->getVelocities();
+//        vel.data.resize(velocities.size(),3);
+//        pntMat.resize(pnts.size(),3);
+//        con.resize(pnts.size()-1,2);
+//        for (int j=0; j<pnts.size(); j++)
+//        {
+//            pntMat.row(j) = pnts[j];
+//            vel.data.row(j) = velocities[j];
+//            if (j<con.rows())
+//            {
+//                con(j,0) = j;
+//                con(j,1) = j+1;
+//            }
+//        }
+//        data.push_back(vel);
+//        p.pnts = pntMat;
+//        p.connectivity = con;
+//        p.pntData = data;
+//        
+//        pieces.push_back(p);
+//        data.clear();
+//    }
+//    
+//    boost::filesystem::path path = boost::filesystem::current_path();
+//    
+//    std::string fname = path.string()+"/OffBodyStreamlines.vtu";
+//    VTUfile wakeFile(fname,pieces);
+//    
+//    for (int i=0; i<sLines.size(); i++)
+//    {
+//        delete sLines[i];
+//    }
 }
 
 void cpCase::stabilityDerivatives()

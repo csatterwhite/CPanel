@@ -14,11 +14,11 @@ streamline::streamline(const Eigen::Vector3d &startPnt, double xMax, double tol,
     coeff4 << 25.0/216 , 0 , 1408.0/2565 , 2197.0/4104 , -0.2 , 0;
     
     double error;
-    double dt = 0.05/Vinf.norm();
+    double dt = 0.1/Vinf.norm();
     Eigen::Vector3d nextPnt;
     nextPnt = rkf(startPnt, dt, error);
     
-    while (nextPnt(0) < xMax && pnts.size() < 600)
+    while (nextPnt(0) < xMax)
     {
         if (error == 0)
         {
